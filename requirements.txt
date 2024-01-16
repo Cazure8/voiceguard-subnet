@@ -224,7 +224,7 @@ toolz==0.12.0
 torch==2.1.1
 torchaudio==2.1.1
 tqdm==4.66.1
--e git+https://github.com/Cazure8/transcription-subnet.git@c7f74e5b952a4b41016c5cf9c4dd42ee91fbab65#egg=transcription_subnet
+-e git+https://github.com/Cazure8/transcription-subnet.git@0caeb413e5696f4317051dae0e5dd2453484032b#egg=transcription_subnet
 triton==2.1.0
 tweepy==4.14.0
 typer==0.9.0
