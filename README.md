@@ -1,6 +1,6 @@
 <div align="center">
 
-# **Bittensor Subnet Template** <!-- omit in toc -->
+# **Transcription Subnet** <!-- omit in toc -->
 [![Discord Chat](https://img.shields.io/discord/308323056592486420.svg)](https://discord.gg/bittensor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 
@@ -12,24 +12,15 @@
 </div>
 
 ---
-- [Quickstarter template](#quickstarter-template)
 - [Introduction](#introduction)
-  - [Example](#example)
 - [Installation](#installation)
-  - [Before you proceed](#before-you-proceed)
-  - [Install](#install)
+- [Running](#running)
+  - [Running subtensor locally](#before-you-proceed)
+  - [Running miner](#running-miner)
+  - [Running validator](#running-validator)
 - [Writing your own incentive mechanism](#writing-your-own-incentive-mechanism)
-- [Subnet Links](#subnet-links)
 - [License](#license)
 
----
-## Quickstarter template
-
-This template contains all the required installation instructions, scripts, and files and functions for:
-- Building Bittensor subnets.
-- Creating custom incentive mechanisms and running these mechanisms on the subnets. 
-
-In order to simplify the building of subnets, this template abstracts away the complexity of the underlying blockchain and other boilerplate code. While the default behavior of the template is sufficient for a simple subnet, you should customize the template in order to meet your specific requirements.
 ---
 
 ## Introduction
@@ -40,75 +31,108 @@ The Bittensor blockchain hosts multiple self-contained incentive mechanisms call
 - Subnet miners who produce value, and
 - Subnet validators who produce consensus
 
-determine together the proper distribution of TAO for the purpose of incentivizing the creation of value, i.e., generating digital commodities, such as intelligence or data. 
-
-Each subnet consists of:
-- Subnet miners and subnet validators.
-- A protocol using which the subnet miners and subnet validators interact with one another. This protocol is part of the incentive mechanism.
-- The Bittensor API using which the subnet miners and subnet validators interact with Bittensor's onchain consensus engine [Yuma Consensus](https://bittensor.com/documentation/validating/yuma-consensus). The Yuma Consensus is designed to drive these actors: subnet validators and subnet miners, into agreement on who is creating value and what that value is worth. 
-
-This starter template is split into three primary files. To write your own incentive mechanism, you should edit these files. These files are:
-1. `template/protocol.py`: Contains the definition of the protocol used by subnet miners and subnet validators.
-2. `neurons/miner.py`: Script that defines the subnet miner's behavior, i.e., how the subnet miner responds to requests from subnet validators.
-3. `neurons/validator.py`: This script defines the subnet validator's behavior, i.e., how the subnet validator requests information from the subnet miners and determines the scores.
-
-### Example
-
-The Bittensor Subnet 1 for Text Prompting is built using this template. See [Bittensor Text-Prompting](https://github.com/opentensor/text-prompting) for how to configure the files and how to add monitoring and telemetry and support multiple miner types. Also see this Subnet 1 in action on [Taostats](https://taostats.io/subnets/netuid-1/) explorer.
-
 ---
 
 ## Installation
 
-### Before you proceed
-Before you proceed with the installation of the subnet, note the following: 
+#### Bittensor
 
-- Use these instructions to run your subnet locally for your development and testing, or on Bittensor testnet or on Bittensor mainnet. 
-- **IMPORTANT**: We **strongly recommend** that you first run your subnet locally and complete your development and testing before running the subnet on Bittensor testnet. Furthermore, make sure that you next run your subnet on Bittensor testnet before running it on the Bittensor mainnet.
-- You can run your subnet either as a subnet owner, or as a subnet validator or as a subnet miner. 
-- **IMPORTANT:** Make sure you are aware of the minimum compute requirements for your subnet. See the [Minimum compute YAML configuration](./min_compute.yml).
-- Note that installation instructions differ based on your situation: For example, installing for local development and testing will require a few additional steps compared to installing for testnet. Similarly, installation instructions differ for a subnet owner vs a validator or a miner. 
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/opentensor/bittensor/master/scripts/install.sh)"
+```
 
-### Install
+#### Clone the repository from Github
+```bash
+git clone https://github.com/Cazure8/transcription-subnet.git
+```
 
-- **Running locally**: Follow the step-by-step instructions described in this section: [Running Subnet Locally](./docs/running_on_staging.md).
-- **Running on Bittensor testnet**: Follow the step-by-step instructions described in this section: [Running on the Test Network](./docs/running_on_testnet.md).
-- **Running on Bittensor mainnet**: Follow the step-by-step instructions described in this section: [Running on the Main Network](./docs/running_on_mainnet.md).
+#### Install package dependencies for the repository
+```bash
+cd transcription-subnet
+apt install python3-pip -y
+python3 -m pip install -e .
+```
 
+#### Install `pm2`
+```bash
+apt update && apt upgrade -y
+apt install nodejs npm -y
+npm i -g pm2
+```
 ---
 
-## Writing your own incentive mechanism
+## Running
 
-As described in [Quickstarter template](#quickstarter-template) section above, when you are ready to write your own incentive mechanism, update this template repository by editing the following files. The code in these files contains detailed documentation on how to update the template. Read the documentation in each of the files to understand how to update the template. There are multiple **TODO**s in each of the files identifying sections you should update. These files are:
-- `template/protocol.py`: Contains the definition of the wire-protocol used by miners and validators.
-- `neurons/miner.py`: Script that defines the miner's behavior, i.e., how the miner responds to requests from validators.
-- `neurons/validator.py`: This script defines the validator's behavior, i.e., how the validator requests information from the miners and determines the scores.
-- `template/forward.py`: Contains the definition of the validator's forward pass.
-- `template/reward.py`: Contains the definition of how validators reward miner responses.
+### Running subtensor locally
 
-In addition to the above files, you should also update the following files:
-- `README.md`: This file contains the documentation for your project. Update this file to reflect your project's documentation.
-- `CONTRIBUTING.md`: This file contains the instructions for contributing to your project. Update this file to reflect your project's contribution guidelines.
-- `template/__init__.py`: This file contains the version of your project.
-- `setup.py`: This file contains the metadata about your project. Update this file to reflect your project's metadata.
-- `docs/`: This directory contains the documentation for your project. Update this directory to reflect your project's documentation.
+#### Install Docker
+```bash
+apt install docker.io -y
+apt install docker-compose -y
+```
 
-__Note__
-The `template` directory should also be renamed to your project name.
----
+#### Run Subtensor locally
+```bash
+git clone https://github.com/opentensor/subtensor.git
+cd subtensor
+docker-compose up --detach
+```
 
-# Subnet Links
-In order to see real-world examples of subnets in-action, see the `subnet_links.json` document or access them from inside the `template` package by:
-```python
-import template
-template.SUBNET_LINKS
-[{'name': 'sn0', 'url': ''},
- {'name': 'sn1', 'url': 'https://github.com/opentensor/text-prompting/'},
- {'name': 'sn2', 'url': 'https://github.com/bittranslateio/bittranslate/'},
- {'name': 'sn3', 'url': 'https://github.com/gitphantomman/scraping_subnet/'},
- {'name': 'sn4', 'url': 'https://github.com/manifold-inc/targon/'},
-...
-]
+### Running miner
+In the innovative transcription subnet, miners play a vital role in transcribing spoken language into written text. Initially utilizing Google's Speech-to-Text API, these miners focus on delivering fast and accurate transcriptions. Their contributions are essential in making audio content accessible and searchable, greatly enhancing the utility of spoken information across various domains.
+
+Looking ahead, the transcription subnet plans to transit custom transcription model soon, offering an alternative to Google's API. This shift aims to provide miners with a more customizable and potentially more cost-effective solution, empowering them to further optimize transcription accuracy and efficiency. As the subnet evolves, miners who adeptly adapt to and leverage DeepSpeech's capabilities will likely see enhanced rewards, reflecting the subnet's commitment to continual innovation and excellence in transcription services.
+
+Miners should have Google's Speech-to-Text API key to be able to provide transcription.
+
+#### Getting Google's Speech-to-Text API key
+
+To utilize Google's Speech-to-Text service in the initial phase of our transcription subnet, you will need to obtain an API key from Google Cloud. This key allows you to access Google's powerful speech recognition capabilities. Here’s a simple guide to getting your API key:
+
+- Create a Google Cloud Account: If you don't already have one, sign up for a Google Cloud account at cloud.google.com.
+
+- Create a New Project: Once logged in, create a new project from the Google Cloud Console.
+
+- Enable Speech-to-Text API: Navigate to the "API & Services" dashboard, search for the Speech-to-Text API, and enable it for your project.
+
+- Set up Billing: To use the Speech-to-Text API, you must set up billing with Google Cloud. Note that Google often offers a free trial with credits that can be used for their APIs. Setting up billing should be with Credit Card.
+
+- Create Credentials: In the API & Services dashboard, go to "Credentials" and create a new API key. This key will be used in our transcription subnet.
+
+- Secure Your API Key: Store this key securely and do not share it publicly, as it can be used to access Google Cloud services on your behalf.
+
+
+#### Future Plans: Transitioning to a Custom Public Audio-to-Speech Model
+We understand the reliance on Google's API might not align with the long-term vision of all our users. To address this, we're excited to announce plans to introduce a custom, public audio-to-speech model soon. This shift aims to provide a more open, adaptable, and potentially cost-effective solution for transcription.
+
+We're committed to ensuring a seamless transition to this new model and will provide ample support and resources as we make this exciting leap forward. We appreciate your understanding and patience during this phase of growth and innovation.
+
+
+#### Run the miner with `pm2`
+
+```bash
+# To run the miner
+pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.port <PORT>
+```
+
+### Running validator
+
+Validators are essential to the integrity and efficiency of our transcription subnet. They are responsible for assessing the quality and accuracy of the transcriptions provided by miners. Here’s an overview of their crucial role:
+
+Validators frequently dispatch a variety of audio clips to miners, covering a wide range of languages, dialects, and audio qualities. This diverse array of samples ensures that miners are adept at handling a broad spectrum of transcription challenges. Validators then meticulously evaluate the transcriptions returned by miners, focusing on accuracy, speed, and adherence to context.
+
+The scoring process by validators is rigorous and fair, aiming to objectively assess each miner's performance. This evaluation is not just about the literal accuracy of the transcriptions, but also about understanding the nuances of spoken language and context. Validators contribute significantly to the continuous improvement of transcription models, driving the entire subnet towards excellence.
+
+In the transcription subnet, validators thus uphold the highest standards of performance. Their diligent work ensures that the subnet remains a reliable and authoritative source for converting audio content into accurate text, thereby enhancing the overall value and usability of spoken data.
+
+#### Download the dataset for transcriptin scoring
+```bash
+python3 -m spacy download en_core_web_md
+```
+
+```bash
+# To run the validator
+pm2 start ./validators/validator.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME>
 ```
 
 ## License

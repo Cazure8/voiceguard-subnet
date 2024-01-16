@@ -1,7 +1,6 @@
 # The MIT License (MIT)
 # Copyright © 2023 Yuma Rao
-# TODO(developer): Set your name
-# Copyright © 2023 <your name>
+# Copyright © 2023 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -17,17 +16,20 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import os
 import time
 import typing
 import bittensor as bt
+import base64
+from google.cloud import speech
 
 # Bittensor Miner Template:
-import template
+import transcription
 
 # import base miner class which takes care of most of the boilerplate
-from template.base.miner import BaseMinerNeuron
+from transcription.base.miner import BaseMinerNeuron
 
-
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = './google_cloud_credentials.json'
 class Miner(BaseMinerNeuron):
     """
     Your miner neuron class. You should use this class to define your miner's behavior. In particular, you should replace the forward function with your own logic. You may also want to override the blacklist and priority functions according to your needs.
@@ -40,30 +42,48 @@ class Miner(BaseMinerNeuron):
     def __init__(self, config=None):
         super(Miner, self).__init__(config=config)
 
-        # TODO(developer): Anything specific to your use case you can do here
-
     async def forward(
-        self, synapse: template.protocol.Dummy
-    ) -> template.protocol.Dummy:
+        self, synapse: transcription.protocol.Transcription
+    ) -> transcription.protocol.Transcription:
         """
-        Processes the incoming 'Dummy' synapse by performing a predefined operation on the input data.
-        This method should be replaced with actual logic relevant to the miner's purpose.
-
-        Args:
-            synapse (template.protocol.Dummy): The synapse object containing the 'dummy_input' data.
-
-        Returns:
-            template.protocol.Dummy: The synapse object with the 'dummy_output' field set to twice the 'dummy_input' value.
-
-        The 'forward' function is a placeholder and should be overridden with logic that is appropriate for
-        the miner's intended operation. This method demonstrates a basic transformation of input data.
+        Processes the incoming 'Transcription' synapse by transcribing the audio input using Google Speech-to-Text API.
         """
-        # TODO(developer): Replace with actual implementation logic.
-        synapse.dummy_output = synapse.dummy_input * 2
+        try:
+            # Initialize Google Speech client
+            client = speech.SpeechClient()
+
+            # Decode Base64 string to binary audio data
+            audio_content = self.safe_base64_decode(synapse.audio_input)
+            
+            # Prepare the audio for the Google Speech API
+            audio = speech.RecognitionAudio(content=audio_content)
+            config = speech.RecognitionConfig(
+                encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+                sample_rate_hertz=24000,  # Adjust according to your audio
+                language_code='en-US'     # Adjust according to your audio
+            )
+
+            # Perform synchronous speech recognition
+            response = client.recognize(config=config, audio=audio)
+            
+            # Collecting transcription results
+            results = [result.alternatives[0].transcript for result in response.results]
+
+            # Concatenate all results
+            full_transcription = ' '.join(results)
+            bt.logging.info(f"Full transcription: {full_transcription}")
+
+            # Set the transcription output in the synapse
+            synapse.transcription_output = full_transcription
+
+            bt.logging.info("Transcription completed successfully.")
+        except Exception as e:
+            bt.logging.error(f"Error in forward function: {e}")
+
         return synapse
 
     async def blacklist(
-        self, synapse: template.protocol.Dummy
+        self, synapse: transcription.protocol.Transcription
     ) -> typing.Tuple[bool, str]:
         """
         Determines whether an incoming request should be blacklisted and thus ignored. Your implementation should
@@ -74,7 +94,7 @@ class Miner(BaseMinerNeuron):
         requests before they are deserialized to avoid wasting resources on requests that will be ignored.
 
         Args:
-            synapse (template.protocol.Dummy): A synapse object constructed from the headers of the incoming request.
+            synapse (transcription.protocol.Transcription): A synapse object constructed from the headers of the incoming request.
 
         Returns:
             Tuple[bool, str]: A tuple containing a boolean indicating whether the synapse's hotkey is blacklisted,
@@ -94,20 +114,32 @@ class Miner(BaseMinerNeuron):
 
         Otherwise, allow the request to be processed further.
         """
-        # TODO(developer): Define how miners should blacklist requests.
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
             # Ignore requests from unrecognized entities.
             bt.logging.trace(
                 f"Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}"
             )
             return True, "Unrecognized hotkey"
+        
+        # Get the caller stake
+        caller_uid = self.metagraph.hotkeys.index(
+            synapse.dendrite.hotkey
+        )  # Get the caller index.
+        caller_stake = float(
+            self.metagraph.S[caller_uid]
+        )  # Return the stake as the priority.
+        if caller_stake < 4096:
+            bt.logging.trace(
+                f"Blacklisting hotkey {synapse.dendrite.hotkey}, not enough stake"
+            )
+            return True, "Not enough stake"
 
         bt.logging.trace(
             f"Not Blacklisting recognized hotkey {synapse.dendrite.hotkey}"
         )
         return False, "Hotkey recognized!"
 
-    async def priority(self, synapse: template.protocol.Dummy) -> float:
+    async def priority(self, synapse: transcription.protocol.Transcription) -> float:
         """
         The priority function determines the order in which requests are handled. More valuable or higher-priority
         requests are processed before others. You should design your own priority mechanism with care.
@@ -115,7 +147,7 @@ class Miner(BaseMinerNeuron):
         This implementation assigns priority to incoming requests based on the calling entity's stake in the metagraph.
 
         Args:
-            synapse (template.protocol.Dummy): The synapse object that contains metadata about the incoming request.
+            synapse (transcription.protocol.Transcription): The synapse object that contains metadata about the incoming request.
 
         Returns:
             float: A priority score derived from the stake of the calling entity.
@@ -139,6 +171,12 @@ class Miner(BaseMinerNeuron):
         )
         return prirority
 
+    def safe_base64_decode(self, data):
+        """Safely decode a base64 string, ensuring correct padding."""
+        padding = len(data) % 4
+        if padding != 0:
+            data += '=' * (4 - padding)
+        return base64.b64decode(data)
 
 # This is the main function, which runs the miner.
 if __name__ == "__main__":

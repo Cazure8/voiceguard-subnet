@@ -1,5 +1,6 @@
 # The MIT License (MIT)
 # Copyright © 2023 Yuma Rao
+# Copyright © 2023 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -23,9 +24,9 @@ import bittensor as bt
 from abc import ABC, abstractmethod
 
 # Sync calls set weights and also resyncs the metagraph.
-from template.utils.config import check_config, add_args, config
-from template.utils.misc import ttl_get_block
-from template import __spec_version__ as spec_version
+from transcription.utils.config import check_config, add_args, config
+from transcription.utils.misc import ttl_get_block
+from transcription import __spec_version__ as spec_version
 
 
 class BaseNeuron(ABC):

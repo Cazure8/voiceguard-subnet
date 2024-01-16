@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+google_cloud_credentials.json
 
 # C extensions
 *.so
