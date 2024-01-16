@@ -23,7 +23,7 @@ import spacy
 
 nlp = spacy.load("en_core_web_md")
 
-def reward(query: int, response: int) -> float:
+def reward(query: str, response: str) -> float:
     """
     Reward the miner response to the dummy request. This method returns a reward
     value for the miner, which is used to update the miner's score.
@@ -44,7 +44,7 @@ def reward(query: int, response: int) -> float:
 
 def get_rewards(
     self,
-    query: int,
+    query: str,
     responses: List[float],
 ) -> torch.FloatTensor:
     """

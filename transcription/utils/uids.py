@@ -29,6 +29,40 @@ def check_uid_availability(
 def get_random_uids(
     self, k: int, exclude: List[int] = None
 ) -> torch.LongTensor:
+    # """Returns k available random uids from the metagraph.
+    # Args:
+    #     k (int): Number of uids to return.
+    #     exclude (List[int]): List of uids to exclude from the random sampling.
+    # Returns:
+    #     uids (torch.LongTensor): Randomly sampled available uids.
+    # Notes:
+    #     If `k` is larger than the number of available `uids`, set `k` to the number of available `uids`.
+    # """
+    # candidate_uids = []
+    # avail_uids = []
+
+    # for uid in range(self.metagraph.n.item()):
+    #     if uid == self.uid:
+    #         continue
+    #     uid_is_available = check_uid_availability(
+    #         self.metagraph, uid, self.config.neuron.vpermit_tao_limit
+    #     )
+    #     uid_is_not_excluded = exclude is None or uid not in exclude
+
+    #     if uid_is_available:
+    #         avail_uids.append(uid)
+    #         if uid_is_not_excluded:
+    #             candidate_uids.append(uid)
+
+    # # Check if candidate_uids contain enough for querying, if not grab all avaliable uids
+    # available_uids = candidate_uids
+    # if len(candidate_uids) < k:
+    #     available_uids += random.sample(
+    #         [uid for uid in avail_uids if uid not in candidate_uids],
+    #         k - len(candidate_uids),
+    #     )
+    # uids = torch.tensor(random.sample(available_uids, k))
+    # return uids
     """Returns k available random uids from the metagraph.
     Args:
         k (int): Number of uids to return.
@@ -42,24 +76,28 @@ def get_random_uids(
     avail_uids = []
 
     for uid in range(self.metagraph.n.item()):
-        if uid == self.uid:
-            continue
         uid_is_available = check_uid_availability(
             self.metagraph, uid, self.config.neuron.vpermit_tao_limit
         )
         uid_is_not_excluded = exclude is None or uid not in exclude
 
-        if uid_is_available:
+        if uid_is_available and uid_is_not_excluded:
+            candidate_uids.append(uid)
+        elif uid_is_available:
             avail_uids.append(uid)
-            if uid_is_not_excluded:
-                candidate_uids.append(uid)
 
-    # Check if candidate_uids contain enough for querying, if not grab all avaliable uids
-    available_uids = candidate_uids
+    # If not enough candidate_uids, supplement from avail_uids, ensuring they're not in exclude list
     if len(candidate_uids) < k:
-        available_uids += random.sample(
-            [uid for uid in avail_uids if uid not in candidate_uids],
-            k - len(candidate_uids),
+        additional_uids_needed = k - len(candidate_uids)
+        filtered_avail_uids = [uid for uid in avail_uids if uid not in exclude]
+        additional_uids = random.sample(
+            filtered_avail_uids, min(additional_uids_needed, len(filtered_avail_uids))
         )
-    uids = torch.tensor(random.sample(available_uids, k))
+        candidate_uids.extend(additional_uids)
+
+    # Safeguard against trying to sample more than what is available
+    num_to_sample = min(k, len(candidate_uids))
+    
+    uids = random.sample(candidate_uids, num_to_sample)
+    bt.logging.debug(f"returning available uids: {uids}")
     return uids
