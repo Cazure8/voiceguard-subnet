@@ -78,6 +78,8 @@ def word_overlap_score(original, response):
 def semantic_similarity(original, response):
     original_doc = nlp(original)
     response_doc = nlp(response)
+    if not original_doc.has_vector or not response_doc.has_vector:
+        return 0.4 
     similarity_score = original_doc.similarity(response_doc)
     return similarity_score
 
