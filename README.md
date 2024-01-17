@@ -89,7 +89,9 @@ Miners should have Google's Speech-to-Text API key to be able to provide transcr
 
 To utilize Google's Speech-to-Text service in the initial phase of our transcription subnet, you will need to obtain an API key from Google Cloud. This key allows you to access Google's powerful speech recognition capabilities. Here’s a simple guide to getting your API key:
 
-- Create a Google Cloud Account: If you don't already have one, sign up for a Google Cloud account at cloud.google.com.
+Please take a reference from images in [docs/get_google_cloud_credential](docs/get_google_cloud_credential)
+
+- Create a Google Cloud Account: If you don't already have one, sign up for a Google Cloud account at cloud.google.com. You can simply go to https://console.cloud.google.com/welcome
 
 - Create a New Project: Once logged in, create a new project from the Google Cloud Console.
 
