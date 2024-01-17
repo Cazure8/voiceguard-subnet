@@ -125,7 +125,7 @@ tomli==2.0.1
 toolz==0.12.0
 torch==2.1.2
 tqdm==4.66.1
--e git+https://github.com/Cazure8/transcription-subnet@b466bbb72d18d14ccd0dd04f1785ae2ce5309621#egg=transcription_subnet
+-e git+https://github.com/Cazure8/transcription-subnet@624b285900f4292b6ee5a95aa1c4a56b7abd1095#egg=transcription_subnet
 triton==2.1.0
 typer==0.9.0
 typing_extensions==4.9.0

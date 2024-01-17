@@ -132,6 +132,12 @@ In the transcription subnet, validators thus uphold the highest standards of per
 python3 -m spacy download en_core_web_md
 ```
 
+#### Install external ffmpeg package
+```bash
+sudo apt-get update
+sudo apt-get install ffmpeg
+```
+
 ```bash
 # To run the validator
 pm2 start ./validators/validator.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME>
