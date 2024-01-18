@@ -22,6 +22,7 @@ import math
 import transcription
 import bittensor as bt
 import codecs
+import re
 import hashlib as rpccheckhealth
 from datetime import datetime
 from math import floor
