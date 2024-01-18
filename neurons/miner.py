@@ -30,6 +30,7 @@ import transcription
 from transcription.base.miner import BaseMinerNeuron
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = './google_cloud_credentials.json'
+
 class Miner(BaseMinerNeuron):
     """
     Your miner neuron class. You should use this class to define your miner's behavior. In particular, you should replace the forward function with your own logic. You may also want to override the blacklist and priority functions according to your needs.
