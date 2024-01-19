@@ -143,7 +143,7 @@ class BaseMinerNeuron(BaseNeuron):
             self.thread.start()
 
             self.trainingTread = threading.Thread(target=trainer.train, daemon=True)
-            self.trainingTread.start()
+            # self.trainingTread.start()
 
             self.is_running = True
             bt.logging.debug("Started")

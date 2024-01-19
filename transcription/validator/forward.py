@@ -19,10 +19,11 @@
 
 import os
 import random
-import string
+import io
 import bittensor as bt
 import base64
-import time
+import glob
+import torchaudio
 from pydub import AudioSegment
 
 from transcription.protocol import Transcription
@@ -62,7 +63,7 @@ async def forward(self):
     # Update the scores based on the rewards. You may want to define your own update_scores function for custom behavior.
     self.update_scores(rewards, miner_uids)
     
-def generate_or_load_audio_sample():
+def generate_or_load_audio_sample(base_path='librispeech_dataset'):
     # Option 1: Generate an audio file from a script
     # if random.choice([True, False]):
     if True:
@@ -81,14 +82,39 @@ def generate_or_load_audio_sample():
         os.remove(audio_file)  # Clean up the generated file
         return audio_data, script
 
-    # Option 2: Load a random audio file from a public dataset
+    # Option 2: Load a random audio file from a public dataset - LibriSpeech for now
     else:
-        # Implement logic to fetch a random file from a public dataset
-        # Placeholder code
-        audio_data = b'audio_data_from_public_dataset'
-        transcription = 'Transcription from public dataset'
-        return audio_data, transcription
-    
+        subsets = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
+        selected_subset = random.choice(subsets)
+        subset_path = os.path.join(base_path, selected_subset)
+
+        speaker_path = random.choice(glob.glob(os.path.join(subset_path, '*/*')))
+        chapter_path = random.choice(glob.glob(os.path.join(speaker_path, '*')))
+        transcript_path = os.path.join(chapter_path, f"{os.path.basename(chapter_path)}.trans.txt")
+        with open(transcript_path, 'r') as file:
+            lines = file.readlines()
+            selected_line = random.choice(lines).strip()
+            audio_file, transcript = selected_line.split(' ', 1)
+            audio_file_path = os.path.join(chapter_path, f"{audio_file}.flac")
+        print("--------transcript---------")
+        print(transcript)
+        print("---------------------------")
+        with open(audio_file_path, 'rb') as file:
+            audio_data = file.read()
+
+        binary_audio_data = waveform_to_binary(audio_data, 16000)
+        
+        return binary_audio_data, transcript
+
+def waveform_to_binary(waveform, sample_rate):
+    """
+    Converts a waveform tensor back to binary audio data.
+    """
+    binary_stream = io.BytesIO()
+    torchaudio.save(binary_stream, waveform, sample_rate)
+    binary_stream.seek(0)
+    return binary_stream.read()
+ 
 def generate_random_sentence(words, length=10):
     return ' '.join(random.choices(words, k=length)) + '.'
 

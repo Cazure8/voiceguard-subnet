@@ -13,7 +13,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = './google_cloud_credentials.json'
 
 def audio_to_text(self, synapse: transcription.protocol.Transcription) -> str:
     user_model_type = self.config.model_type.lower()
-    model_type = user_model_type if user_model_type in ['googleapi', 'wave2vec'] else 'googleapi'
+    model_type = user_model_type if user_model_type in ['googleapi', 'wave2vec'] else 'wave2vec'
     audio_content = safe_base64_decode(synapse.audio_input)
 
     if model_type == "googleapi":
@@ -52,7 +52,7 @@ def audio_to_text(self, synapse: transcription.protocol.Transcription) -> str:
             processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 
             # Decode audio content
-            waveform = self.audio_to_waveform(audio_content)
+            waveform = audio_to_waveform(audio_content)
             
             # Process the waveform
             inputs = processor(waveform, sampling_rate=16000, return_tensors="pt", padding=True)
