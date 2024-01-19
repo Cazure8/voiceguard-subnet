@@ -8,7 +8,12 @@ def download_file(url, dest_folder):
         os.makedirs(dest_folder)
     local_filename = url.split('/')[-1]
     full_local_path = os.path.join(dest_folder, local_filename)
-    
+
+    # Check if the file already exists
+    if os.path.exists(full_local_path):
+        print(f"File {local_filename} already exists, skipping download.")
+        return full_local_path
+
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
         total_length = int(r.headers.get('content-length'))
@@ -25,6 +30,14 @@ def download_file(url, dest_folder):
     return full_local_path
 
 def extract_tarfile(file_path, dest_folder):
+    extracted_folder_name = os.path.splitext(os.path.splitext(file_path)[0])[0]
+    full_extracted_path = os.path.join(dest_folder, extracted_folder_name)
+
+    # Check if the folder created by extracting the file already exists
+    if os.path.exists(full_extracted_path):
+        print(f"Folder {extracted_folder_name} already exists, skipping extraction.")
+        return
+
     if file_path.endswith("tar.gz"):
         with tarfile.open(file_path, "r:gz") as tar:
             tar.extractall(path=dest_folder)
