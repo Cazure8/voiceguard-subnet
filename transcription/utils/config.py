@@ -177,12 +177,12 @@ def add_args(cls, parser):
             help = "Batch size"
         )
 
-        parser.add_argument(
-            "--model_type",
-            type = str,
-            default = "wave2vec",
-            help = "The model type to return transcribed data among googleapi and wave2vec"
-        )
+        # parser.add_argument(
+        #     "--model_type",
+        #     type = str,
+        #     default = "wave2vec",
+        #     help = "The model type to return transcribed data among googleapi and wave2vec"
+        # )
 
         parser.add_argument(
             "--training_mode",

@@ -30,20 +30,18 @@ def download_file(url, dest_folder):
     return full_local_path
 
 def extract_tarfile(file_path, dest_folder):
-    extracted_folder_name = os.path.splitext(os.path.splitext(file_path)[0])[0]
-    full_extracted_path = os.path.join(dest_folder, extracted_folder_name)
-
-    # Check if the folder created by extracting the file already exists
-    if os.path.exists(full_extracted_path):
-        print(f"Folder {extracted_folder_name} already exists, skipping extraction.")
+    if not file_path.endswith((".tar.gz", ".tar")):
+        print(f"File {file_path} is not a tar archive.")
         return
 
-    if file_path.endswith("tar.gz"):
-        with tarfile.open(file_path, "r:gz") as tar:
-            tar.extractall(path=dest_folder)
-    elif file_path.endswith("tar"):
-        with tarfile.open(file_path, "r:") as tar:
-            tar.extractall(path=dest_folder)
+    # Check if the tar file has been extracted
+    if os.path.exists(os.path.join(dest_folder, os.path.basename(file_path))):
+        print(f"Archive {file_path} already extracted.")
+        return
+    
+    with tarfile.open(file_path, "r:*") as tar:
+        tar.extractall(path=dest_folder)
+        print(f"Extracted {file_path} to {dest_folder}")
 
 def download_librispeech_subset(subset, base_url, dest_folder):
     subset_url = base_url + f"{subset}.tar.gz"
