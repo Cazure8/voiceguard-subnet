@@ -16,20 +16,16 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import os
 import time
 import typing
 import bittensor as bt
-import base64
-from google.cloud import speech
 
 # Bittensor Miner Template:
 import transcription
 
 # import base miner class which takes care of most of the boilerplate
 from transcription.base.miner import BaseMinerNeuron
-
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = './google_cloud_credentials.json'
+from transcription.miner.audio_to_text import audio_to_text
 
 class Miner(BaseMinerNeuron):
     """
@@ -47,40 +43,9 @@ class Miner(BaseMinerNeuron):
         self, synapse: transcription.protocol.Transcription
     ) -> transcription.protocol.Transcription:
         """
-        Processes the incoming 'Transcription' synapse by transcribing the audio input using Google Speech-to-Text API.
+        Processes the incoming 'Transcription' synapse by transcribing the audio input using Google Speech-to-Text API or Wave2Vec.
         """
-        try:
-            # Initialize Google Speech client
-            client = speech.SpeechClient()
-
-            # Decode Base64 string to binary audio data
-            audio_content = self.safe_base64_decode(synapse.audio_input)
-            
-            # Prepare the audio for the Google Speech API
-            audio = speech.RecognitionAudio(content=audio_content)
-            config = speech.RecognitionConfig(
-                encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-                sample_rate_hertz=24000,  # Adjust according to your audio
-                language_code='en-US'     # Adjust according to your audio
-            )
-
-            # Perform synchronous speech recognition
-            response = client.recognize(config=config, audio=audio)
-            
-            # Collecting transcription results
-            results = [result.alternatives[0].transcript for result in response.results]
-
-            # Concatenate all results
-            full_transcription = ' '.join(results)
-            bt.logging.info(f"Full transcription: {full_transcription}")
-
-            # Set the transcription output in the synapse
-            synapse.transcription_output = full_transcription
-
-            bt.logging.info("Transcription completed successfully.")
-        except Exception as e:
-            bt.logging.error(f"Error in forward function: {e}")
-
+        synapse.transcription_output = audio_to_text(self, synapse)
         return synapse
 
     async def blacklist(
@@ -171,13 +136,6 @@ class Miner(BaseMinerNeuron):
             f"Prioritizing {synapse.dendrite.hotkey} with value: ", prirority
         )
         return prirority
-
-    def safe_base64_decode(self, data):
-        """Safely decode a base64 string, ensuring correct padding."""
-        padding = len(data) % 4
-        if padding != 0:
-            data += '=' * (4 - padding)
-        return base64.b64decode(data)
 
 # This is the main function, which runs the miner.
 if __name__ == "__main__":

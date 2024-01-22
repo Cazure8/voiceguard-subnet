@@ -19,10 +19,11 @@
 
 import os
 import random
-import string
+import io
 import bittensor as bt
 import base64
-import time
+import glob
+import torchaudio
 from pydub import AudioSegment
 
 from transcription.protocol import Transcription
@@ -62,33 +63,95 @@ async def forward(self):
     # Update the scores based on the rewards. You may want to define your own update_scores function for custom behavior.
     self.update_scores(rewards, miner_uids)
     
-def generate_or_load_audio_sample():
+def generate_or_load_audio_sample(base_path='librispeech_dataset'):
     # Option 1: Generate an audio file from a script
-    # if random.choice([True, False]):
-    if True:
-        script = generate_random_text(num_sentences=5, sentence_length=5)
+    if random.choice([True, False]):
+    # if False:
+        script = generate_random_text(num_sentences=30, sentence_length=10)
         tts = gTTS(script)
         mp3_file_name = "temp_{}.mp3".format(random.randint(0, 10000))
         tts.save(mp3_file_name)
         
-        audio_file = "output_audio_{}.wav".format(random.randint(0, 10000))
-        sound = AudioSegment.from_mp3(mp3_file_name)
-        sound.export(audio_file, format="wav")
-        os.remove(mp3_file_name)
-        
-        with open(audio_file, 'rb') as file:
-            audio_data = file.read()
-        os.remove(audio_file)  # Clean up the generated file
-        return audio_data, script
+        # audio_file = "output_audio_{}.wav".format(random.randint(0, 10000))
+        # sound = AudioSegment.from_mp3(mp3_file_name)
+        # sound.export(audio_file, format="wav")
+        # os.remove(mp3_file_name)
 
-    # Option 2: Load a random audio file from a public dataset
+        audio_file_flac = mp3_file_name.replace('.mp3', '.flac')
+        sound = AudioSegment.from_mp3(mp3_file_name)
+        # Set the frame rate to 16000 Hz
+        sound_16k = sound.set_frame_rate(16000)
+        sound_16k.export(audio_file_flac, format="flac")
+        os.remove(mp3_file_name)  # Clean up the generated MP3 file
+        
+        with open(audio_file_flac, 'rb') as file:
+            audio_data_flac = file.read()
+        os.remove(audio_file_flac)  # Clean up the generated FLAC file
+        print("-------google transcript----------")
+        print(script)
+        print("----------------------------------")
+        return audio_data_flac, script
+
+    # Option 2: Load a random audio file from a public dataset - LibriSpeech for now
     else:
-        # Implement logic to fetch a random file from a public dataset
-        # Placeholder code
-        audio_data = b'audio_data_from_public_dataset'
-        transcription = 'Transcription from public dataset'
-        return audio_data, transcription
-    
+        subsets = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
+        selected_subset = random.choice(subsets)
+        subset_path = os.path.join(base_path, 'LibriSpeech', selected_subset)
+        
+        # speaker_path = random.choice(glob.glob(os.path.join(subset_path, '*/*')))
+        speaker_dirs = glob.glob(os.path.join(subset_path, '*/'))
+        if not speaker_dirs:
+            print(f"No speaker directories found in {subset_path}")
+            return None, None
+        speaker_dir = random.choice(speaker_dirs)
+        
+        chapter_dirs = glob.glob(os.path.join(speaker_dir, '*/'))
+        if not chapter_dirs:
+            print(f"No chapter directories found in {speaker_dir}")
+            return None, None
+        chapter_dir = random.choice(chapter_dirs)
+        chapter_dir = chapter_dir.rstrip('/')
+        path_parts = chapter_dir.split(os.sep)
+        
+        speaker_id = path_parts[-2] 
+        chapter_id = path_parts[-1] 
+        
+        transcript_filename = f"{speaker_id}-{chapter_id}.trans.txt"
+        transcript_file = os.path.join(chapter_dir, transcript_filename)
+
+        if not os.path.exists(transcript_file):
+            print(f"Transcript file not found: {transcript_file}")
+            return None, None
+        
+        # Read the transcript file and choose a random line
+        with open(transcript_file, 'r') as file:
+            lines = file.read().strip().split('\n')
+            line = random.choice(lines)
+            audio_filename, transcript = line.split(' ', 1)
+
+        # Construct the path to the corresponding audio file
+        audio_filepath = os.path.join(chapter_dir, audio_filename + '.flac')
+        if not os.path.exists(audio_filepath):
+            print(f"Audio file not found: {audio_filepath}")
+            return None, None
+
+        # Read and return the audio data and its transcript
+        with open(audio_filepath, 'rb') as file:
+            audio_data = file.read()
+        print("-------wave2vec transcript----------")
+        print(transcript)
+        print("----------------------------------")
+        return audio_data, transcript
+
+def waveform_to_binary(waveform, sample_rate):
+    """
+    Converts a waveform tensor back to binary audio data.
+    """
+    binary_stream = io.BytesIO()
+    torchaudio.save(binary_stream, waveform, sample_rate, format="wav")
+    binary_stream.seek(0)
+    return binary_stream.read()
+ 
 def generate_random_sentence(words, length=10):
     return ' '.join(random.choices(words, k=length)) + '.'
 
