@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 google_cloud_credentials.json
+google_cloud_credentials copy.json
 
 # C extensions
 *.so
