@@ -177,6 +177,13 @@ def add_args(cls, parser):
             help = "Batch size"
         )
 
+        parser.add_argument(
+            "--batch_size",
+            type = int,
+            default = 12,
+            help = "The batch size"
+        )
+        
         # parser.add_argument(
         #     "--model_type",
         #     type = str,
