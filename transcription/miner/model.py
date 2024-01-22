@@ -64,7 +64,6 @@ class ModelTrainer:
 
     def train(self):
         if self.config.device.startswith('cpu'):
-            print("---------------train with cpu----------------")
             # Do not allow gpus
             tf.config.set_visible_devices([], 'GPU')
 
@@ -83,7 +82,6 @@ class ModelTrainer:
             tf.config.threading.set_inter_op_parallelism_threads(num_cores_to_use)
 
         elif self.config.device.startswith('gpu'):
-            print("---------------train with gpu----------------")
             # Find all avaiable gpus
             gpus = tf.config.experimental.list_physical_devices('GPU')
 
@@ -110,34 +108,22 @@ class ModelTrainer:
                             tf.config.experimental.set_memory_growth(gpu, True)
                 except RuntimeError as e:
                     selected_gpus = []
-        print("coming--------------------")
         audio_paths, transcripts = self.load_dataset()
-        print("load dataset--------------------")
         dataset = AudioDataset(audio_paths, transcripts, self.processor)
-        print("data+loader--------------------")
         data_loader = DataLoader(dataset, batch_size=self.config.batch_size, shuffle=True, collate_fn=self.collate_batch)
-        print("data_loader--------------------")
         self.model.train()
-        print("train--------------------")
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=5e-5)
-        print("optimizer--------------------")
+
         if self.config.num_epochs == -1:
             epoch = 1  # Initialize epoch counter outside the while loop
             while True:
                 for batch_idx, batch_data in enumerate(data_loader):
-                    print("inside for--------------------")
                     input_values = batch_data['input_values'].to(self.device)
-                    print("input_values--------------------")
                     labels = batch_data['labels'].to(self.device)
-                    print("labels--------------------")
                     optimizer.zero_grad()
-                    print("optimizer--------------------")
                     outputs = self.model(input_values, labels=labels)
-                    print("outputs--------------------")
                     loss = outputs.loss
-                    print("loss--------------------")
                     loss.backward()
-                    print("backward--------------------")
                     optimizer.step()
 
                     print(f"Epoch: {epoch}, Batch: {batch_idx}, Loss: {loss.item()}")
