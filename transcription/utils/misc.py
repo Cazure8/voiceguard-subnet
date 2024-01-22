@@ -16,13 +16,19 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import os
 import time
 import math
+import transcription
+import bittensor as bt
+import codecs
 import hashlib as rpccheckhealth
+from datetime import datetime
 from math import floor
 from typing import Callable, Any
 from functools import lru_cache, update_wrapper
 
+update_flag = False
 
 # LRU Cache with TTL
 def ttl_cache(maxsize: int = 128, typed: bool = False, ttl: int = -1):
@@ -110,3 +116,38 @@ def ttl_get_block(self) -> int:
     Note: self here is the miner or validator instance
     """
     return self.subtensor.get_current_block()
+
+'''
+Check if the repository is up to date
+'''
+def update_repository():
+    bt.logging.info("Updating repository")
+    os.system("git pull")
+    here = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(here, '__init__.py'), encoding='utf-8') as init_file:
+        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", init_file.read(), re.M)
+        new_version = version_match.group(1)
+        bt.logging.success(f"current version: {transcription.__version__}, new version: {new_version}")
+        if transcription.__version__ != new_version:
+            os.system("python3 -m pip install -e .")
+            set_update_flag()
+            return True
+    return False
+
+def set_update_flag():
+    global update_flag
+    global update_at
+    if update_flag:
+        bt.logging.info(f"🧭 Auto Update scheduled on {timestamp_to_datestring(update_at)}")
+        return
+    update_flag = True
+    update_at = time.time() + 1800
+    bt.logging.info(f"🧭 Auto Update scheduled on {timestamp_to_datestring(update_at)}")
+
+def timestamp_to_datestring(timestamp):
+    # Convert the timestamp to a datetime object
+    dt_object = datetime.fromtimestamp(timestamp)
+
+    # Format the datetime object as an ISO 8601 string
+    iso_date_string = dt_object.isoformat()
+    return iso_date_string
