@@ -107,12 +107,19 @@ class ModelTrainer:
             epoch = 1  # Initialize epoch counter outside the while loop
             while True:
                 for batch_idx, batch_data in enumerate(data_loader):
+                    print("---------1------------")
                     input_values = batch_data['input_values']
+                    print("----------2-----------")
                     labels = batch_data['labels']
+                    print("-----------3----------")
                     optimizer.zero_grad()
+                    print("------------4---------")
                     outputs = self.model(input_values, labels=labels)
+                    print("-------------5--------")
                     loss = outputs.loss
+                    print("--------------6-------")
                     loss.backward()
+                    print("---------------7------")
                     optimizer.step()
 
                     print(f"Epoch: {epoch}, Batch: {batch_idx}, Loss: {loss.item()}")
