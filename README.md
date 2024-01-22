@@ -90,7 +90,9 @@ docker-compose up --detach
 
 ## Miner
 ```text
-In our innovative transcription subnet, miners are at the forefront of converting spoken language into written text. By leveraging the state-of-the-art Wave2Vec 2.0 model, our miners are tasked with delivering highly accurate and efficient transcriptions. This is a crucial step in making audio content universally accessible and easily searchable, thus significantly enhancing its value in various applications.
+In our innovative transcription subnet, miners are at the forefront of converting spoken language into written text. 
+By leveraging the state-of-the-art Wave2Vec 2.0 model, our miners are tasked with delivering highly accurate and efficient transcriptions. 
+This is a crucial step in making audio content universally accessible and easily searchable, thus significantly enhancing its value in various applications.
 ```
 
 ### As a miner in this subnet, your role involves two primary responsibilities:

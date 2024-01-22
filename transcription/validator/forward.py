@@ -191,7 +191,7 @@ def waveform_to_binary(waveform, sample_rate):
     torchaudio.save(binary_stream, waveform, sample_rate, format="wav")
     binary_stream.seek(0)
     return binary_stream.read()
- 
+
 def generate_random_sentence(words, length=10):
     return ' '.join(random.choices(words, k=length)) + '.'
 

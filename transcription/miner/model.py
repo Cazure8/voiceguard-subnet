@@ -46,7 +46,7 @@ class ModelTrainer:
         print("-------------------------------")
         print(self.config.device)
         print("-------------------------------")
-        self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h").to(self.config.device)
+        self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h").to("cuda:0")
         self.processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 
     def train(self):
