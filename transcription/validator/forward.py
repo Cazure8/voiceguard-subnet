@@ -67,24 +67,22 @@ async def forward(self):
 def generate_or_load_audio_sample(base_path='librispeech_dataset'):
     # Option 1: Generate an audio file from a script
     if random.random() < 0.6:  # 60% chance to use TTS
-        script = generate_random_text(num_sentences=30, sentence_length=10)
+        script = generate_random_text(num_sentences=25, sentence_length=10)
         mp3_file_name = "temp_{}.mp3".format(random.randint(0, 10000))
 
-        # if google_tts(script, mp3_file_name):
-        #     bt.logging.info("Using Google TTS")
-        # else:
-        bt.logging.info("Using local TTS")
-        if not local_tts(script, mp3_file_name):
-            return None, None 
+        if google_tts(script, mp3_file_name):
+            bt.logging.info("Using Google TTS")
+        else:
+            bt.logging.info("Using local TTS")
+            if not local_tts(script, mp3_file_name):
+                return None, None 
             
         audio_file_flac = mp3_file_name.replace('.mp3', '.flac')
         try:
-            print("before_sound-------------------")
             sound = AudioSegment.from_mp3(mp3_file_name)
-            print("after_sound-------------------")
             sound_16k = sound.set_frame_rate(16000)
             sound_16k.export(audio_file_flac, format="flac")
-            # os.remove(mp3_file_name)  # Clean up the generated MP3 file
+            os.remove(mp3_file_name)  # Clean up the generated MP3 file
         except Exception as e:
             print(f"Error converting MP3 to FLAC: {e}")
             return None, None
@@ -170,20 +168,19 @@ def google_tts(script, filename):
         raise
 
 def local_tts(script, filename):
-    print("local_tts------------------")
     engine = pyttsx3.init()
     engine.save_to_file(script, filename)
     engine.runAndWait()
-    print("save_ending-------------------")
     # Wait for the file to be created
     timeout = 20  # Maximum number of seconds to wait
     start_time = time.time()
-    while not os.path.exists(filename):
-        print("inside_while------------------")
+    while not os.path.exists(filename) or os.path.getsize(filename) == 0:
         time.sleep(1)
         if time.time() - start_time > timeout:
             print("Timeout waiting for TTS file to be created.")
             return False
+    time.sleep(2)
+    
     return True
 
 def waveform_to_binary(waveform, sample_rate):

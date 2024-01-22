@@ -92,25 +92,34 @@ class ModelTrainer:
                             tf.config.experimental.set_memory_growth(gpu, True)
                 except RuntimeError as e:
                     selected_gpus = []
-        
+        print("coming--------------------")
         audio_paths, transcripts = self.load_dataset()
+        print("load dataset--------------------")
         dataset = AudioDataset(audio_paths, transcripts, self.processor)
-        
+        print("data+loader--------------------")
         data_loader = DataLoader(dataset, batch_size=self.config.batch_size, shuffle=True, collate_fn=self.collate_batch)
-
+        print("data_loader--------------------")
         self.model.train()
+        print("train--------------------")
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=5e-5)
-
+        print("optimizer--------------------")
         if self.config.num_epochs == -1:
             epoch = 1  # Initialize epoch counter outside the while loop
             while True:
                 for batch_idx, batch_data in enumerate(data_loader):
+                    print("inside for--------------------")
                     input_values = batch_data['input_values'].to(self.config.device)
+                    print("input_values--------------------")
                     labels = batch_data['labels'].to(self.config.device)
+                    print("labels--------------------")
                     optimizer.zero_grad()
+                    print("optimizer--------------------")
                     outputs = self.model(input_values, labels=labels)
+                    print("outputs--------------------")
                     loss = outputs.loss
-                    loss.backward()
+                    # print("loss--------------------")
+                    # loss.backward()
+                    print("backward--------------------")
                     optimizer.step()
 
                     print(f"Epoch: {epoch}, Batch: {batch_idx}, Loss: {loss.item()}")
@@ -129,9 +138,6 @@ class ModelTrainer:
         labels_padded = pad_sequence(labels_list, batch_first=True, padding_value=-100)
 
         return {'input_values': input_values_padded, 'labels': labels_padded}
-
-
-
     
     def load_dataset(self, base_path='librispeech_dataset'):
         audio_paths = []
