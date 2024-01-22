@@ -43,11 +43,15 @@ class ModelTrainer:
     def __init__(self, config):
         self.config = config
         self.training_mode = config.training_mode.lower()
+        print("-------------------------------")
+        print(self.config.device)
+        print("-------------------------------")
         self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h").to(self.config.device)
         self.processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 
     def train(self):
         if self.config.device.startswith('cpu'):
+            print("---------------train with cpu----------------")
             # Do not allow gpus
             tf.config.set_visible_devices([], 'GPU')
 
@@ -66,6 +70,7 @@ class ModelTrainer:
             tf.config.threading.set_inter_op_parallelism_threads(num_cores_to_use)
 
         elif self.config.device.startswith('gpu'):
+            print("---------------train with gpu----------------")
             # Find all avaiable gpus
             gpus = tf.config.experimental.list_physical_devices('GPU')
 
