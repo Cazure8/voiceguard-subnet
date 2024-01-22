@@ -16,16 +16,17 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-
 import os
+import time
 import random
 import io
 import bittensor as bt
 import base64
 import glob
+import pyttsx3
 import torchaudio
 from pydub import AudioSegment
-
+from requests.exceptions import HTTPError
 from transcription.protocol import Transcription
 from transcription.validator.reward import get_rewards
 from transcription.utils.uids import get_random_uids
@@ -65,31 +66,38 @@ async def forward(self):
     
 def generate_or_load_audio_sample(base_path='librispeech_dataset'):
     # Option 1: Generate an audio file from a script
-    if random.choice([True, False]):
-    # if False:
+    if random.random() < 0.6:  # 60% chance to use TTS
         script = generate_random_text(num_sentences=30, sentence_length=10)
-        tts = gTTS(script)
         mp3_file_name = "temp_{}.mp3".format(random.randint(0, 10000))
-        tts.save(mp3_file_name)
-        
-        # audio_file = "output_audio_{}.wav".format(random.randint(0, 10000))
-        # sound = AudioSegment.from_mp3(mp3_file_name)
-        # sound.export(audio_file, format="wav")
-        # os.remove(mp3_file_name)
 
+        if google_tts(script, mp3_file_name):
+            bt.logging.info("Using Google TTS")
+        else:
+            bt.logging.info("Using local TTS")
+            if not local_tts(script, mp3_file_name):
+                return None, None 
+            
         audio_file_flac = mp3_file_name.replace('.mp3', '.flac')
-        sound = AudioSegment.from_mp3(mp3_file_name)
-        # Set the frame rate to 16000 Hz
-        sound_16k = sound.set_frame_rate(16000)
-        sound_16k.export(audio_file_flac, format="flac")
-        os.remove(mp3_file_name)  # Clean up the generated MP3 file
+        try:
+            sound = AudioSegment.from_mp3(mp3_file_name)
+            sound_16k = sound.set_frame_rate(16000)
+            sound_16k.export(audio_file_flac, format="flac")
+            os.remove(mp3_file_name)  # Clean up the generated MP3 file
+        except Exception as e:
+            print(f"Error converting MP3 to FLAC: {e}")
+            return None, None
+
+        try:
+            with open(audio_file_flac, 'rb') as file:
+                audio_data_flac = file.read()
+            os.remove(audio_file_flac)  # Clean up the generated FLAC file
+        except Exception as e:
+            print(f"Error handling FLAC file: {e}")
+            return None, None
         
-        with open(audio_file_flac, 'rb') as file:
-            audio_data_flac = file.read()
-        os.remove(audio_file_flac)  # Clean up the generated FLAC file
-        print("-------google transcript----------")
+        print("-------TTS transcript----------")
         print(script)
-        print("----------------------------------")
+        print("-------------------------------")
         return audio_data_flac, script
 
     # Option 2: Load a random audio file from a public dataset - LibriSpeech for now
@@ -142,6 +150,31 @@ def generate_or_load_audio_sample(base_path='librispeech_dataset'):
         print(transcript)
         print("----------------------------------")
         return audio_data, transcript
+
+def google_tts(script, filename):
+    try:
+        tts = gTTS(script)
+        tts.save(filename)
+        return True
+    except HTTPError as e:
+        if e.response.status_code == 429:
+            return False
+        raise
+
+def local_tts(script, filename):
+    engine = pyttsx3.init()
+    engine.save_to_file(script, filename)
+    engine.runAndWait()
+
+    # Wait for the file to be created
+    timeout = 20  # Maximum number of seconds to wait
+    start_time = time.time()
+    while not os.path.exists(filename):
+        time.sleep(1)
+        if time.time() - start_time > timeout:
+            print("Timeout waiting for TTS file to be created.")
+            return False
+    return True
 
 def waveform_to_binary(waveform, sample_rate):
     """

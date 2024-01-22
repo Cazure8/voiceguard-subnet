@@ -135,10 +135,11 @@ python3 -m spacy download en_core_web_md
 python3 transcription/utils/download.py
 ```
 
-### Install external ffmpeg package
+### Install external packages
 ```bash
 sudo apt-get update
 sudo apt-get install ffmpeg
+sudo apt-get install espeak
 ```
 
 ### Run the validator with `pm2`
