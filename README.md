@@ -31,15 +31,20 @@
 # Introduction
 
 ```text
-Welcome to the Transcription Subnet, a decentralized AI network that combines audio-to-speech technology with the incentivized internet in the Bittensor network. This project is a part of a broader initiative to democratize access to powerful AI technologies and foster a community of contributors who are rewarded for their efforts.
+Welcome to the Transcription Subnet, a pioneering decentralized AI network within the Bittensor ecosystem, designed to revolutionize the way we interact with audio-to-text technology. This initiative is a leap forward in democratizing access to cutting-edge AI capabilities, fostering a thriving community where contributors are incentivized for their valuable input.
 
-In the Transcription Subnet, miners and validators play crucial roles in transcribing spoken language into written text and ensuring the quality of these transcriptions. This process makes audio content more accessible and searchable, thereby enhancing the utility of spoken information across various domains.
+At the heart of the Transcription Subnet are two key players: miners and validators. Miners are responsible for transcribing spoken language into accurate written text using advanced speech-to-text models, while validators ensure the quality and reliability of these transcriptions. This synergetic process not only makes audio content universally accessible and searchable but also significantly amplifies its value across diverse sectors.
 
-This repository provides all the necessary tools and instructions for you to become a part of this exciting initiative. Whether you're a miner looking to contribute transcriptions or a validator ensuring the quality of transcriptions, you'll find everything you need to get started here.
+Our current implementation leverages the Wave2Vec 2.0 model by Facebook AI, known for its exceptional transcription performance. We utilize rich audio datasets like LibriSpeech for training and benchmarking, ensuring robust and versatile language understanding. As we evolve, we plan to integrate additional models and datasets, like Mozilla’s Common Voice, to further enhance our capabilities.
 
-Please read through the following sections to understand how you can install, run, and contribute to the Transcription Subnet. We look forward to your participation and contributions!
+The effectiveness of miners in our network is heavily influenced by their computational resources. Higher-performing GPUs lead to more accurate and swift transcriptions, which in turn yield better rewards within the Bittensor network. We encourage participants to leverage good hardware to maximize their contributions and benefits.
+
+This repository is your comprehensive guide to joining and excelling in the Transcription Subnet. Whether you aim to be a miner or a validator, you’ll find all the resources and instructions needed to embark on this journey.
+
+Dive into the following sections for detailed insights on installation, operation, and contribution to the Transcription Subnet. Your participation and contributions are not just valued; they are essential to the growth and success of this exciting endeavor. Join us in shaping the future of audio transcription technology!
 ```
 
+<br><br>
 
 # Installation
 
@@ -69,6 +74,8 @@ npm i -g pm2
 ```
 ---
 
+<br><br>
+
 # Running
 
 ## Running subtensor locally
@@ -86,52 +93,39 @@ cd subtensor
 docker-compose up --detach
 ```
 
-## Running miner
+## Miner
 ```text
-In the innovative transcription subnet, miners play a vital role in transcribing spoken language into written text. Initially utilizing Google's Speech-to-Text API, these miners focus on delivering fast and accurate transcriptions. Their contributions are essential in making audio content accessible and searchable, greatly enhancing the utility of spoken information across various domains.
-
-Looking ahead, the transcription subnet plans to transit custom transcription model soon, offering an alternative to Google's API. This shift aims to provide miners with a more customizable and potentially more cost-effective solution, empowering them to further optimize transcription accuracy and efficiency. As the subnet evolves, miners who adeptly adapt to and leverage DeepSpeech's capabilities will likely see enhanced rewards, reflecting the subnet's commitment to continual innovation and excellence in transcription services.
-
-Miners should have Google's Speech-to-Text API key to be able to provide transcription.
+In our innovative transcription subnet, miners are at the forefront of converting spoken language into written text. By leveraging the state-of-the-art Wave2Vec 2.0 model, our miners are tasked with delivering highly accurate and efficient transcriptions. This is a crucial step in making audio content universally accessible and easily searchable, thus significantly enhancing its value in various applications.
 ```
 
-### Getting Google's Speech-to-Text API key
-
-**IMPORTANT**: Please take a reference from images in [docs/get_google_cloud_credential](docs/get_google_cloud_credential)
-
-
-To utilize Google's Speech-to-Text service in the initial phase of our transcription subnet, you will need to obtain an API key from Google Cloud. This key allows you to access Google's powerful speech recognition capabilities. Here’s a simple guide to getting your API key:
-
-1.  Create a Google Cloud Account: If you don't already have one, sign up for a Google Cloud account at cloud.google.com. You can simply go to https://console.cloud.google.com/welcome
-
-2.  Create a New Project: Once logged in, create a new project from the Google Cloud Console.
-
-3.  Enable Speech-to-Text API: Navigate to the "API & Services" dashboard, search for the Speech-to-Text API, and enable it for your project.
-
-4.  Set up Billing: To use the Speech-to-Text API, you must set up billing with Google Cloud. Note that Google often offers a free trial with credits that can be used for their APIs. Setting up billing should be with Credit Card.
-
-6. Create Credentials: In the API & Services dashboard, go to "Credentials" and create a new API key. This key will be used in our transcription subnet. Replace the contents of google_cloud_credentials.json with the one from the downloaded json file.
-
-7.  Secure Your API Key: Store this key securely and do not share it publicly, as it can be used to access Google Cloud services on your behalf.
+### As a miner in this subnet, your role involves two primary responsibilities:
+1. **Training**:  Continuously train the Wave2Vec 2.0 model on your machine using a diverse range of publicly available audio datasets like LibriSpeech. This ongoing training process is vital for improving the model's accuracy and your success as a miner in the network.
+2. **Processing Requests**:  Concurrently handle transcription requests from validators. You will receive audio data, convert it into text using the trained model, and respond back with transcriptions. Efficient and accurate responses will result in better rewards.
 
 
-### Future Plans: Transitioning to a Custom Public Audio-to-Speech Model
+### Minimum Hardware Requirements for Miners
+To participate effectively as a miner in the Transcription Subnet, your system should meet the following **minimum** requirements:
 
-```text
-We understand the reliance on Google's API might not align with the long-term vision of all our users. To address this, we're excited to announce plans to introduce a custom, public audio-to-speech model soon. This shift aims to provide a more open, adaptable, and potentially cost-effective solution for transcription.
+- **Hard Drive**: **500GB** (SSD recommended for faster data access and processing)
+- **Network Speed**:  **100Mbps** (for efficient data transmission to and from the network)
+- **RAM**: **2GB** (8GB or more recommended for optimal performance)
+- **GPU**: **NVIDIA GTX 1060 or equivalent** (Higher-end GPUs like RTX series are recommended for faster training and processing)
 
-We're committed to ensuring a seamless transition to this new model and will provide ample support and resources as we make this exciting leap forward. We appreciate your understanding and patience during this phase of growth and innovation.
+These requirements are set to ensure that miners can handle the intensive tasks of model training and audio transcription efficiently. Miners with higher-spec systems may experience better performance and potentially higher rewards due to faster and more accurate transcriptions.
+
+### Download datasets used in model training
+```bash
+python3 transcription/utils/download.py
 ```
-
 ### Run the miner with `pm2`
 
 ```bash
 # To run the miner
-pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.port <PORT>
+pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME>
 ```
+<br>
 
-
-## Running validator
+## Validator
 
 ```text
 Validators are essential to the integrity and efficiency of our transcription subnet. They are responsible for assessing the quality and accuracy of the transcriptions provided by miners. Here’s an overview of their crucial role:
@@ -143,9 +137,10 @@ The scoring process by validators is rigorous and fair, aiming to objectively as
 In the transcription subnet, validators thus uphold the highest standards of performance. Their diligent work ensures that the subnet remains a reliable and authoritative source for converting audio content into accurate text, thereby enhancing the overall value and usability of spoken data.
 ```
 
-### Download the dataset for transcription scoring
+### Download dataset for transcription scoring
 ```bash
 python3 -m spacy download en_core_web_md
+python3 transcription/utils/download.py
 ```
 
 ### Install external ffmpeg package

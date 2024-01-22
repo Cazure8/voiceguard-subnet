@@ -192,10 +192,10 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--device",
+            '--device',
             type = str,
-            default = "gpu",
-            help = "Device used for model training"
+            default='cuda' if torch.cuda.is_available() else 'cpu', 
+            help="Device to run the model on. Use 'cuda' for GPU or 'cpu' for CPU."
         )
 
 
