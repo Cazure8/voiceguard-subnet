@@ -115,9 +115,21 @@ These requirements are set to ensure that miners can handle the intensive tasks 
 python3 transcription/utils/download.py
 ```
 ### Run the miner with `pm2`
+```bash
+ # To run the miner
+pm2 start neurons/miner.py --name miner --interpreter python3 -- 
+    --netuid # the subnet netuid, default = 
+    --subtensor.network # the bittensor chain endpoint, default = finney, local, test (highly recommend running subtensor locally)
+    --wallet.name # your miner wallet, default = default
+    --wallet.hotkey # your validator hotkey, default = default
+    --logging.debug # run in debug mode, alternatively --logging.trace for trace mode
+    --batch_size # the number of data points processed in a single iteration, default = 32
+    --device gpu:0,2 # the device will be used for model training, default = gpu
+```
+
 
 ```bash
-# To run the miner
+# Example
 pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME>
 ```
 <br>
