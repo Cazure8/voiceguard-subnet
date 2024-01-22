@@ -67,7 +67,7 @@ def generate_or_load_audio_sample(base_path='librispeech_dataset'):
     # Option 1: Generate an audio file from a script
     if random.choice([True, False]):
     # if False:
-        script = generate_random_text(num_sentences=20, sentence_length=10)
+        script = generate_random_text(num_sentences=30, sentence_length=10)
         tts = gTTS(script)
         mp3_file_name = "temp_{}.mp3".format(random.randint(0, 10000))
         tts.save(mp3_file_name)
