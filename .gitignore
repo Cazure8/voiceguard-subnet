@@ -164,3 +164,6 @@ testing/
 
 # audio files
 *.mp3
+
+# librispeech datasets
+librispeech_dataset

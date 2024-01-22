@@ -46,14 +46,6 @@ class Validator(BaseValidatorNeuron):
         self.load_state()
 
     async def forward(self):
-        """
-        Validator forward pass. Consists of:
-        - Generating the query
-        - Querying the miners
-        - Getting the responses
-        - Rewarding the miners
-        - Updating the scores
-        """
         return await forward(self)
 
 

@@ -25,6 +25,7 @@ import traceback
 import bittensor as bt
 
 from transcription.base.neuron import BaseNeuron
+from transcription.miner.model import ModelTrainer
 
 
 class BaseMinerNeuron(BaseNeuron):
@@ -134,11 +135,16 @@ class BaseMinerNeuron(BaseNeuron):
         Starts the miner's operations in a separate background thread.
         This is useful for non-blocking operations.
         """
+        trainer = ModelTrainer(self.config)
         if not self.is_running:
             bt.logging.debug("Starting miner in background thread.")
             self.should_exit = False
             self.thread = threading.Thread(target=self.run, daemon=True)
             self.thread.start()
+
+            self.trainingTread = threading.Thread(target=trainer.train, daemon=True)
+            self.trainingTread.start()
+
             self.is_running = True
             bt.logging.debug("Started")
 

@@ -163,6 +163,41 @@ def add_args(cls, parser):
             default=False,
         )
 
+        parser.add_argument(
+            "--num_epochs",
+            type = int,
+            default = -1,
+            help = "Number of training epochs (-1 is infinite)"
+        )
+
+        parser.add_argument(
+            "--batch_size",
+            type = int,
+            default = 32,
+            help = "Batch size"
+        )
+
+        # parser.add_argument(
+        #     "--model_type",
+        #     type = str,
+        #     default = "wave2vec",
+        #     help = "The model type to return transcribed data among googleapi and wave2vec"
+        # )
+
+        parser.add_argument(
+            "--training_mode",
+            type = str,
+            default = "normal",
+            help = "Training mode either fast, normal or slow. This dictates the pace and intensity of the model training process "
+        )
+
+        parser.add_argument(
+            "--device",
+            type = str,
+            default = "gpu",
+            help = "Device used for model training"
+        )
+
 
 def config(cls):
     """
