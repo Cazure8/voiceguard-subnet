@@ -42,10 +42,8 @@ class AudioDataset(Dataset):
 class ModelTrainer:
     def __init__(self, config):
         self.config = config
-        self.device = config.device
         self.training_mode = config.training_mode.lower()
-        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h").to(self.device)
+        self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h").to(self.config.device)
         self.processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 
     def train(self):
@@ -107,8 +105,8 @@ class ModelTrainer:
             epoch = 1  # Initialize epoch counter outside the while loop
             while True:
                 for batch_idx, batch_data in enumerate(data_loader):
-                    input_values = batch_data['input_values']
-                    labels = batch_data['labels']
+                    input_values = batch_data['input_values'].to(self.config.device)
+                    labels = batch_data['labels'].to(self.config.device)
                     optimizer.zero_grad()
                     outputs = self.model(input_values, labels=labels)
                     loss = outputs.loss

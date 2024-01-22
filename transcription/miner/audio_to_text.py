@@ -15,7 +15,6 @@ global_processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960
 
 def audio_to_text(self, synapse: transcription.protocol.Transcription) -> str:
     audio_content = safe_base64_decode(synapse.audio_input)
-    print(f"Size of audio content: {len(audio_content)} bytes")
 
     try:
         # Load the audio and convert it to a waveform
@@ -49,9 +48,6 @@ def audio_to_text(self, synapse: transcription.protocol.Transcription) -> str:
         # Decode the model output
         predicted_ids = torch.argmax(logits, dim=-1)
         transcription = global_processor.batch_decode(predicted_ids)
-        print("------------transcription------------------")
-        print(transcription[0])
-        print("-------------------------------------------")
         return transcription[0]
     
     except Exception as e:
