@@ -43,10 +43,23 @@ class ModelTrainer:
     def __init__(self, config):
         self.config = config
         self.training_mode = config.training_mode.lower()
-        print("-------------------------------")
-        print(self.config.device)
-        print("-------------------------------")
-        self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h").to("cuda:0")
+        
+        if torch.cuda.is_available() and self.config.device.startswith('gpu'):
+            # Find device numbers from string
+            device_number = 0  # default GPU index
+            try:
+                numbers_part = self.config.device.split(":")
+                device_number = int(re.findall(r'\d+', numbers_part[1])[0])
+            except Exception as e:
+                print("Error parsing GPU device number, defaulting to 0.")
+
+            self.device = torch.device(f'cuda:{device_number}')
+            print(f"Training on GPU: {device_number}")
+        else:
+            self.device = torch.device('cpu')
+            print("Training on CPU")
+            
+        self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h").to(self.device)
         self.processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 
     def train(self):
@@ -113,9 +126,9 @@ class ModelTrainer:
             while True:
                 for batch_idx, batch_data in enumerate(data_loader):
                     print("inside for--------------------")
-                    input_values = batch_data['input_values'].to(self.config.device)
+                    input_values = batch_data['input_values'].to(self.device)
                     print("input_values--------------------")
-                    labels = batch_data['labels'].to(self.config.device)
+                    labels = batch_data['labels'].to(self.device)
                     print("labels--------------------")
                     optimizer.zero_grad()
                     print("optimizer--------------------")
