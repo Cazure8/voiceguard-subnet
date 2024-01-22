@@ -79,10 +79,12 @@ def generate_or_load_audio_sample(base_path='librispeech_dataset'):
             
         audio_file_flac = mp3_file_name.replace('.mp3', '.flac')
         try:
+            print("before_sound-------------------")
             sound = AudioSegment.from_mp3(mp3_file_name)
+            print("after_sound-------------------")
             sound_16k = sound.set_frame_rate(16000)
             sound_16k.export(audio_file_flac, format="flac")
-            os.remove(mp3_file_name)  # Clean up the generated MP3 file
+            # os.remove(mp3_file_name)  # Clean up the generated MP3 file
         except Exception as e:
             print(f"Error converting MP3 to FLAC: {e}")
             return None, None
@@ -176,6 +178,7 @@ def local_tts(script, filename):
     timeout = 20  # Maximum number of seconds to wait
     start_time = time.time()
     while not os.path.exists(filename):
+        print("inside_while------------------")
         time.sleep(1)
         if time.time() - start_time > timeout:
             print("Timeout waiting for TTS file to be created.")
