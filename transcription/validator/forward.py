@@ -170,10 +170,11 @@ def google_tts(script, filename):
         raise
 
 def local_tts(script, filename):
+    print("local_tts------------------")
     engine = pyttsx3.init()
     engine.save_to_file(script, filename)
     engine.runAndWait()
-
+    print("save_ending-------------------")
     # Wait for the file to be created
     timeout = 20  # Maximum number of seconds to wait
     start_time = time.time()
