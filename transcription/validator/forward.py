@@ -70,12 +70,12 @@ def generate_or_load_audio_sample(base_path='librispeech_dataset'):
         script = generate_random_text(num_sentences=30, sentence_length=10)
         mp3_file_name = "temp_{}.mp3".format(random.randint(0, 10000))
 
-        if google_tts(script, mp3_file_name):
-            bt.logging.info("Using Google TTS")
-        else:
-            bt.logging.info("Using local TTS")
-            if not local_tts(script, mp3_file_name):
-                return None, None 
+        # if google_tts(script, mp3_file_name):
+        #     bt.logging.info("Using Google TTS")
+        # else:
+        bt.logging.info("Using local TTS")
+        if not local_tts(script, mp3_file_name):
+            return None, None 
             
         audio_file_flac = mp3_file_name.replace('.mp3', '.flac')
         try:
