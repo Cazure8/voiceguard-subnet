@@ -122,8 +122,8 @@ class ModelTrainer:
                     outputs = self.model(input_values, labels=labels)
                     print("outputs--------------------")
                     loss = outputs.loss
-                    # print("loss--------------------")
-                    # loss.backward()
+                    print("loss--------------------")
+                    loss.backward()
                     print("backward--------------------")
                     optimizer.step()
 
