@@ -30,7 +30,7 @@ from requests.exceptions import HTTPError
 from transcription.protocol import Transcription
 from transcription.validator.reward import get_rewards
 from transcription.utils.uids import get_random_uids
-from gtts import gTTS
+from gtts import gTTS, gTTSError
 
 async def forward(self):
     """
