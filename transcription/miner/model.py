@@ -47,7 +47,7 @@ class ModelTrainer:
         self.processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 
     def train(self):
-        if self.device.startswith('cpu'):
+        if self.config.device.startswith('cpu'):
             # Do not allow gpus
             tf.config.set_visible_devices([], 'GPU')
 
@@ -56,7 +56,7 @@ class ModelTrainer:
             
             try:
                 # Find device numbers from string
-                numbers_part = self.device.split(":")
+                numbers_part = self.config.device.split(":")
                 num_cores_to_use = min(num_cpu_cores, int(numbers_part[1]))
             except Exception as e:
                 num_cores_to_use = num_cpu_cores
@@ -65,13 +65,13 @@ class ModelTrainer:
             tf.config.threading.set_intra_op_parallelism_threads(num_cores_to_use)
             tf.config.threading.set_inter_op_parallelism_threads(num_cores_to_use)
 
-        elif self.device.startswith('gpu'):
+        elif self.config.device.startswith('gpu'):
             # Find all avaiable gpus
             gpus = tf.config.experimental.list_physical_devices('GPU')
 
             try:
                 # Find device numbers from string
-                numbers_part = self.device.split(":")
+                numbers_part = self.config.device.split(":")
                 numbers = re.findall(r'\d+', numbers_part[1])
                 device_numbers = [int(num) for num in numbers if int(num) < len(gpus)]
             except Exception as e:
