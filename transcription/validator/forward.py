@@ -158,6 +158,12 @@ def google_tts(script, filename):
         return True
     except HTTPError as e:
         if e.response.status_code == 429:
+            print("Hit rate limit for Google TTS")
+            return False
+        raise
+    except gTTSError as e:
+        if "429 (Too Many Requests)" in str(e):
+            print("Hit rate limit for Google TTS")
             return False
         raise
 
