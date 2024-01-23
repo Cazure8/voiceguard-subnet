@@ -22,7 +22,6 @@
   - [Running subtensor locally](#before-you-proceed)
   - [Running miner](#running-miner)
   - [Running validator](#running-validator)
-- [Writing your own incentive mechanism](#writing-your-own-incentive-mechanism)
 - [License](#license)
 
 
@@ -158,9 +157,9 @@ In the transcription subnet, validators thus uphold the highest standards of per
 # To run the validator
 pm2 start neurons/validator.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME>
 ```
+<br>
 
-
-## License
+# License
 This repository is licensed under the MIT License.
 ```text
 # The MIT License (MIT)
