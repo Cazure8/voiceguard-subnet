@@ -68,6 +68,12 @@ sudo apt-get install ffmpeg
 sudo apt-get install espeak
 ```
 
+### Download datasets for transcription scoring and training
+```bash
+python3 -m spacy download en_core_web_md
+python3 transcription/utils/download.py
+```
+
 ## Install `pm2`
 ```bash
 apt update && apt upgrade -y
@@ -117,10 +123,7 @@ To participate effectively as a miner in the Transcription Subnet, your system s
 
 These requirements are set to ensure that miners can handle the intensive tasks of model training and audio transcription efficiently. Miners with higher-spec systems may experience better performance and potentially higher rewards due to faster and more accurate transcriptions.
 
-### Download datasets used in model training
-```bash
-python3 transcription/utils/download.py
-```
+
 ### Run the miner with `pm2`
 ```bash
  # To run the miner
@@ -150,11 +153,6 @@ The scoring process by validators is rigorous and fair, aiming to objectively as
 In the transcription subnet, validators thus uphold the highest standards of performance. Their diligent work ensures that the subnet remains a reliable and authoritative source for converting audio content into accurate text, thereby enhancing the overall value and usability of spoken data.
 ```
 
-### Download dataset for transcription scoring
-```bash
-python3 -m spacy download en_core_web_md
-python3 transcription/utils/download.py
-```
 
 
 ### Run the validator with `pm2`
