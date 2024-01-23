@@ -111,6 +111,8 @@ class ModelTrainer:
                     selected_gpus = []
         audio_paths, transcripts = self.load_dataset()
         dataset = AudioDataset(audio_paths, transcripts, self.processor)
+        if len(dataset) == 0:
+          raise ValueError("The dataset is empty. Check data loading and processing.")
         data_loader = DataLoader(dataset, batch_size=self.config.batch_size, shuffle=True, collate_fn=self.collate_batch)
         self.model.train()
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=5e-5)

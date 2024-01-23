@@ -34,14 +34,17 @@ def extract_tarfile(file_path, dest_folder):
         print(f"File {file_path} is not a tar archive.")
         return
 
-    # Check if the tar file has been extracted
-    if os.path.exists(os.path.join(dest_folder, os.path.basename(file_path))):
-        print(f"Archive {file_path} already extracted.")
+    # The name of the folder we expect to see after extraction
+    expected_extracted_folder = os.path.join(dest_folder, 'LibriSpeech', os.path.basename(file_path).replace(".tar.gz", ""))
+
+    if os.path.exists(expected_extracted_folder):
+        print(f"Archive {file_path} already extracted in {expected_extracted_folder}.")
         return
     
     with tarfile.open(file_path, "r:*") as tar:
         tar.extractall(path=dest_folder)
         print(f"Extracted {file_path} to {dest_folder}")
+
 
 def download_librispeech_subset(subset, base_url, dest_folder):
     subset_url = base_url + f"{subset}.tar.gz"
