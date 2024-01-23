@@ -161,6 +161,8 @@ class ModelTrainer:
                     chapter_id = path_parts[-1] 
                     transcript_filename = f"{speaker_id}-{chapter_id}.trans.txt"
                     transcript_path = os.path.join(chapter_dir, transcript_filename)
+                    if not os.path.exists(transcript_path):
+                        continue
                     with open(transcript_path, 'r') as file:
                         for line in file:
                             line = line.strip()
@@ -169,5 +171,3 @@ class ModelTrainer:
                             transcripts.append(transcript)
 
         return audio_paths, transcripts
-
-    
