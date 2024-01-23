@@ -65,86 +65,74 @@ async def forward(self):
     self.update_scores(rewards, miner_uids)
     
 def generate_or_load_audio_sample(base_path='librispeech_dataset'):
-    # Option 1: Generate an audio file from a script
+    # First, try to generate an audio file using TTS
     if random.random() < 0.6:  # 60% chance to use TTS
         script = generate_random_text(num_sentences=25, sentence_length=10)
         mp3_file_name = "temp_{}.mp3".format(random.randint(0, 10000))
 
-        if google_tts(script, mp3_file_name):
-            bt.logging.info("Using Google TTS")
+        if google_tts(script, mp3_file_name) or local_tts(script, mp3_file_name):
+            bt.logging.info("Generated TTS Audio")
+            audio_file_flac = mp3_file_name.replace('.mp3', '.flac')
+            try:
+                sound = AudioSegment.from_mp3(mp3_file_name)
+                sound_16k = sound.set_frame_rate(16000)
+                sound_16k.export(audio_file_flac, format="flac")
+                os.remove(mp3_file_name)  # Clean up the generated MP3 file
+                try:
+                    with open(audio_file_flac, 'rb') as file:
+                        audio_data_flac = file.read()
+                    os.remove(audio_file_flac)  # Clean up the generated FLAC file
+                    return audio_data_flac, script
+                except Exception as e:
+                    print(f"Error handling FLAC file: {e}")
+            except Exception as e:
+                print(f"Error converting MP3 to FLAC: {e}")
         else:
-            bt.logging.info("Using local TTS")
-            if not local_tts(script, mp3_file_name):
-                return None, None 
-            
-        audio_file_flac = mp3_file_name.replace('.mp3', '.flac')
-        try:
-            sound = AudioSegment.from_mp3(mp3_file_name)
-            sound_16k = sound.set_frame_rate(16000)
-            sound_16k.export(audio_file_flac, format="flac")
-            os.remove(mp3_file_name)  # Clean up the generated MP3 file
-        except Exception as e:
-            print(f"Error converting MP3 to FLAC: {e}")
-            return None, None
+            bt.logging.info("Failed to generate TTS Audio")
 
-        try:
-            with open(audio_file_flac, 'rb') as file:
-                audio_data_flac = file.read()
-            os.remove(audio_file_flac)  # Clean up the generated FLAC file
-        except Exception as e:
-            print(f"Error handling FLAC file: {e}")
-            return None, None
-        
-        return audio_data_flac, script
+    # If TTS fails or the random chance decides not to use TTS, load from LibriSpeech
+    subsets = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
+    selected_subset = random.choice(subsets)
+    subset_path = os.path.join(base_path, 'LibriSpeech', selected_subset)
 
-    # Option 2: Load a random audio file from a public dataset - LibriSpeech for now
-    else:
-        subsets = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
-        selected_subset = random.choice(subsets)
-        subset_path = os.path.join(base_path, 'LibriSpeech', selected_subset)
-        
-        # speaker_path = random.choice(glob.glob(os.path.join(subset_path, '*/*')))
-        speaker_dirs = glob.glob(os.path.join(subset_path, '*/'))
-        if not speaker_dirs:
-            print(f"No speaker directories found in {subset_path}")
-            return None, None
-        speaker_dir = random.choice(speaker_dirs)
-        
-        chapter_dirs = glob.glob(os.path.join(speaker_dir, '*/'))
-        if not chapter_dirs:
-            print(f"No chapter directories found in {speaker_dir}")
-            return None, None
-        chapter_dir = random.choice(chapter_dirs)
-        chapter_dir = chapter_dir.rstrip('/')
-        path_parts = chapter_dir.split(os.sep)
-        
-        speaker_id = path_parts[-2] 
-        chapter_id = path_parts[-1] 
-        
-        transcript_filename = f"{speaker_id}-{chapter_id}.trans.txt"
-        transcript_file = os.path.join(chapter_dir, transcript_filename)
+    speaker_dirs = glob.glob(os.path.join(subset_path, '*/'))
+    if not speaker_dirs:
+        print(f"No speaker directories found in {subset_path}")
+        return None, None
+    speaker_dir = random.choice(speaker_dirs)
+    
+    chapter_dirs = glob.glob(os.path.join(speaker_dir, '*/'))
+    if not chapter_dirs:
+        print(f"No chapter directories found in {speaker_dir}")
+        return None, None
+    chapter_dir = random.choice(chapter_dirs)
+    chapter_dir = chapter_dir.rstrip('/')
+    path_parts = chapter_dir.split(os.sep)
+    
+    speaker_id = path_parts[-2]
+    chapter_id = path_parts[-1]
+    
+    transcript_filename = f"{speaker_id}-{chapter_id}.trans.txt"
+    transcript_file = os.path.join(chapter_dir, transcript_filename)
 
-        if not os.path.exists(transcript_file):
-            print(f"Transcript file not found: {transcript_file}")
-            return None, None
+    if not os.path.exists(transcript_file):
+        print(f"Transcript file not found: {transcript_file}")
+        return None, None
+    
+    with open(transcript_file, 'r') as file:
+        lines = file.read().strip().split('\n')
+        line = random.choice(lines)
+        audio_filename, transcript = line.split(' ', 1)
+
+    audio_filepath = os.path.join(chapter_dir, audio_filename + '.flac')
+    if not os.path.exists(audio_filepath):
+        print(f"Audio file not found: {audio_filepath}")
+        return None, None
+
+    with open(audio_filepath, 'rb') as file:
+        audio_data = file.read()
         
-        # Read the transcript file and choose a random line
-        with open(transcript_file, 'r') as file:
-            lines = file.read().strip().split('\n')
-            line = random.choice(lines)
-            audio_filename, transcript = line.split(' ', 1)
-
-        # Construct the path to the corresponding audio file
-        audio_filepath = os.path.join(chapter_dir, audio_filename + '.flac')
-        if not os.path.exists(audio_filepath):
-            print(f"Audio file not found: {audio_filepath}")
-            return None, None
-
-        # Read and return the audio data and its transcript
-        with open(audio_filepath, 'rb') as file:
-            audio_data = file.read()
-            
-        return audio_data, transcript
+    return audio_data, transcript
 
 def google_tts(script, filename):
     try:
