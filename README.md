@@ -49,12 +49,12 @@ Dive into the following sections for detailed insights on installation, operatio
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/opentensor/bittensor/master/scripts/install.sh)"
 ```
 
-## Clone the repository from Github
+### Clone the repository from Github
 ```bash
 git clone https://github.com/Cazure8/transcription-subnet
 ```
 
-## Install package dependencies for the repository
+### Install package dependencies for the repository
 ```bash
 cd transcription-subnet
 apt install python3-pip -y
@@ -74,7 +74,7 @@ python3 -m spacy download en_core_web_md
 python3 transcription/utils/download.py
 ```
 
-## Install `pm2`
+### Install `pm2`
 ```bash
 apt update && apt upgrade -y
 apt install nodejs npm -y
@@ -152,8 +152,6 @@ Validators frequently dispatch a variety of audio clips to miners, covering a wi
 The scoring process by validators is rigorous and fair, aiming to objectively assess each miner's performance. This evaluation is not just about the literal accuracy of the transcriptions, but also about understanding the nuances of spoken language and context. Validators contribute significantly to the continuous improvement of transcription models, driving the entire subnet towards excellence.
 In the transcription subnet, validators thus uphold the highest standards of performance. Their diligent work ensures that the subnet remains a reliable and authoritative source for converting audio content into accurate text, thereby enhancing the overall value and usability of spoken data.
 ```
-
-
 
 ### Run the validator with `pm2`
 ```bash
