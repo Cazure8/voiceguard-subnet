@@ -61,6 +61,13 @@ apt install python3-pip -y
 python3 -m pip install -e .
 ```
 
+### Install external packages
+```bash
+sudo apt-get update
+sudo apt-get install ffmpeg
+sudo apt-get install espeak
+```
+
 ## Install `pm2`
 ```bash
 apt update && apt upgrade -y
@@ -149,12 +156,6 @@ python3 -m spacy download en_core_web_md
 python3 transcription/utils/download.py
 ```
 
-### Install external packages
-```bash
-sudo apt-get update
-sudo apt-get install ffmpeg
-sudo apt-get install espeak
-```
 
 ### Run the validator with `pm2`
 ```bash
