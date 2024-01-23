@@ -123,7 +123,7 @@ pm2 start neurons/miner.py --name miner --interpreter python3 --
     --wallet.name # your miner wallet, default = default
     --wallet.hotkey # your validator hotkey, default = default
     --logging.debug # run in debug mode, alternatively --logging.trace for trace mode
-    --batch_size # the number of data points processed in a single iteration, default = 32
+    --batch_size # the number of data points processed in a single iteration, default = 12
     --device gpu:0,2 # the device will be used for model training, default = gpu
 ```
 
