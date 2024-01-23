@@ -4,6 +4,7 @@ from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 import os
 import glob
 import torchaudio
+import bittensor as bt
 from torch.utils.data import Dataset
 import tensorflow as tf
 import multiprocessing
@@ -126,7 +127,7 @@ class ModelTrainer:
                     loss.backward()
                     optimizer.step()
 
-                    print(f"Epoch: {epoch}, Batch: {batch_idx}, Loss: {loss.item()}")
+                    bt.logging.info(f"Epoch: {epoch}, Batch: {batch_idx}, Loss: {loss.item()}")
                 epoch += 1  # Increment epoch after each complete pass through the data_loader
 
 
