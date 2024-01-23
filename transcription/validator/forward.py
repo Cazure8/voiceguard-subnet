@@ -95,9 +95,6 @@ def generate_or_load_audio_sample(base_path='librispeech_dataset'):
             print(f"Error handling FLAC file: {e}")
             return None, None
         
-        print("-------TTS transcript----------")
-        print(script)
-        print("-------------------------------")
         return audio_data_flac, script
 
     # Option 2: Load a random audio file from a public dataset - LibriSpeech for now
@@ -146,9 +143,7 @@ def generate_or_load_audio_sample(base_path='librispeech_dataset'):
         # Read and return the audio data and its transcript
         with open(audio_filepath, 'rb') as file:
             audio_data = file.read()
-        print("-------wave2vec transcript----------")
-        print(transcript)
-        print("----------------------------------")
+            
         return audio_data, transcript
 
 def google_tts(script, filename):

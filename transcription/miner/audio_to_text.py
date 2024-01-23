@@ -48,9 +48,6 @@ def audio_to_text(self, synapse: transcription.protocol.Transcription) -> str:
         # Decode the model output
         predicted_ids = torch.argmax(logits, dim=-1)
         transcription = global_processor.batch_decode(predicted_ids)
-        print("-------miner transcript------------")
-        print(transcription[0])
-        print("-----------------------------------")
         return transcription[0]
     
     except Exception as e:
