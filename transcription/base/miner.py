@@ -27,7 +27,7 @@ from transcription import utils
 
 from transcription.base.neuron import BaseNeuron
 from transcription.miner.model import ModelTrainer
-
+from transcription.utils.misc import update_repository
 
 class BaseMinerNeuron(BaseNeuron):
     """
@@ -121,7 +121,7 @@ class BaseMinerNeuron(BaseNeuron):
                 self.sync()
                 
                 if self.step % 5 == 0:
-                    utils.update_repository()
+                    update_repository()
                     
                 self.step += 1
 
