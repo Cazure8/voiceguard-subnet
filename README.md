@@ -144,8 +144,8 @@ pm2 start neurons/miner.py --name miner --interpreter python3 --
 
 
 ```bash
-# Example
-pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP> --axon.port <YOUR PORT>
+# simple Example
+pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --wallet.name myminer --wallet.hotkey myhotkey
 ```
 <br>
 
@@ -162,6 +162,11 @@ In the transcription subnet, validators thus uphold the highest standards of per
 ```bash
 # To run the validator
 pm2 start neurons/validator.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP> --axon.port <YOUR PORT>
+```
+
+```bash
+# simple Example
+pm2 start neurons/validator.py --interpreter python3 -- --netuid 11 --wallet.name myvalidator --wallet.hotkey myhotkey
 ```
 <br>
 
