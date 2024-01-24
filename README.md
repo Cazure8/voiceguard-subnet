@@ -101,7 +101,7 @@ docker-compose up --detach
 ```
 
 #### Newer versions of Subtensor
-The latest versions of Subtensor are a bit different then explained above, please check the official guide for detailed instructions: https://github.com/opentensor/subtensor/blob/main/docs/running-subtensor-locally.md
+The latest versions of Subtensor are a bit different than explained above, please check the official guide for detailed instructions: https://github.com/opentensor/subtensor/blob/main/docs/running-subtensor-locally.md
 
 
 ## Miner
