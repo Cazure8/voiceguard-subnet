@@ -10,7 +10,7 @@
 
 ---
 
-### Decentralized Audio-to-Speech AI on the Bittensor Network<!-- omit in toc -->
+### Decentralized Audio-to-Text AI on the Bittensor Network<!-- omit in toc -->
 
 [Discord](https://discord.com/channels/799672011265015819/1161765231953989712)  •  [Subnet Status](https://taostats.io/subnets/netuid-11)
 </div>
