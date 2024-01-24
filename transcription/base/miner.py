@@ -23,10 +23,11 @@ import threading
 import traceback
 
 import bittensor as bt
+from transcription import utils
 
 from transcription.base.neuron import BaseNeuron
 from transcription.miner.model import ModelTrainer
-
+from transcription.utils.misc import update_repository
 
 class BaseMinerNeuron(BaseNeuron):
     """
@@ -118,6 +119,10 @@ class BaseMinerNeuron(BaseNeuron):
 
                 # Sync metagraph and potentially set weights.
                 self.sync()
+                
+                if self.step % 5 == 0:
+                    update_repository()
+                    
                 self.step += 1
 
         # If someone intentionally stops the miner, it'll safely terminate operations.

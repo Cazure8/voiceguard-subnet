@@ -18,7 +18,7 @@
 
 import os
 import time
-import math
+import subprocess
 import transcription
 import bittensor as bt
 import codecs
@@ -30,6 +30,7 @@ from typing import Callable, Any
 from functools import lru_cache, update_wrapper
 
 update_flag = False
+update_at = 0
 
 # LRU Cache with TTL
 def ttl_cache(maxsize: int = 128, typed: bool = False, ttl: int = -1):
@@ -76,7 +77,6 @@ def ttl_cache(maxsize: int = 128, typed: bool = False, ttl: int = -1):
 
     return wrapper
 
-
 def _ttl_hash_gen(seconds: int):
     """
     Internal generator function used by the `ttl_cache` decorator to generate a new hash value at regular
@@ -94,7 +94,6 @@ def _ttl_hash_gen(seconds: int):
     start_time = time.time()
     while True:
         yield floor((time.time() - start_time) / seconds)
-
 
 # 12 seconds updating block.
 @ttl_cache(maxsize=1, ttl=12)
@@ -122,33 +121,27 @@ def ttl_get_block(self) -> int:
 Check if the repository is up to date
 '''
 def update_repository():
-    bt.logging.info("Updating repository")
-    os.system("git pull")
+    bt.logging.info("checking repository updates")
+    try:
+        subprocess.run(["git", "pull"], check=True)
+    except subprocess.CalledProcessError:
+        bt.logging.error("Git pull failed")
+        return False
+
     here = os.path.abspath(os.path.dirname(__file__))
-    with codecs.open(os.path.join(here, '__init__.py'), encoding='utf-8') as init_file:
+    parent_dir = os.path.dirname(here) 
+    init_file_path = os.path.join(parent_dir, '__init__.py')
+    
+    with codecs.open(init_file_path, encoding='utf-8') as init_file:
         version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", init_file.read(), re.M)
-        new_version = version_match.group(1)
-        bt.logging.success(f"current version: {transcription.__version__}, new version: {new_version}")
-        if transcription.__version__ != new_version:
-            os.system("python3 -m pip install -e .")
-            set_update_flag()
-            return True
-    return False
-
-def set_update_flag():
-    global update_flag
-    global update_at
-    if update_flag:
-        bt.logging.info(f"🧭 Auto Update scheduled on {timestamp_to_datestring(update_at)}")
-        return
-    update_flag = True
-    update_at = time.time() + 1800
-    bt.logging.info(f"🧭 Auto Update scheduled on {timestamp_to_datestring(update_at)}")
-
-def timestamp_to_datestring(timestamp):
-    # Convert the timestamp to a datetime object
-    dt_object = datetime.fromtimestamp(timestamp)
-
-    # Format the datetime object as an ISO 8601 string
-    iso_date_string = dt_object.isoformat()
-    return iso_date_string
+        if version_match:
+            new_version = version_match.group(1)
+            bt.logging.success(f"current version: {transcription.__version__}, new version: {new_version}")
+            if transcription.__version__ != new_version:
+                try:
+                    subprocess.run(["python3", "-m", "pip", "install", "-e", "."], check=True)
+                    os._exit(1)
+                except subprocess.CalledProcessError:
+                    bt.logging.error("Pip install failed")
+        else:
+            bt.logging.info("No changes detected!")
