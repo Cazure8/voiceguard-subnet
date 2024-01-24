@@ -145,5 +145,3 @@ def update_repository():
                     bt.logging.error("Pip install failed")
         else:
             bt.logging.info("No changes detected!")
-
-# test 11:23 tfor auto-update
