@@ -10,7 +10,7 @@
 
 ---
 
-### Decenteralized AI combined auido-to-speech incentivized internet in Bittensor network<!-- omit in toc -->
+### Decentralized Audio-to-Speech AI on the Bittensor Network<!-- omit in toc -->
 
 [Discord](https://discord.com/channels/799672011265015819/1161765231953989712)  •  [Subnet Status](https://taostats.io/subnets/netuid-11)
 </div>
@@ -129,8 +129,9 @@ These requirements are set to ensure that miners can handle the intensive tasks 
 pm2 start neurons/miner.py --name miner --interpreter python3 -- 
     --netuid # the subnet netuid, default = 
     --subtensor.network # the bittensor chain endpoint, default = finney, local, test (highly recommend running subtensor locally)
-    --wallet.name # your miner wallet, default = default
-    --wallet.hotkey # your validator hotkey, default = default
+    --wallet.name # your wallet coldkey name, default = default
+    --wallet.hotkey # your wallet hotkey name, default = default
+    --axon.ip # your IP
     --logging.debug # run in debug mode, alternatively --logging.trace for trace mode
     --batch_size # the number of data points processed in a single iteration, default = 12
     --device gpu:0,2 # the device will be used for model training, default = gpu
@@ -139,7 +140,7 @@ pm2 start neurons/miner.py --name miner --interpreter python3 --
 
 ```bash
 # Example
-pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME>
+pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP>
 ```
 <br>
 
@@ -155,7 +156,7 @@ In the transcription subnet, validators thus uphold the highest standards of per
 ### Run the validator with `pm2`
 ```bash
 # To run the validator
-pm2 start neurons/validator.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME>
+pm2 start neurons/validator.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP>
 ```
 <br>
 
