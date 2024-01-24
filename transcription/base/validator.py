@@ -25,6 +25,7 @@ import bittensor as bt
 
 from typing import List
 from traceback import print_exception
+from transcription import utils
 
 from transcription.base.neuron import BaseNeuron
 
@@ -135,7 +136,10 @@ class BaseValidatorNeuron(BaseNeuron):
 
                 # Sync metagraph and potentially set weights.
                 self.sync()
-
+                
+                if self.step % 5 == 0:
+                    utils.update_repository()
+                    
                 self.step += 1
 
         # If someone intentionally stops the validator, it'll safely terminate operations.
