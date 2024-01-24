@@ -56,7 +56,7 @@ git clone https://github.com/Cazure8/transcription-subnet
 ### Install package dependencies for the repository
 ```bash
 cd transcription-subnet
-apt install python3-pip -y
+python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
 ```
 
@@ -99,6 +99,10 @@ git clone https://github.com/opentensor/subtensor.git
 cd subtensor
 docker-compose up --detach
 ```
+
+#### Newer versions of Subtensor
+The latest versions of Subtensor are a bit different then explained above, please check the official guide for detailed instructions: https://github.com/opentensor/subtensor/blob/main/docs/running-subtensor-locally.md
+
 
 ## Miner
 ```text
