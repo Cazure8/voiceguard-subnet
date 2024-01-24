@@ -10,7 +10,7 @@
 
 ---
 
-### Decenteralized AI combined auido-to-speech incentivized internet in Bittensor network<!-- omit in toc -->
+### Decentralized Audio-to-Text AI on the Bittensor Network<!-- omit in toc -->
 
 [Discord](https://discord.com/channels/799672011265015819/1161765231953989712)  •  [Subnet Status](https://taostats.io/subnets/netuid-11)
 </div>
@@ -56,7 +56,7 @@ git clone https://github.com/Cazure8/transcription-subnet
 ### Install package dependencies for the repository
 ```bash
 cd transcription-subnet
-apt install python3-pip -y
+python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
 ```
 
@@ -100,6 +100,10 @@ cd subtensor
 docker-compose up --detach
 ```
 
+#### Newer versions of Subtensor
+The latest versions of Subtensor are a bit different than explained above, please check the official guide for detailed instructions: https://github.com/opentensor/subtensor/blob/main/docs/running-subtensor-locally.md
+
+
 ## Miner
 ```text
 In our innovative transcription subnet, miners are at the forefront of converting spoken language into written text. 
@@ -129,8 +133,10 @@ These requirements are set to ensure that miners can handle the intensive tasks 
 pm2 start neurons/miner.py --name miner --interpreter python3 -- 
     --netuid # the subnet netuid, default = 
     --subtensor.network # the bittensor chain endpoint, default = finney, local, test (highly recommend running subtensor locally)
-    --wallet.name # your miner wallet, default = default
-    --wallet.hotkey # your validator hotkey, default = default
+    --wallet.name # your wallet coldkey name, default = default
+    --wallet.hotkey # your wallet hotkey name, default = default
+    --axon.ip # your IP
+    --axon.port # the port you allowed
     --logging.debug # run in debug mode, alternatively --logging.trace for trace mode
     --batch_size # the number of data points processed in a single iteration, default = 12
     --device gpu:0,2 # the device will be used for model training, default = gpu
@@ -139,7 +145,7 @@ pm2 start neurons/miner.py --name miner --interpreter python3 --
 
 ```bash
 # Example
-pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME>
+pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP> --axon.port <YOUR PORT>
 ```
 <br>
 
@@ -155,7 +161,7 @@ In the transcription subnet, validators thus uphold the highest standards of per
 ### Run the validator with `pm2`
 ```bash
 # To run the validator
-pm2 start neurons/validator.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME>
+pm2 start neurons/validator.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP> --axon.port <YOUR PORT>
 ```
 <br>
 
