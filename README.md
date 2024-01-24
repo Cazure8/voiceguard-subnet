@@ -132,6 +132,7 @@ pm2 start neurons/miner.py --name miner --interpreter python3 --
     --wallet.name # your wallet coldkey name, default = default
     --wallet.hotkey # your wallet hotkey name, default = default
     --axon.ip # your IP
+    --axon.port # the port you allowed
     --logging.debug # run in debug mode, alternatively --logging.trace for trace mode
     --batch_size # the number of data points processed in a single iteration, default = 12
     --device gpu:0,2 # the device will be used for model training, default = gpu
@@ -140,7 +141,7 @@ pm2 start neurons/miner.py --name miner --interpreter python3 --
 
 ```bash
 # Example
-pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP>
+pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP> --axon.port <YOUR PORT>
 ```
 <br>
 
@@ -156,7 +157,7 @@ In the transcription subnet, validators thus uphold the highest standards of per
 ### Run the validator with `pm2`
 ```bash
 # To run the validator
-pm2 start neurons/validator.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP>
+pm2 start neurons/validator.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP> --axon.port <YOUR PORT>
 ```
 <br>
 
