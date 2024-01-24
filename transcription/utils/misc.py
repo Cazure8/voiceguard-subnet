@@ -129,10 +129,10 @@ def update_repository():
         return False
 
     here = os.path.abspath(os.path.dirname(__file__))
-    print("----------here---------------")
-    print(here)
-    print("-----------------------------")
-    with codecs.open(os.path.join(here, '__init__.py'), encoding='utf-8') as init_file:
+    parent_dir = os.path.dirname(here) 
+    init_file_path = os.path.join(parent_dir, '__init__.py')
+    
+    with codecs.open(init_file_path, encoding='utf-8') as init_file:
         version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", init_file.read(), re.M)
         if version_match:
             new_version = version_match.group(1)
@@ -146,4 +146,4 @@ def update_repository():
         else:
             bt.logging.info("No changes detected!")
 
-# test test test test test test test for auto-update
+# test tfor auto-update

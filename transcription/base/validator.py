@@ -25,7 +25,7 @@ import bittensor as bt
 
 from typing import List
 from traceback import print_exception
-from transcription import utils
+from transcription.utils.misc import update_repository
 
 from transcription.base.neuron import BaseNeuron
 
@@ -138,7 +138,7 @@ class BaseValidatorNeuron(BaseNeuron):
                 self.sync()
                 
                 if self.step % 5 == 0:
-                    utils.update_repository()
+                    update_repository()
                     
                 self.step += 1
 
