@@ -129,6 +129,9 @@ def update_repository():
         return False
 
     here = os.path.abspath(os.path.dirname(__file__))
+    print("----------here---------------")
+    print(here)
+    print("-----------------------------")
     with codecs.open(os.path.join(here, '__init__.py'), encoding='utf-8') as init_file:
         version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", init_file.read(), re.M)
         if version_match:
