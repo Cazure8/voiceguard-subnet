@@ -63,6 +63,18 @@ class ModelTrainer:
         self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h").to(self.device)
         self.processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 
+    def save_model(self, save_path, epoch):
+        """Save the model checkpoint."""
+        model_save_path = os.path.join(save_path, f"model_epoch_{epoch}.pt")
+        torch.save(self.model.state_dict(), model_save_path)
+        print(f"Model saved to {model_save_path}")
+
+    def load_model(self, model_path):
+        """Load the model from a checkpoint."""
+        self.model.load_state_dict(torch.load(model_path))
+        self.model.eval()  # Set the model to evaluation mode
+        print(f"Model loaded from {model_path}")
+        
     def train(self):
         if self.config.device.startswith('cpu'):
             # Do not allow gpus
@@ -112,7 +124,7 @@ class ModelTrainer:
         audio_paths, transcripts = self.load_dataset()
         dataset = AudioDataset(audio_paths, transcripts, self.processor)
         if len(dataset) == 0:
-          raise ValueError("The dataset is empty. Check data loading and processing.")
+            raise ValueError("The dataset is empty. Check data loading and processing.")
         data_loader = DataLoader(dataset, batch_size=self.config.batch_size, shuffle=True, collate_fn=self.collate_batch)
         self.model.train()
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=5e-5)
