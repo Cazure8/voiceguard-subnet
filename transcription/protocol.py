@@ -22,32 +22,26 @@ import bittensor as bt
 class Transcription(bt.Synapse):
     """
     Protocol representation for handling transcription requests in the transcription subnet.
-    
-    Attributes:
-    - audio_input: A bytes-like object representing the audio data or a string URL to the audio file.
-    - transcription_output: A string representing the transcribed text, filled by the receiving miner.
+    Handles both raw audio data and audio URLs.
     """
-
-    # Required request input, can be raw audio data or an audio URL.
-    audio_input: str = ""
+    # Type indicator: 'data' for raw audio data, 'url' for audio URL
+    input_type: str = 'data'
+    
+    # # Required request input, can be raw audio data or an audio URL.
+    # audio_input: str = ""
+    
+    # Audio input can be raw audio data (bytes) or an audio URL (str).
+    # audio_input: typing.Union[bytes, str] = ""
+    audio_input: str = ''
     # audio_input: None
 
     # Optional response output, filled by the receiving miner.
     transcription_output: typing.Optional[str] = ""
 
     def deserialize(self) -> str:
-        """
-        Deserialize the transcription output. This method retrieves the transcription response from
-        the miner, deserializes it, and returns it as the output of the dendrite.query() call.
-
-        Returns:
-        - str: The deserialized transcription response.
-
-        Example:
-        >>> transcription_instance = TranscriptionSynapse(audio_input=b'audio data here')
-        >>> transcription_instance.transcription_output = 'This is transcribed text.'
-        >>> transcription_instance.deserialize()
-        'This is transcribed text.'
-        """
         return self.transcription_output 
+    
+    def is_url(self) -> bool:
+        """ Check if the input is a URL. """
+        return self.input_type == 'url'
 

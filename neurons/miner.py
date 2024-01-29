@@ -26,6 +26,7 @@ import transcription
 # import base miner class which takes care of most of the boilerplate
 from transcription.base.miner import BaseMinerNeuron
 from transcription.miner.audio_to_text import audio_to_text
+from transcription.miner.url_to_text import url_to_text
 
 class Miner(BaseMinerNeuron):
     """
@@ -43,9 +44,13 @@ class Miner(BaseMinerNeuron):
         self, synapse: transcription.protocol.Transcription
     ) -> transcription.protocol.Transcription:
         """
-        Processes the incoming 'Transcription' synapse by transcribing the audio input using Google Speech-to-Text API or Wave2Vec.
+        Processes the incoming 'Transcription' synapse by transcribing the audio input using Wave2Vec.
         """
-        synapse.transcription_output = audio_to_text(self, synapse)
+        if synapse.is_url():
+            synapse.transcription_output = url_to_text(self, synapse)
+        else:
+            synapse.transcription_output = audio_to_text(self, synapse)
+            
         return synapse
 
     async def blacklist(
