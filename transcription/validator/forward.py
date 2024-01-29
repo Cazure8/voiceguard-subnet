@@ -45,7 +45,7 @@ async def forward(self):
     audio_sample, ground_truth_transcription = generate_or_load_audio_sample()
     audio_sample_base64 = encode_audio_to_base64(audio_sample)
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-
+    
     # The dendrite client queries the network.
     responses = self.dendrite.query(
         # Send the query to selected miner axons in the network.
@@ -147,6 +147,9 @@ def google_tts(script, filename):
     except gTTSError as e:
         if "429 (Too Many Requests)" in str(e):
             print("Hit rate limit for Google TTS")
+            return False
+        elif "Failed to connect" in str(e):
+            print("Connection error in Google TTS")
             return False
         raise
 

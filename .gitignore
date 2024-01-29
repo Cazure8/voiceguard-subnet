@@ -168,3 +168,6 @@ testing/
 
 # librispeech datasets
 librispeech_dataset/*
+
+# download for responding API request in miners
+downloads/
