@@ -60,18 +60,21 @@ class ModelTrainer:
             self.device = torch.device('cpu')
             print("Training on CPU")
             
-        self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h").to(self.device)
+        self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
+        self.model.to(self.device)
+        
         self.processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 
-    def save_model(self, save_path, epoch):
-        """Save the model checkpoint."""
-        model_save_path = os.path.join(save_path, f"model_epoch_{epoch}.pt")
+    def save_model(self, save_path):
+        """Save the model checkpoint, replacing the previous one."""
+        model_save_path = os.path.join(save_path, "current_model_checkpoint.pt")
         torch.save(self.model.state_dict(), model_save_path)
         print(f"Model saved to {model_save_path}")
 
     def load_model(self, model_path):
         """Load the model from a checkpoint."""
-        self.model.load_state_dict(torch.load(model_path))
+        checkpoint = torch.load(model_path, map_location=self.device)
+        self.model.load_state_dict(checkpoint)
         self.model.eval()  # Set the model to evaluation mode
         print(f"Model loaded from {model_path}")
         
@@ -129,9 +132,18 @@ class ModelTrainer:
         self.model.train()
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=5e-5)
 
+        epoch = 1
+        min_loss = float('inf')
+        
         if self.config.num_epochs == -1:
-            epoch = 1  # Initialize epoch counter outside the while loop
+            save_path = 'transcription/miner/model_checkpoints'
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+            
             while True:
+                total_loss = 0
+                num_batches = 0
+                
                 for batch_idx, batch_data in enumerate(data_loader):
                     input_values = batch_data['input_values'].to(self.device)
                     labels = batch_data['labels'].to(self.device)
@@ -141,7 +153,17 @@ class ModelTrainer:
                     loss.backward()
                     optimizer.step()
 
+                    total_loss += loss.item()
+                    num_batches += 1
+                    
                     bt.logging.info(f"Epoch: {epoch}, Batch: {batch_idx}, Loss: {loss.item()}")
+
+                epoch_loss = total_loss / num_batches
+                
+                if epoch_loss < min_loss:
+                    self.save_model(save_path)
+                    min_loss = epoch_loss  # Update minimum loss
+
                 epoch += 1  # Increment epoch after each complete pass through the data_loader
 
 
