@@ -171,3 +171,6 @@ librispeech_dataset/*
 
 # download for responding API request in miners
 downloads/
+
+#model checkpoints
+transcription/miner/model_checkpoints

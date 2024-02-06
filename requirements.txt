@@ -10,7 +10,7 @@ async-timeout==4.0.3
 attrs==23.2.0
 backoff==2.2.1
 base58==2.1.1
-bittensor==6.6.1
+bittensor==6.7.0
 black==23.7.0
 blinker==1.7.0
 blis==0.7.11
@@ -155,7 +155,7 @@ toolz==0.12.0
 torch==2.1.2
 torchaudio==2.1.2
 tqdm==4.66.1
--e git+https://github.com/Cazure8/transcription-subnet@267152a161734fee3f69106a2b1291a04b10c061#egg=transcription_subnet
+-e git+https://github.com/Cazure8/transcription-subnet@701643eec92b1031c97e6204c082e35ef18f9da8#egg=transcription_subnet
 transformers==4.36.2
 triton==2.1.0
 twspace-dl==2023.7.24.1

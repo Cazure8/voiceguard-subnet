@@ -60,7 +60,14 @@ class ModelTrainer:
             self.device = torch.device('cpu')
             print("Training on CPU")
             
-        self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
+        checkpoint_path = 'transcription/miner/model_checkpoints/current_model_checkpoint.pt'
+        if os.path.isfile(checkpoint_path):
+            print(f"Loading model from checkpoint: {checkpoint_path}")
+            self.model = Wav2Vec2ForCTC.from_pretrained(None, state_dict=torch.load(checkpoint_path, map_location=self.device))
+        else:
+            print("Loading model with pretrained weights.")
+            self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
+
         self.model.to(self.device)
         
         self.processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
@@ -147,10 +154,31 @@ class ModelTrainer:
                 for batch_idx, batch_data in enumerate(data_loader):
                     input_values = batch_data['input_values'].to(self.device)
                     labels = batch_data['labels'].to(self.device)
+                    
+                    # Check for NaN in inputs and labels
+                    if torch.isinf(input_values).any() or torch.isinf(labels).any():
+                        print(f"Infinite values detected in inputs or labels for batch {batch_idx}")
+                        continue
+
+                    if torch.isnan(input_values).any():
+                        print(f"NaN detected in input_values for batch {batch_idx}")
+                        continue  # Skip this batch
+                    if torch.isnan(labels).any():
+                        print(f"NaN detected in labels for batch {batch_idx}")
+                        continue  # Skip this batch
+                    
                     optimizer.zero_grad()
                     outputs = self.model(input_values, labels=labels)
+                    if torch.isnan(outputs.logits).any():
+                        print(f"NaN detected in model outputs for batch {batch_idx}")
+                        continue
+                    
                     loss = outputs.loss
+                    if torch.isnan(loss).any():
+                        print(f"NaN detected in loss for batch {batch_idx}")
+                        continue  # Skip the backward pass for this batch
                     loss.backward()
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                     optimizer.step()
 
                     total_loss += loss.item()
