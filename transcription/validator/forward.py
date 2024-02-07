@@ -143,15 +143,33 @@ def google_tts(script, filename):
         if e.response.status_code == 429:
             print("Hit rate limit for Google TTS")
             return False
+        elif e.response.status_code == 500:
+            print("Internal Server Error from TTS API")
+            return False
+        elif e.response.status_code == 503:
+            print("Service Unavailable. TTS API might be down or undergoing maintenance")
+            return False
+        elif e.response.status_code == 401:
+            print("Unauthorized. Check your API key or authentication method")
+            return False
+        elif e.response.status_code == 403:
+            print("Forbidden. You might not have permission to use this service")
+            return False
         raise
     except gTTSError as e:
         if "429 (Too Many Requests)" in str(e):
             print("Hit rate limit for Google TTS")
             return False
+        elif "500 (Internal Server Error)" in str(e):
+            print("Internal Server Error from TTS API. Probably cause: Upstream API error")
+            return False
         elif "Failed to connect" in str(e):
             print("Connection error in Google TTS")
             return False
         raise
+    except Exception as e:
+        print(f"An unexpected error occurred: {str(e)}")
+        return False
 
 def local_tts(script, filename):
     engine = pyttsx3.init()
