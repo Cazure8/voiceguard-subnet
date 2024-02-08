@@ -14,7 +14,9 @@ from speechbrain.pretrained import SpeakerRecognition
 recognition_model = SpeakerRecognition.from_hparams(source="speechbrain/lang-id-commonlanguage_ecapa", savedir="tmpdir")
 
 def url_to_text(self, synapse: Transcription) -> str:
-    audio_url = synapse.audio_input
+    # audio_url = synapse.audio_input
+    # audio_url = "https://www.youtube.com/watch?v=gdDGznHW_jY"
+    audio_url = "https://www.youtube.com/watch?v=7_uNKfvgrhs"
     if is_twitter_space(audio_url):
         now = datetime.now()
         timestamp = now.strftime("%Y%m%d_%H%M%S")
@@ -30,7 +32,9 @@ def url_to_text(self, synapse: Transcription) -> str:
         output_file = os.path.join("downloads", filename)
         waveform, sample_rate = read_audio(output_file)
         transcription = transcribe(model, processor, waveform, sample_rate)
-
+        print("--------------------")
+        print(transcription)
+        print("--------------------")
         return transcription
         
 
@@ -98,23 +102,30 @@ def load_model(filename):
     # Predict the language
     prediction_result = recognition_model.classify_file(audio_file)
 
-    _, _, _, language_labels = prediction_result
-    most_probable_language = language_labels[0]  # Assuming the model returns a list with the label
+    # Assuming the model returns a tuple where the last element contains language labels
+    language_labels = prediction_result[-1]  # Adjust according to actual model output
+    most_probable_language_label = language_labels[0]  # Assuming the first label is the most probable
 
     # Initialize model_id with a default model to ensure it's never empty
-    model_id = "facebook/wav2vec2-base-960h"  # Default model for English or as a fallback
+    default_model_id = "facebook/wav2vec2-base-960h"
 
-    if most_probable_language in ["Chinese_Taiwan", "Chinese_Hongkong", "Chinese_Simplified", "Chinese_Traditional"]:
+    # Checking for Chinese variations
+    if "Chinese" in most_probable_language_label:
         model_id = "ydshieh/wav2vec2-large-xlsr-53-chinese-zh-cn-gpt"
-    elif most_probable_language == "English":
-        pass
+    elif "English" in most_probable_language_label:
+        model_id = default_model_id
     else:
-        print(f"Unexpected language detected: {most_probable_language}. Using default model.")
+        model_id = default_model_id
+        print(f"Unexpected language detected: {most_probable_language_label}. Using default model.")
 
+    print(f"Detected language: {most_probable_language_label}, using model: {model_id}")
+
+    # Load the model and processor using the determined model_id
     model = Wav2Vec2ForCTC.from_pretrained(model_id)
     processor = Wav2Vec2Processor.from_pretrained(model_id)
     
     return model, processor
+
 
 
 def read_audio(file_path, target_sample_rate=16000):
