@@ -98,9 +98,6 @@ def load_model(filename):
     # Predict the language
     prediction_result = recognition_model.classify_file(audio_file)
 
-    # Extract the logits tensor for completeness, in case it's needed for further analysis
-    logits_tensor = prediction_result[0]
-
     _, _, _, language_labels = prediction_result
     most_probable_language = language_labels[0]  # Assuming the model returns a list with the label
 
@@ -116,6 +113,7 @@ def load_model(filename):
 
     model = Wav2Vec2ForCTC.from_pretrained(model_id)
     processor = Wav2Vec2Processor.from_pretrained(model_id)
+    
     return model, processor
 
 
