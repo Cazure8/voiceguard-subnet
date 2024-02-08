@@ -9,10 +9,12 @@ from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 from datetime import datetime
 from transcription.protocol import Transcription
 from pytube import YouTube
+from speechbrain.pretrained import SpeakerRecognition
+
+recognition_model = SpeakerRecognition.from_hparams(source="speechbrain/lang-id-commonlanguage_ecapa", savedir="tmpdir")
 
 def url_to_text(self, synapse: Transcription) -> str:
     audio_url = synapse.audio_input
-    
     if is_twitter_space(audio_url):
         now = datetime.now()
         timestamp = now.strftime("%Y%m%d_%H%M%S")
@@ -24,7 +26,7 @@ def url_to_text(self, synapse: Transcription) -> str:
     
     elif is_youtube(audio_url):
         filename = download_youtube(audio_url)
-        model, processor = load_model()
+        model, processor = load_model(filename)
         output_file = os.path.join("downloads", filename)
         waveform, sample_rate = read_audio(output_file)
         transcription = transcribe(model, processor, waveform, sample_rate)
@@ -60,7 +62,8 @@ def is_twitter_space(url):
     return re.match(pattern, url) is not None
 
 def is_youtube(url):
-    pattern = r'(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/)[\w-]+'
+    # Expanded pattern to cover more YouTube URL variations including channels, user pages, and additional query parameters
+    pattern = r'(https?://)?(www\.)?(youtube\.com/watch\?v=|youtube\.com/playlist\?list=|youtube\.com/channel/|youtube\.com/user/|youtu\.be/)[\w-]+(&[\w-]+=[\w-]+)*'
     return re.match(pattern, url) is not None
 
 def download_twitter_space(url, output):
@@ -89,11 +92,32 @@ def download_twitter_space(url, output):
         print(f"An exception occurred while downloading Twitter space: {e}")
         return False
     
-def load_model():
-    # Load pre-trained model and processor
-    model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
-    processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
+def load_model(filename):
+    audio_file = os.path.join("downloads", filename)
+
+    # Predict the language
+    prediction_result = recognition_model.classify_file(audio_file)
+
+    # Extract the logits tensor for completeness, in case it's needed for further analysis
+    logits_tensor = prediction_result[0]
+
+    _, _, _, language_labels = prediction_result
+    most_probable_language = language_labels[0]  # Assuming the model returns a list with the label
+
+    # Initialize model_id with a default model to ensure it's never empty
+    model_id = "facebook/wav2vec2-base-960h"  # Default model for English or as a fallback
+
+    if most_probable_language in ["Chinese_Taiwan", "Chinese_Hongkong", "Chinese_Simplified", "Chinese_Traditional"]:
+        model_id = "ydshieh/wav2vec2-large-xlsr-53-chinese-zh-cn-gpt"
+    elif most_probable_language == "English":
+        pass
+    else:
+        print(f"Unexpected language detected: {most_probable_language}. Using default model.")
+
+    model = Wav2Vec2ForCTC.from_pretrained(model_id)
+    processor = Wav2Vec2Processor.from_pretrained(model_id)
     return model, processor
+
 
 def read_audio(file_path, target_sample_rate=16000):
     # Load the audio file

@@ -174,3 +174,7 @@ downloads/
 
 #model checkpoints
 transcription/miner/model_checkpoints
+
+#temporary directory
+/tmpdir
+/audio_cache
