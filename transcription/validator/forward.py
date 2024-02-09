@@ -64,70 +64,76 @@ async def forward(self):
     # Update the scores based on the rewards. You may want to define your own update_scores function for custom behavior.
     self.update_scores(rewards, miner_uids)
     
+
 def generate_or_load_audio_sample(base_path='librispeech_dataset'):
-    # Attempt to generate audio using TTS
-    script = generate_random_text(num_sentences=25, sentence_length=10)
-    mp3_file_name = f"temp_{random.randint(0, 10000)}.mp3"
+    # First, try to generate an audio file using TTS
+    if random.random() < 0.6:  # 60% chance to use TTS
+        script = generate_random_text(num_sentences=25, sentence_length=10)
+        mp3_file_name = "temp_{}.mp3".format(random.randint(0, 10000))
 
-    if random.random() < 0.6 and (google_tts(script, mp3_file_name) or local_tts(script, mp3_file_name)):
-        audio_data_flac, script = convert_mp3_to_flac(mp3_file_name, script)
-        if audio_data_flac:
-            return audio_data_flac, script
+        if google_tts(script, mp3_file_name) or local_tts(script, mp3_file_name):
+            bt.logging.info("Generated TTS Audio")
+            audio_file_flac = mp3_file_name.replace('.mp3', '.flac')
+            try:
+                sound = AudioSegment.from_mp3(mp3_file_name)
+                sound_16k = sound.set_frame_rate(16000)
+                sound_16k.export(audio_file_flac, format="flac")
+                os.remove(mp3_file_name)  # Clean up the generated MP3 file
+                try:
+                    with open(audio_file_flac, 'rb') as file:
+                        audio_data_flac = file.read()
+                    os.remove(audio_file_flac)  # Clean up the generated FLAC file
+                    return audio_data_flac, script
+                except Exception as e:
+                    print(f"Error handling FLAC file: {e}")
+            except Exception as e:
+                print(f"Error converting MP3 to FLAC: {e}")
+        else:
+            bt.logging.info("Failed to generate TTS Audio")
 
-    # If TTS fails or is not used, try loading from LibriSpeech dataset
-    audio_data, transcript = load_from_librispeech(base_path)
-    if audio_data:
-        return audio_data, transcript
+    # If TTS fails or the random chance decides not to use TTS, load from LibriSpeech
+    subsets = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
+    selected_subset = random.choice(subsets)
+    subset_path = os.path.join(base_path, 'LibriSpeech', selected_subset)
 
-    # As a last resort, search through the entire dataset to find any valid audio file and its transcript
-    return search_for_any_audio_file(base_path)
+    speaker_dirs = glob.glob(os.path.join(subset_path, '*/'))
+    if not speaker_dirs:
+        print(f"No speaker directories found in {subset_path}")
+        return None, None
+    speaker_dir = random.choice(speaker_dirs)
+    
+    chapter_dirs = glob.glob(os.path.join(speaker_dir, '*/'))
+    if not chapter_dirs:
+        print(f"No chapter directories found in {speaker_dir}")
+        return None, None
+    chapter_dir = random.choice(chapter_dirs)
+    chapter_dir = chapter_dir.rstrip('/')
+    path_parts = chapter_dir.split(os.sep)
+    
+    speaker_id = path_parts[-2]
+    chapter_id = path_parts[-1]
+    
+    transcript_filename = f"{speaker_id}-{chapter_id}.trans.txt"
+    transcript_file = os.path.join(chapter_dir, transcript_filename)
 
-def convert_mp3_to_flac(mp3_file_name, script):
-    try:
-        audio_file_flac = mp3_file_name.replace('.mp3', '.flac')
-        sound = AudioSegment.from_mp3(mp3_file_name)
-        sound.export(audio_file_flac, format="flac")
-        os.remove(mp3_file_name)  # Clean up the generated MP3 file
-        with open(audio_file_flac, 'rb') as file:
-            audio_data_flac = file.read()
-        os.remove(audio_file_flac)  # Clean up the generated FLAC file
-        return audio_data_flac, script
-    except Exception as e:
-        print(f"Error during MP3 to FLAC conversion: {e}")
+    if not os.path.exists(transcript_file):
+        print(f"Transcript file not found: {transcript_file}")
         return None, None
     
-def load_from_librispeech(base_path):
-    subsets = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
-    for subset in subsets:
-        subset_path = os.path.join(base_path, 'LibriSpeech', subset)
-        for audio_data, transcript in iterate_audio_files(subset_path):
-            if audio_data:
-                return audio_data, transcript
-    return None, None
+    with open(transcript_file, 'r') as file:
+        lines = file.read().strip().split('\n')
+        line = random.choice(lines)
+        audio_filename, transcript = line.split(' ', 1)
 
-def iterate_audio_files(subset_path):
-    for speaker_dir in glob.glob(os.path.join(subset_path, '*/')):
-        for chapter_dir in glob.glob(os.path.join(speaker_dir, '*/')):
-            transcript_file = glob.glob(os.path.join(chapter_dir, "*.trans.txt"))[0]
-            with open(transcript_file, 'r') as file:
-                for line in file:
-                    audio_filename, transcript = line.strip().split(' ', 1)
-                    audio_filepath = os.path.join(chapter_dir, audio_filename + '.flac')
-                    if os.path.exists(audio_filepath):
-                        with open(audio_filepath, 'rb') as audio_file:
-                            return audio_file.read(), transcript
-    return None, None
+    audio_filepath = os.path.join(chapter_dir, audio_filename + '.flac')
+    if not os.path.exists(audio_filepath):
+        print(f"Audio file not found: {audio_filepath}")
+        return None, None
 
-def search_for_any_audio_file(base_path):
-    """Searches through the entire dataset to find and return any audio file and its transcript."""
-    subsets = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
-    for subset in subsets:
-        subset_path = os.path.join(base_path, 'LibriSpeech', subset)
-        audio_data, transcript = iterate_audio_files(subset_path)
-        if audio_data:
-            return audio_data, transcript
-    # This point should theoretically never be reached if there are always files available
-    raise FileNotFoundError("No audio files were found in the dataset.")
+    with open(audio_filepath, 'rb') as file:
+        audio_data = file.read()
+        
+    return audio_data, transcript
 
 def google_tts(script, filename):
     try:
