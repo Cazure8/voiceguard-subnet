@@ -14,9 +14,7 @@ from speechbrain.pretrained import SpeakerRecognition
 recognition_model = SpeakerRecognition.from_hparams(source="speechbrain/lang-id-commonlanguage_ecapa", savedir="tmpdir")
 
 def url_to_text(self, synapse: Transcription) -> str:
-    # audio_url = synapse.audio_input
-    # audio_url = "https://www.youtube.com/watch?v=gdDGznHW_jY"
-    audio_url = "https://www.youtube.com/watch?v=7_uNKfvgrhs"
+    audio_url = synapse.audio_input
     if is_twitter_space(audio_url):
         now = datetime.now()
         timestamp = now.strftime("%Y%m%d_%H%M%S")
@@ -28,8 +26,8 @@ def url_to_text(self, synapse: Transcription) -> str:
     
     elif is_youtube(audio_url):
         filename = download_youtube(audio_url)
-        model, processor = load_model(filename)
         output_file = os.path.join("downloads", filename)
+        model, processor = load_model(output_file)
         waveform, sample_rate = read_audio(output_file)
         transcription = transcribe(model, processor, waveform, sample_rate)
         print("--------------------")
@@ -96,11 +94,9 @@ def download_twitter_space(url, output):
         print(f"An exception occurred while downloading Twitter space: {e}")
         return False
     
-def load_model(filename):
-    audio_file = os.path.join("downloads", filename)
-
+def load_model(file):
     # Predict the language
-    prediction_result = recognition_model.classify_file(audio_file)
+    prediction_result = recognition_model.classify_file(file)
 
     # Assuming the model returns a tuple where the last element contains language labels
     language_labels = prediction_result[-1]  # Adjust according to actual model output
