@@ -12,6 +12,7 @@ import re
 from torch.nn.utils.rnn import pad_sequence
 import torchaudio.transforms as T
 import random
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 class AudioDataset(Dataset):
     def __init__(self, audio_paths, transcripts, processor, augmentation_prob=0.5):
@@ -64,14 +65,14 @@ class ModelTrainer:
             self.device = torch.device('cpu')
             print("Training on CPU")
             
-        # checkpoint_path = 'transcription/miner/model_checkpoints/current_model_checkpoint.pt'
-        # if os.path.isfile(checkpoint_path):
-        #     print(f"Loading model from checkpoint: {checkpoint_path}")
-        #     self.model = Wav2Vec2ForCTC.from_pretrained(None, state_dict=torch.load(checkpoint_path, map_location=self.device))
-        # else:
-        #     print("Loading model with pretrained weights.")
-        #     self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
-        self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
+        checkpoint_path = 'transcription/miner/model_checkpoints/current_model_checkpoint.pt'
+        if os.path.isfile(checkpoint_path):
+            print(f"Loading model from checkpoint: {checkpoint_path}")
+            self.model = Wav2Vec2ForCTC.from_pretrained(None, state_dict=torch.load(checkpoint_path, map_location=self.device))
+        else:
+            print("Loading model with pretrained weights.")
+            self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
+        # self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
         self.model.to(self.device)
         
         self.processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
@@ -142,7 +143,8 @@ class ModelTrainer:
         data_loader = DataLoader(dataset, batch_size=self.config.batch_size, shuffle=True, collate_fn=self.collate_batch)
         self.model.train()
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=5e-5)
-
+        # scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, verbose=True)
+        
         epoch = 1
         min_loss = float('inf')
         
@@ -197,7 +199,7 @@ class ModelTrainer:
                     min_loss = epoch_loss  # Update minimum loss
 
                 epoch += 1  # Increment epoch after each complete pass through the data_loader
-
+                # scheduler.step(epoch_loss)
 
     def collate_batch(self, batch):
         # Separate input values and labels
