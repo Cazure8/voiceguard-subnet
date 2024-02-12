@@ -10,35 +10,39 @@ import tensorflow as tf
 import multiprocessing
 import re
 from torch.nn.utils.rnn import pad_sequence
+import torchaudio.transforms as T
+import random
 
 class AudioDataset(Dataset):
-    def __init__(self, audio_paths, transcripts, processor):
+    def __init__(self, audio_paths, transcripts, processor, augmentation_prob=0.5):
         """
         audio_paths: List of paths to audio files.
-        transcripts: List of transcriptions corresponding to the audio files.
-        processor: Wav2Vec2 processor for processing both audio and text data.
+        transcripts: Corresponding transcriptions for the audio files.
+        processor: Wav2Vec2Processor instance for processing audio and text.
+        augmentation_prob: Probability of applying augmentation to any given audio file.
         """
         self.audio_paths = audio_paths
         self.transcripts = transcripts
         self.processor = processor
+        self.augmentation_prob = augmentation_prob
 
     def __len__(self):
+        """
+        Return the number of items in the dataset.
+        """
         return len(self.audio_paths)
-
+    
     def __getitem__(self, idx):
-        # Load and process audio file
         waveform, sample_rate = torchaudio.load(self.audio_paths[idx])
+
+        # Randomly decide whether to apply augmentation
+        if random.random() < self.augmentation_prob:
+            waveform = apply_augmentation(waveform, sample_rate)
+
         input_values = self.processor(waveform, sampling_rate=sample_rate).input_values[0]
-
-        # Convert input values to tensor
-        input_values_tensor = torch.tensor(input_values)
-
-        # Process the transcription and convert labels to tensor
         labels = self.processor(text=self.transcripts[idx]).input_ids
-        labels_tensor = torch.tensor(labels)
 
-        return {"input_values": input_values_tensor, "labels": labels_tensor}
-
+        return {"input_values": torch.tensor(input_values), "labels": torch.tensor(labels)}
 
 class ModelTrainer:
     def __init__(self, config):
@@ -233,3 +237,23 @@ class ModelTrainer:
                             transcripts.append(transcript)
 
         return audio_paths, transcripts
+
+def apply_augmentation(waveform, sample_rate):
+    augmentation_type = random.choice(['pitch_shift', 'speed_change', 'add_noise', 'none'])
+
+    if augmentation_type == 'pitch_shift':
+        n_steps = random.randint(-2, 2)  # Similar range as the validator
+        pitch_shift = n_steps * 100  # Convert semitones to cents for sox
+        waveform, _ = torchaudio.sox_effects.apply_effects_tensor(waveform, sample_rate, [['pitch', str(pitch_shift)]])
+
+    elif augmentation_type == 'speed_change':
+        speed_factor = random.uniform(0.9, 1.1)  # Similar range as the validator
+        waveform, _ = torchaudio.sox_effects.apply_effects_tensor(waveform, sample_rate, [['speed', str(speed_factor)]])
+
+    elif augmentation_type == 'add_noise':
+        noise_intensity = random.uniform(0.001, 0.005)  # Adjust based on validator's noise level
+        noise = torch.randn(waveform.size()) * noise_intensity
+        waveform += noise
+
+    return waveform
+

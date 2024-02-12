@@ -31,6 +31,10 @@ from transcription.protocol import Transcription
 from transcription.validator.reward import get_rewards
 from transcription.utils.uids import get_random_uids
 from gtts import gTTS, gTTSError
+import random
+import torchaudio.transforms as T
+import torch
+import soundfile as sf
 
 async def forward(self):
     """
@@ -97,6 +101,9 @@ def convert_mp3_to_flac(mp3_file_name, script):
         return None, None
     
 def iterate_audio_files(subset_path):
+    """
+    Iterates over audio files and applies a random augmentation.
+    """
     for speaker_dir in glob.glob(os.path.join(subset_path, '*/')):
         for chapter_dir in glob.glob(os.path.join(speaker_dir, '*/')):
             transcript_files = glob.glob(os.path.join(chapter_dir, "*.trans.txt"))
@@ -107,9 +114,9 @@ def iterate_audio_files(subset_path):
                         audio_filename, transcript = line.strip().split(' ', 1)
                         audio_filepath = os.path.join(chapter_dir, audio_filename + '.flac')
                         if os.path.exists(audio_filepath):
-                            with open(audio_filepath, 'rb') as audio_file:
-                                audio_data = audio_file.read()
-                                return audio_data, transcript
+                            audio_data = random_audio_augmentation(audio_filepath)
+                            # Return or process the augmented waveform and its transcript
+                            return audio_data, transcript
     return None, None
 
 def load_from_librispeech(base_path):
@@ -121,6 +128,63 @@ def load_from_librispeech(base_path):
             return audio_data, transcript
     print("No valid audio files found in the dataset.")
     return None, None
+
+def random_audio_augmentation(audio_filepath, sample_rate=16000):
+    """
+    Applies a random augmentation (pitch, speed, noise) to the audio data.
+    """
+    waveform, original_sample_rate = torchaudio.load(audio_filepath)
+
+    # Resample waveform to target sample rate if necessary
+    if original_sample_rate != sample_rate:
+        resampler = T.Resample(orig_freq=original_sample_rate, new_freq=sample_rate)
+        waveform = resampler(waveform)
+
+    # Randomly choose an augmentation
+    augmentation_choice = random.choice(["original", "pitch", "speed", "noise"])
+
+    if augmentation_choice == "pitch":
+        # Apply pitch shift
+        n_steps = random.randint(-2, 2)  # Pitch shift by up to 2 semitones
+        pitch_shift = n_steps * 100  # Convert semitones to cents
+        effects = [['pitch', str(pitch_shift)]]
+        waveform, _ = torchaudio.sox_effects.apply_effects_tensor(waveform, sample_rate, effects)
+
+    elif augmentation_choice == "speed":
+        # Apply speed change
+        speed_factor = random.uniform(0.9, 1.1)  # Speed up or slow down by up to 10%
+        effects = [['speed', str(speed_factor)]]
+        waveform, _ = torchaudio.sox_effects.apply_effects_tensor(waveform, sample_rate, effects)
+
+    elif augmentation_choice == "noise":
+        # Add noise
+        noise_intensity = random.uniform(0.001, 0.005)  # Adjust intensity of noise
+        noise = torch.randn_like(waveform) * noise_intensity
+        waveform += noise
+    
+    return waveform_to_binary(waveform)
+
+def waveform_to_binary(waveform, sample_rate=16000, format='FLAC'):
+    """
+    Converts a waveform to binary audio data in memory as FLAC.
+    """
+    # Create an in-memory binary stream
+    audio_binary = io.BytesIO()
+    
+    # Convert the tensor waveform to numpy array
+    waveform_np = waveform.numpy()
+    
+    # Save waveform to the binary stream as FLAC
+    sf.write(audio_binary, waveform_np.T, sample_rate, format=format)
+    
+    # Seek to the start so it can be read from
+    audio_binary.seek(0)
+    
+    # Read the binary audio data from the stream
+    audio_data = audio_binary.read()
+    
+    return audio_data
+
 
 def search_for_any_audio_file(base_path):
     """Searches through the entire dataset to find and return any audio file and its transcript."""
@@ -185,15 +249,6 @@ def local_tts(script, filename):
     time.sleep(2)
     
     return True
-
-def waveform_to_binary(waveform, sample_rate):
-    """
-    Converts a waveform tensor back to binary audio data.
-    """
-    binary_stream = io.BytesIO()
-    torchaudio.save(binary_stream, waveform, sample_rate, format="wav")
-    binary_stream.seek(0)
-    return binary_stream.read()
 
 def generate_random_sentence(words, length=10):
     return ' '.join(random.choices(words, k=length)) + '.'
