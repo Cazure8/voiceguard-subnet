@@ -163,7 +163,7 @@ toolz==0.12.0
 torch==2.2.0
 torchaudio==2.2.0
 tqdm==4.66.1
--e git+https://github.com/Cazure8/transcription-subnet@90eac9d876de983a8e1eb9f2cd4bd54c84d082c0#egg=transcription_subnet
+-e git+https://github.com/Cazure8/transcription-subnet@765615ccf5c0f227c1888290d568768cee81588d#egg=transcription_subnet
 transformers==4.36.2
 triton==2.2.0
 twspace-dl==2023.7.24.1
