@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
-from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+from transformers import Wav2Vec2Config, Wav2Vec2ForCTC, Wav2Vec2Processor
 import os
 import glob
 import torchaudio
@@ -64,14 +64,16 @@ class ModelTrainer:
             self.device = torch.device('cpu')
             print("Training on CPU")
             
-        # checkpoint_path = 'transcription/miner/model_checkpoints/current_model_checkpoint.pt'
-        # if os.path.isfile(checkpoint_path):
-        #     print(f"Loading model from checkpoint: {checkpoint_path}")
-        #     self.model = Wav2Vec2ForCTC.from_pretrained(None, state_dict=torch.load(checkpoint_path, map_location=self.device))
-        # else:
-        #     print("Loading model with pretrained weights.")
-        #     self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
-        self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
+        checkpoint_path = 'transcription/miner/model_checkpoints/current_model_checkpoint.pt'
+        if os.path.isfile(checkpoint_path):
+            print(f"Loading model from checkpoint: {checkpoint_path}")
+            model_config = Wav2Vec2Config()
+            self.model = Wav2Vec2ForCTC(config=model_config)
+            state_dict = torch.load(checkpoint_path, map_location=self.device)
+            self.model.load_state_dict(state_dict)
+        else:
+            print("Loading model with pretrained weights.")
+            self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
         self.model.to(self.device)
         
         self.processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
@@ -189,7 +191,7 @@ class ModelTrainer:
                     num_batches += 1
                     
                     bt.logging.info(f"Epoch: {epoch}, Batch: {batch_idx}, Loss: {loss.item()}")
-
+                    
                 epoch_loss = total_loss / num_batches
                 
                 if epoch_loss < min_loss:
