@@ -201,35 +201,36 @@ def google_tts(script, filename):
     try:
         tts = gTTS(script)
         tts.save(filename)
-        return True
+        
+        if os.path.exists(filename) and os.path.getsize(filename) > 0:
+            return True
+        else:
+            print("TTS API returned OK, but the audio file is empty or not created.")
+            return False
     except HTTPError as e:
         if e.response.status_code == 429:
             print("Hit rate limit for Google TTS")
-            return False
         elif e.response.status_code == 500:
             print("Internal Server Error from TTS API")
-            return False
         elif e.response.status_code == 503:
             print("Service Unavailable. TTS API might be down or undergoing maintenance")
-            return False
         elif e.response.status_code == 401:
             print("Unauthorized. Check your API key or authentication method")
-            return False
         elif e.response.status_code == 403:
             print("Forbidden. You might not have permission to use this service")
-            return False
-        raise
+        else:
+            print(f"HTTP error occurred: {e.response.status_code} {e.response.reason}")
+        return False
     except gTTSError as e:
         if "429 (Too Many Requests)" in str(e):
             print("Hit rate limit for Google TTS")
-            return False
         elif "500 (Internal Server Error)" in str(e):
             print("Internal Server Error from TTS API. Probably cause: Upstream API error")
-            return False
         elif "Failed to connect" in str(e):
             print("Connection error in Google TTS")
-            return False
-        raise
+        else:
+            print("Unknown gTTSError")
+        return False
     except Exception as e:
         print(f"An unexpected error occurred: {str(e)}")
         return False
