@@ -41,7 +41,7 @@ Dive into the following sections for detailed insights on installation, operatio
 <br><br>
 
 # Installation
-
+**Python version should be over 3.10.**
 ## Bittensor
 
 ```bash

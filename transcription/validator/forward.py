@@ -55,11 +55,11 @@ async def forward(self):
         # Send the query to selected miner axons in the network.
         axons=[self.metagraph.axons[uid] for uid in miner_uids],
         synapse=Transcription(audio_input=audio_sample_base64),
-        deserialize=True,
+        deserialize=False,
     )
-
+    
     # Log the results for monitoring purposes.
-    bt.logging.info(f"Received responses: {responses}")
+    # bt.logging.info(f"Received responses: {responses}")
 
     # Adjust the scores based on responses from miners.
     rewards = get_rewards(self, query=ground_truth_transcription, responses=responses)

@@ -17,50 +17,55 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
-from typing import List, Optional, Union
+from typing import List
 import Levenshtein
 import spacy
 
 nlp = spacy.load("en_core_web_md")
 
-def reward(query: str, response: str) -> float:
-    """
-    Reward the miner response to the dummy request. This method returns a reward
-    value for the miner, which is used to update the miner's score.
-
-    Returns:
-    - float: The reward value for the miner.
-    """
-    correctness_scores = overall_correctness_score(query, response)
-    # speed_scores = score_response_speed(response_times, responses_casted)
+def reward(query: str, response: str, response_time: float, max_response_time: float) -> float:
+    if response is None or response.strip() == "":
+        correctness_score = 0.0 
+        speed_score = 0.0 
+    else:
+        correctness_score = overall_correctness_score(query, response)
+        normalized_speed_score = 1 - response_time / max_response_time
+        
+        # Apply sigmoid to speed score for normalization between 0 and 1
+        speed_score = sigmoid(torch.tensor([normalized_speed_score]), temperature=1.0, shift=0.5).item()
+        
+    correctness_weight = 0.6
+    speed_weight = 0.4
     
+    combined_score = (correctness_weight * correctness_score) + (speed_weight * speed_score)
+
+    return combined_score
+
+def sigmoid(x, temperature=1.0, shift=0.0):
+    """
+    Apply a sigmoid function to normalize scores.
+    """
+    return 1 / (1 + torch.exp(-temperature * (x - shift)))
+
+def get_rewards(self, query: str, responses) -> torch.FloatTensor:
+    default_high_process_time = 12 
+    response_times = torch.FloatTensor([
+        response.dendrite.process_time if response.dendrite.process_time is not None else default_high_process_time
+        for response in responses
+    ])
     
-    # combined_scores = []
-    # for correctness, speed in zip(correctness_scores, speed_scores):
-    #     combined_score = 0.7 * correctness + 0.3 * speed
-    #     combined_scores.append(combined_score)
-    return correctness_scores
+    max_response_time = torch.max(response_times)
+    rewards = torch.FloatTensor([
+    reward(
+        query, 
+        resp.transcription_output, 
+        resp.dendrite.process_time if resp.dendrite.process_time is not None else default_high_process_time, 
+        max_response_time.item()
+        ) for resp in responses
+    ])
 
-
-def get_rewards(
-    self,
-    query: str,
-    responses: List[float],
-) -> torch.FloatTensor:
-    """
-    Returns a tensor of rewards for the given query and responses.
-
-    Args:
-    - query (int): The query sent to the miner.
-    - responses (List[float]): A list of responses from the miner.
-
-    Returns:
-    - torch.FloatTensor: A tensor of rewards for the given query and responses.
-    """
-    # Get all the reward results by iteratively calling your reward() function.
-    return torch.FloatTensor(
-        [reward(query, response) for response in responses]
-    ).to(self.device)
+    
+    return rewards.to(self.device)
 
 def levenshtein_similarity(original, response):
     distance = Levenshtein.distance(original, response)
@@ -76,12 +81,18 @@ def word_overlap_score(original, response):
     return overlap_score
 
 def semantic_similarity(original, response):
+    if response is None or response.strip() == "":
+        return 0.0 
+    
     original_doc = nlp(original)
     response_doc = nlp(response)
+    
     if not original_doc.has_vector or not response_doc.has_vector:
-        return 0.4 
+        return 0.4
+
     similarity_score = original_doc.similarity(response_doc)
     return similarity_score
+
 
 def overall_correctness_score(original, response, weight_overlap=0.4, weight_similarity=0.4, weight_levenshtein=0.2):
     if response is None:
@@ -89,8 +100,8 @@ def overall_correctness_score(original, response, weight_overlap=0.4, weight_sim
     # Handle the case when response is a single string
     overlap_score = word_overlap_score(original, response)
     similarity_score = semantic_similarity(original, response)
+
     levenshtein_score = levenshtein_similarity(original, response)
-    
     # Combine scores with specified weights
     overall_score = (
         weight_overlap * overlap_score +
@@ -98,35 +109,3 @@ def overall_correctness_score(original, response, weight_overlap=0.4, weight_sim
         weight_levenshtein * levenshtein_score
     )
     return overall_score
-
-
-
-def score_response_speed(response_times: List[float], responses: Optional[Union[List[Optional[str]], List[None]]]) -> List[float]:
-    """
-    Scores the response speed based on response times and the existence of a response.
-
-    Args:
-    - response_times (List[float]): List of response times for each miner.
-    - responses (Optional[Union[List[Optional[str]], List[None]]]): An optional list of responses from the miner, where each response is either a string, None, or the entire list can be None.
-
-    Returns:
-    - List[float]: A list of scores for the response speed, considering the presence of responses.
-    """
-    # Ensure that responses is a list of the appropriate length, even if it's empty or None
-    if responses is None:
-        responses = [None] * len(response_times)
-
-    # Calculate the maximum response time for normalization
-    max_time = max(response_times, default=0)
-
-    speed_scores = []
-    for time, response in zip(response_times, responses):
-        # Assign a score of 0 if the response is None, regardless of the speed
-        if response is None:
-            speed_scores.append(0.0)
-        else:
-            # Score based on response time (faster responses get higher scores)
-            # Normalized against the maximum response time
-            speed_scores.append(1 - (time / max_time)) if max_time > 0 else 0.0
-
-    return speed_scores
