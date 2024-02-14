@@ -65,6 +65,7 @@ python3 -m pip install -e .
 sudo apt-get update
 sudo apt-get install ffmpeg
 sudo apt-get install espeak
+sudo apt install libsox-dev
 ```
 
 ### Download datasets for transcription scoring and training
