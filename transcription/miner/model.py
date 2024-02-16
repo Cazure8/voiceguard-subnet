@@ -64,32 +64,39 @@ class ModelTrainer:
             self.device = torch.device('cpu')
             print("Training on CPU")
             
-        checkpoint_path = 'transcription/miner/model_checkpoints/current_model_checkpoint.pt'
-        if os.path.isfile(checkpoint_path):
-            print(f"Loading model from checkpoint: {checkpoint_path}")
-            model_config = Wav2Vec2Config()
-            self.model = Wav2Vec2ForCTC(config=model_config)
-            state_dict = torch.load(checkpoint_path, map_location=self.device)
-            self.model.load_state_dict(state_dict)
-        else:
-            print("Loading model with pretrained weights.")
-            self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
+        model_path = 'transcription/miner/model_checkpoints/english'
+        self.model, self.processor = self.load_model_and_processor(model_path)        
         self.model.to(self.device)
-        
-        self.processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 
-    def save_model(self, save_path):
+    def save_model_and_processor(self, save_path):
         """Save the model checkpoint, replacing the previous one."""
-        model_save_path = os.path.join(save_path, "current_model_checkpoint.pt")
+        model_save_path = os.path.join(save_path, "current_checkpoint.pt")
         torch.save(self.model.state_dict(), model_save_path)
-        print(f"Model saved to {model_save_path}")
-
-    def load_model(self, model_path):
-        """Load the model from a checkpoint."""
-        checkpoint = torch.load(model_path, map_location=self.device)
-        self.model.load_state_dict(checkpoint)
-        self.model.eval()  # Set the model to evaluation mode
-        print(f"Model loaded from {model_path}")
+        bt.logging.info(f"Model saved to {model_save_path}")
+        self.processor.save_pretrained(save_path)
+        bt.logging.info(f"Processor saved to {save_path}")
+    
+    @staticmethod
+    def load_model_and_processor(model_path):
+        model_file_path = f"{model_path}/current_checkpoint.pt"
+        processor_directory_path = model_path
+        
+        if os.path.isfile(model_file_path):
+            model = Wav2Vec2ForCTC.from_pretrained(None, state_dict=torch.load(model_file_path), config=Wav2Vec2Config())
+            bt.logging.info("Loaded model from checkpoint.")
+        else:
+            model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
+            bt.logging.info("Loaded pretrained model.")
+        
+        processor_files = ['preprocessor_config.json', 'special_tokens_map.json', 'tokenizer_config.json', 'vocab.json']
+        if all(os.path.isfile(os.path.join(processor_directory_path, file)) for file in processor_files):
+            processor = Wav2Vec2Processor.from_pretrained(processor_directory_path)
+            bt.logging.info("Loaded processor from provided files.")
+        else:
+            processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
+            bt.logging.info("Fallback: Loaded pretrained processor.")
+        
+        return model, processor
         
     def train(self):
         if self.config.device.startswith('cpu'):
@@ -149,7 +156,7 @@ class ModelTrainer:
         min_loss = float('inf')
         
         if self.config.num_epochs == -1:
-            save_path = 'transcription/miner/model_checkpoints'
+            save_path = 'transcription/miner/model_checkpoints/english'
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
             
@@ -195,7 +202,7 @@ class ModelTrainer:
                 epoch_loss = total_loss / num_batches
                 
                 if epoch_loss < min_loss:
-                    self.save_model(save_path)
+                    self.save_model_and_processor(save_path)
                     min_loss = epoch_loss  # Update minimum loss
 
                 epoch += 1  # Increment epoch after each complete pass through the data_loader

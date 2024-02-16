@@ -122,8 +122,6 @@ def load_model(file):
     
     return model, processor
 
-
-
 def read_audio(file_path, target_sample_rate=16000):
     # Load the audio file
     waveform, sample_rate = torchaudio.load(file_path)

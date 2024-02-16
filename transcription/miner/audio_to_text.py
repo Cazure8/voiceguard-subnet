@@ -5,14 +5,32 @@ import os
 import bittensor as bt
 import base64
 from google.cloud import speech
-from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 import torch
 import torchaudio
 import transcription
+from transformers import Wav2Vec2Config, Wav2Vec2ForCTC, Wav2Vec2Processor
 
-global_model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
-global_processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
-
+def load_model_and_processor(model_path):
+        model_file_path = f"{model_path}/current_checkpoint.pt"
+        processor_directory_path = model_path
+        
+        if os.path.isfile(model_file_path):
+            model = Wav2Vec2ForCTC.from_pretrained(None, state_dict=torch.load(model_file_path), config=Wav2Vec2Config())
+            bt.logging.info("Loaded model from checkpoint.")
+        else:
+            model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
+            bt.logging.info("Loaded pretrained model.")
+        
+        processor_files = ['preprocessor_config.json', 'special_tokens_map.json', 'tokenizer_config.json', 'vocab.json']
+        if all(os.path.isfile(os.path.join(processor_directory_path, file)) for file in processor_files):
+            processor = Wav2Vec2Processor.from_pretrained(processor_directory_path)
+            bt.logging.info("Loaded processor from provided files.")
+        else:
+            processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
+            bt.logging.info("Fallback: Loaded pretrained processor.")
+        
+        return model, processor
+    
 def audio_to_text(self, synapse: transcription.protocol.Transcription) -> str:
     audio_content = safe_base64_decode(synapse.audio_input)
 
@@ -33,27 +51,34 @@ def audio_to_text(self, synapse: transcription.protocol.Transcription) -> str:
             waveform = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=16000)(waveform)
 
         # Process the waveform
-        inputs = global_processor(waveform.squeeze(), sampling_rate=16000, return_tensors="pt", padding=True)
+        checkpoint_path = 'transcription/miner/model_checkpoints/english'
+        training_model, training_processor = load_model_and_processor(checkpoint_path)
+        training_model.to(self.device)
+        
+        inputs = training_processor(waveform.squeeze(), sampling_rate=16000, return_tensors="pt", padding=True)
         input_values = inputs.input_values
 
         if input_values.dim() != 2:
             raise ValueError(f"Unexpected input values dimension after processing: {input_values.dim()}")
 
-        input_values = input_values.to(global_model.device)
+        input_values = input_values.to(training_model.device)
 
         # Forward pass
         with torch.no_grad():
-            logits = global_model(input_values).logits
+            logits = training_model(input_values).logits
 
         # Decode the model output
         predicted_ids = torch.argmax(logits, dim=-1)
-        transcription = global_processor.batch_decode(predicted_ids)
+        transcription = training_processor.batch_decode(predicted_ids)
+        print("--------------------------------")
+        print(transcription[0])
+        print("--------------------------------")
         return transcription[0]
     
     except Exception as e:
         bt.logging.error(f"Error in Wave2Vec transcription: {e}")
-        return "Error during transcription"
-    
+        return "Error during transcription"    
+
 def safe_base64_decode(data):
         """Safely decode a base64 string, ensuring correct padding."""
         padding = len(data) % 4

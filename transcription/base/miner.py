@@ -142,11 +142,6 @@ class BaseMinerNeuron(BaseNeuron):
         This is useful for non-blocking operations.
         """
         trainer = ModelTrainer(self.config)
-        checkpoint_path = 'transcription/miner/model_checkpoints/current_model_checkpoint.pt'
-        if os.path.exists(checkpoint_path):
-            trainer.load_model(checkpoint_path)
-        else:
-            bt.logging.debug("No existing checkpoint found. Starting training from scratch.")
 
         if not self.is_running:
             bt.logging.debug("Starting miner in background thread.")
