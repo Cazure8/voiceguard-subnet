@@ -86,7 +86,7 @@ class ModelTrainer:
             bt.logging.info("Loaded model from checkpoint.")
         else:
             model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
-            bt.logging.info("Loaded pretrained model.")
+            bt.logging.info("Loaded pretrained model for training.")
         
         processor_files = ['preprocessor_config.json', 'special_tokens_map.json', 'tokenizer_config.json', 'vocab.json']
         if all(os.path.isfile(os.path.join(processor_directory_path, file)) for file in processor_files):
@@ -94,7 +94,7 @@ class ModelTrainer:
             bt.logging.info("Loaded processor from provided files.")
         else:
             processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
-            bt.logging.info("Fallback: Loaded pretrained processor.")
+            bt.logging.info("Loaded pretrained processor for training.")
         
         return model, processor
         
