@@ -15,6 +15,7 @@ recognition_model = SpeakerRecognition.from_hparams(source="speechbrain/lang-id-
 
 def url_to_text(self, synapse: Transcription) -> str:
     audio_url = synapse.audio_input
+
     if is_twitter_space(audio_url):
         now = datetime.now()
         timestamp = now.strftime("%Y%m%d_%H%M%S")
@@ -25,10 +26,9 @@ def url_to_text(self, synapse: Transcription) -> str:
         return transcription
     
     elif is_youtube(audio_url):
-        filename = download_youtube(audio_url)
-        output_file = os.path.join("downloads", filename)
-        model, processor = load_model(output_file)
-        waveform, sample_rate = read_audio(output_file)
+        output_filepath = download_youtube(audio_url)
+        model, processor = load_model(output_filepath)
+        waveform, sample_rate = read_audio(output_filepath)
         transcription = transcribe(model, processor, waveform, sample_rate)
         print("--------------------")
         print(transcription)
@@ -37,27 +37,41 @@ def url_to_text(self, synapse: Transcription) -> str:
         
 
 def download_youtube(youtube_url, output_format='flac'):
+    # Ensure the downloads directory exists
+    download_dir = 'downloads'
+    if not os.path.exists(download_dir):
+        os.makedirs(download_dir)
+
     yt = YouTube(youtube_url)
-    stream = yt.streams.filter(only_audio=True).first()
-
-    if not os.path.exists('downloads'):
-        os.makedirs('downloads')
-
-    base = yt.title
-    filename = f"{base}.{output_format}"
-    output_file = os.path.join("downloads", filename)
+    audio_stream = yt.streams.filter(only_audio=True).first()
     
-    # Check for duplicate filename and modify if necessary
+    # Generate the base filename for the download
+    base_filename = yt.title.replace(" ", "_").replace("/", "_")
+    output_filename = f"{base_filename}.{output_format}"
+    output_filepath = os.path.join(download_dir, output_filename)
+    
+    # Handle potential filename duplicates
     counter = 1
-    while os.path.exists(output_file):
-        new_filename = f"{base}_{counter}.{output_format}"
-        output_file = os.path.join("downloads", new_filename)
+    while os.path.exists(output_filepath):
+        modified_base_filename = f"{base_filename}_{counter}"
+        output_filename = f"{modified_base_filename}.{output_format}"
+        output_filepath = os.path.join(download_dir, output_filename)
         counter += 1
 
-    # Download the file
-    stream.download(output_path='downloads', filename=os.path.basename(output_file))
+    # Download the audio stream to a temporary file
+    temp_filepath = audio_stream.download(output_path=download_dir, filename_prefix="temp_")
+    
+    # Convert the downloaded audio to the desired format using ffmpeg, if necessary
+    if audio_stream.mime_type.split('/')[1] != output_format:
+        converted_filepath = output_filepath
+        subprocess.run(['ffmpeg', '-i', temp_filepath, '-vn', '-ar', '16000', '-ac', '1', '-ab', '192k', '-f', output_format, converted_filepath])
+        os.remove(temp_filepath)  # Remove the temporary file after conversion
+    else:
+        # If the downloaded format is already .flac, just rename the file
+        os.rename(temp_filepath, output_filepath)
 
-    return os.path.basename(output_file)
+    print(f"Audio downloaded and converted to .flac: {output_filepath}")
+    return output_filepath
 
 def is_twitter_space(url):
     pattern = r'https://twitter\.com/i/spaces/\S+'
