@@ -27,11 +27,10 @@ class Transcription(bt.Synapse):
     # Type indicator: 'data' for raw audio data, 'url' for audio URL
     input_type: str = 'data'
     
-    # # Required request input, can be raw audio data or an audio URL.
-    # audio_input: str = ""
+    # Segment information: tuple of (start, end) times in seconds
+    segment: typing.Optional[typing.Tuple[int, int]] = None
     
     # Audio input can be raw audio data (bytes) or an audio URL (str).
-    # audio_input: typing.Union[bytes, str] = ""
     audio_input: str = ''
     # audio_input: None
 
