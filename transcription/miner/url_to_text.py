@@ -33,8 +33,13 @@ def url_to_text(self, synapse: Transcription) -> str:
         print("--------------------")
         print(transcription)
         print("--------------------")
-        return transcription
-        
+        start, end = segment
+        return format_transcription(start, transcription)
+
+def format_transcription(segment_start, transcription):
+    formatted_transcription = f"{segment_start}$$_{transcription}"
+    return formatted_transcription
+
 def download_youtube_segment(youtube_url, segment, output_format='flac'):
     if not os.path.exists('downloads'):
         os.makedirs('downloads')
