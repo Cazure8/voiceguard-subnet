@@ -252,7 +252,7 @@ def local_tts(script, filename):
     return True
 
 def generate_random_sentence(words, length=10):
-    return ' '.join(random.choices(words, k=length)) + '.'
+    return ' '.join(random.choices(words, k=length))
 
 def generate_random_text(num_sentences=5, sentence_length=5):
     common_words = ['THE', 'BE', 'TO', 'OF', 'AND', 'A', 'IN', 'THAT', 'HAVE', 'I',
