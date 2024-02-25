@@ -255,18 +255,18 @@ def generate_random_sentence(words, length=10):
     return ' '.join(random.choices(words, k=length)) + '.'
 
 def generate_random_text(num_sentences=5, sentence_length=5):
-    common_words = ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I', 
-                    'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at', 
-                    'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 
-                    'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 
-                    'their', 'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 
-                    'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time', 'no', 
-                    'just', 'him', 'know', 'take', 'person', 'into', 'year', 'your', 
-                    'good', 'some', 'could', 'them', 'see', 'other', 'than', 'then', 
-                    'now', 'look', 'only', 'come', 'its', 'over', 'think', 'also', 
-                    'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 
-                    'well', 'way', 'even', 'new', 'want', 'because', 'any', 'these', 
-                    'give', 'day', 'most', 'us']
+    common_words = ['THE', 'BE', 'TO', 'OF', 'AND', 'A', 'IN', 'THAT', 'HAVE', 'I',
+                    'IT', 'FOR', 'NOT', 'ON', 'WITH', 'HE', 'AS', 'YOU', 'DO', 'AT',
+                    'THIS', 'BUT', 'HIS', 'BY', 'FROM', 'THEY', 'WE', 'SAY', 'HER',
+                    'SHE', 'OR', 'AN', 'WILL', 'MY', 'ONE', 'ALL', 'WOULD', 'THERE',
+                    'THEIR', 'WHAT', 'SO', 'UP', 'OUT', 'IF', 'ABOUT', 'WHO', 'GET',
+                    'WHICH', 'GO', 'ME', 'WHEN', 'MAKE', 'CAN', 'LIKE', 'TIME', 'NO',
+                    'JUST', 'HIM', 'KNOW', 'TAKE', 'PERSON', 'INTO', 'YEAR', 'YOUR',
+                    'GOOD', 'SOME', 'COULD', 'THEM', 'SEE', 'OTHER', 'THAN', 'THEN',
+                    'NOW', 'LOOK', 'ONLY', 'COME', 'ITS', 'OVER', 'THINK', 'ALSO',
+                    'BACK', 'AFTER', 'USE', 'TWO', 'HOW', 'OUR', 'WORK', 'FIRST',
+                    'WELL', 'WAY', 'EVEN', 'NEW', 'WANT', 'BECAUSE', 'ANY', 'THESE',
+                    'GIVE', 'DAY', 'MOST', 'US']
 
     return ' '.join([generate_random_sentence(common_words, sentence_length) for _ in range(num_sentences)])
 
