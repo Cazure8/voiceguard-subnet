@@ -100,6 +100,7 @@ opt-einsum==3.3.0
 packaging==23.2
 password-strength==0.0.3.post2
 pathspec==0.12.1
+pip-check==2.8.1
 platformdirs==4.1.0
 pluggy==1.3.0
 preshed==3.0.9
@@ -156,6 +157,7 @@ tensorflow==2.15.0.post1
 tensorflow-estimator==2.15.0
 tensorflow-io-gcs-filesystem==0.35.0
 termcolor==2.4.0
+terminaltables==3.1.10
 thinc==8.2.2
 tokenizers==0.15.0
 tomli==2.0.1
@@ -163,7 +165,7 @@ toolz==0.12.0
 torch==2.2.0
 torchaudio==2.2.0
 tqdm==4.66.1
--e git+https://github.com/Cazure8/transcription-subnet@765615ccf5c0f227c1888290d568768cee81588d#egg=transcription_subnet
+-e git+https://github.com/Cazure8/transcription-subnet@9495096cda09f33700450f1237862898b7e6677e#egg=transcription_subnet
 transformers==4.36.2
 triton==2.2.0
 twspace-dl==2023.7.24.1

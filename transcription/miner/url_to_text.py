@@ -7,7 +7,6 @@ import torchaudio
 from transcription.protocol import Transcription
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 from datetime import datetime
-from transcription.protocol import Transcription
 from pytube import YouTube
 from speechbrain.pretrained import SpeakerRecognition
 
@@ -15,6 +14,7 @@ recognition_model = SpeakerRecognition.from_hparams(source="speechbrain/lang-id-
 
 def url_to_text(self, synapse: Transcription) -> str:
     audio_url = synapse.audio_input
+    segment = synapse.segment
 
     if is_twitter_space(audio_url):
         now = datetime.now()
@@ -26,52 +26,65 @@ def url_to_text(self, synapse: Transcription) -> str:
         return transcription
     
     elif is_youtube(audio_url):
-        output_filepath = download_youtube(audio_url)
+        output_filepath = download_youtube_segment(audio_url, segment)
         model, processor = load_model(output_filepath)
         waveform, sample_rate = read_audio(output_filepath)
         transcription = transcribe(model, processor, waveform, sample_rate)
         print("--------------------")
         print(transcription)
         print("--------------------")
-        return transcription
-        
+        start, end = segment
+        return format_transcription(start, transcription)
 
-def download_youtube(youtube_url, output_format='flac'):
-    # Ensure the downloads directory exists
-    download_dir = 'downloads'
-    if not os.path.exists(download_dir):
-        os.makedirs(download_dir)
+def format_transcription(segment_start, transcription):
+    formatted_transcription = f"{segment_start}$$_{transcription}"
+    return formatted_transcription
+
+def download_youtube_segment(youtube_url, segment, output_format='flac'):
+    if not os.path.exists('downloads'):
+        os.makedirs('downloads')
 
     yt = YouTube(youtube_url)
-    audio_stream = yt.streams.filter(only_audio=True).first()
-    
-    # Generate the base filename for the download
+    audio_stream = yt.streams.get_audio_only()
     base_filename = yt.title.replace(" ", "_").replace("/", "_")
-    output_filename = f"{base_filename}.{output_format}"
-    output_filepath = os.path.join(download_dir, output_filename)
-    
+
+    # Extract start and end times from the segment tuple
+    start_seconds, end_seconds = segment
+    start_time = convert_seconds_to_time(start_seconds)
+    duration = end_seconds - start_seconds
+    # Define filenames and paths
+    output_filename = f"{base_filename}_{start_seconds}-{end_seconds}.{output_format}"
+    output_filepath = os.path.join("downloads", output_filename)
+
     # Handle potential filename duplicates
-    counter = 1
-    while os.path.exists(output_filepath):
-        modified_base_filename = f"{base_filename}_{counter}"
-        output_filename = f"{modified_base_filename}.{output_format}"
-        output_filepath = os.path.join(download_dir, output_filename)
-        counter += 1
+    output_filepath = handle_filename_duplicates(output_filepath)
 
-    # Download the audio stream to a temporary file
-    temp_filepath = audio_stream.download(output_path=download_dir, filename_prefix="temp_")
+    print(f"Downloading segment: {start_seconds} to {end_seconds}")
+    print(f"yt.streams.first().url: {yt.streams.first().url}")
+    # Directly use ffmpeg to download and convert segment without intermediate file
+    command = ['ffmpeg', '-ss', str(start_time), '-i', yt.streams.first().url, '-t', str(duration), 
+               '-vn', '-ar', '16000', '-ac', '1', '-ab', '192k', '-f', output_format, output_filepath]
+    subprocess.run(command)
     
-    # Convert the downloaded audio to the desired format using ffmpeg, if necessary
-    if audio_stream.mime_type.split('/')[1] != output_format:
-        converted_filepath = output_filepath
-        subprocess.run(['ffmpeg', '-i', temp_filepath, '-vn', '-ar', '16000', '-ac', '1', '-ab', '192k', '-f', output_format, converted_filepath])
-        os.remove(temp_filepath)  # Remove the temporary file after conversion
-    else:
-        # If the downloaded format is already .flac, just rename the file
-        os.rename(temp_filepath, output_filepath)
-
-    print(f"Audio downloaded and converted to .flac: {output_filepath}")
+    print(f"Segment audio downloaded and converted to {output_format}: {output_filepath}")
     return output_filepath
+
+def convert_seconds_to_time(seconds):
+    """Convert seconds to HH:MM:SS format."""
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+
+def handle_filename_duplicates(filepath):
+    """Ensure the filepath is unique to avoid overwriting existing files."""
+    base, extension = os.path.splitext(filepath)
+    counter = 1
+    while os.path.exists(filepath):
+        filepath = f"{base}_{counter}{extension}"
+        counter += 1
+    return filepath
+
 
 def is_twitter_space(url):
     pattern = r'https://twitter\.com/i/spaces/\S+'
