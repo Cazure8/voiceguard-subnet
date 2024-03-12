@@ -23,12 +23,16 @@ import spacy
 
 nlp = spacy.load("en_core_web_md")
 
-def reward(query: str, response: str, response_time: float, max_response_time: float) -> float:
+def reward(query: str, response: str, response_time: float, max_response_time: float, type: str) -> float:
     if response is None or response.strip() == "":
         correctness_score = 0.0 
         speed_score = 0.0 
     else:
-        correctness_score = overall_correctness_score(query, response)
+        if type == "url":
+            correctness_score = 1 if word_overlap_score(query, response) > 0.3 else 0
+        else:
+            correctness_score = overall_correctness_score(query, response)
+        
         normalized_speed_score = 1 - response_time / max_response_time
         
         # Apply sigmoid to speed score for normalization between 0 and 1
@@ -47,7 +51,7 @@ def sigmoid(x, temperature=1.0, shift=0.0):
     """
     return 1 / (1 + torch.exp(-temperature * (x - shift)))
 
-def get_rewards(self, query: str, responses) -> torch.FloatTensor:
+def get_rewards(self, query: str, responses, type: str) -> torch.FloatTensor:
     default_high_process_time = 12 
     response_times = torch.FloatTensor([
         response.dendrite.process_time if response.dendrite.process_time is not None else default_high_process_time
@@ -60,11 +64,11 @@ def get_rewards(self, query: str, responses) -> torch.FloatTensor:
         query, 
         resp.transcription_output, 
         resp.dendrite.process_time if resp.dendrite.process_time is not None else default_high_process_time, 
-        max_response_time.item()
+        max_response_time.item(),
+        type
         ) for resp in responses
     ])
 
-    
     return rewards.to(self.device)
 
 def levenshtein_similarity(original, response):
