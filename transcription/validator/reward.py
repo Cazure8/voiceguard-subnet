@@ -24,14 +24,23 @@ import spacy
 nlp = spacy.load("en_core_web_md")
 
 def reward(query: str, response: str, response_time: float, max_response_time: float, type: str) -> float:
+    print("------response--------")
+    print(response)
+    print("----------------------")
     if response is None or response.strip() == "":
         correctness_score = 0.0 
         speed_score = 0.0 
     else:
         if type == "url":
-            correctness_score = 1 if word_overlap_score(query, response) > 0.3 else 0
+            correctness_score = 1 if word_overlap_score(query, response) > 0.2 else 0
+            print("-----wordoverlap score--------")
+            print(word_overlap_score(query, response))
+            print("------------------------------")
         else:
             correctness_score = overall_correctness_score(query, response)
+            print("-----overall_correctness_score--------")
+            print(overall_correctness_score(query, response))
+            print("------------------------------")
         
         normalized_speed_score = 1 - response_time / max_response_time
         

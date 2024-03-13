@@ -127,7 +127,7 @@ def load_model(file):
     # Assuming the model returns a tuple where the last element contains language labels
     language_labels = prediction_result[-1]  # Adjust according to actual model output
     most_probable_language_label = language_labels[0]  # Assuming the first label is the most probable
-
+    
     # Initialize model_id with a default model to ensure it's never empty
     default_model_id = "facebook/wav2vec2-base-960h"
 

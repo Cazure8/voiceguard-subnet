@@ -26,6 +26,7 @@ import glob
 import pyttsx3
 import torchaudio
 from pydub import AudioSegment
+from pytube import YouTube
 from requests.exceptions import HTTPError
 from transcription.protocol import Transcription
 from transcription.validator.reward import get_rewards
@@ -50,7 +51,7 @@ async def forward(self):
     """
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
 
-    if random.random() < 0.6:
+    if random.random() < 0.0:
         audio_sample, ground_truth_transcription = generate_or_load_audio_sample()
         audio_sample_base64 = encode_audio_to_base64(audio_sample)
     
@@ -61,7 +62,7 @@ async def forward(self):
             synapse=Transcription(audio_input=audio_sample_base64),
             deserialize=False,
         )
-        rewards = get_rewards(self, query=ground_truth_transcription, responses=responses)
+        rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, type="not_url")
 
     else:
         random_url = select_random_url('youtube_urls.txt')
