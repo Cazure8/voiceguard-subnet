@@ -28,6 +28,9 @@ nlp = spacy.load("en_core_web_md")
 nltk.download('punkt')
 
 def reward(query: str, response: str, response_time: float, max_response_time: float, type: str) -> float:
+    print("-------response transcript from miner----------")
+    print(response)
+    print("-----------------------------------------------")
     if response is None or response.strip() == "":
         correctness_score = 0.0 
         speed_score = 0.0 
