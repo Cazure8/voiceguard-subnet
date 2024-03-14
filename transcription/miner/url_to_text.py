@@ -30,7 +30,9 @@ def url_to_text(self, synapse: Transcription) -> str:
         model, processor = load_model(output_filepath)
         waveform, sample_rate = read_audio(output_filepath)
         transcription = transcribe(model, processor, waveform, sample_rate)
-
+        print("---miner transcript--")
+        print(transcription)
+        print("---------------------")
         start, end = segment
         return format_transcription(start, transcription)
 
