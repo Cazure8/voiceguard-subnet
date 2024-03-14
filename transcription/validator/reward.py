@@ -57,7 +57,6 @@ def sigmoid(x, temperature=1.0, shift=0.0):
     return 1 / (1 + torch.exp(-temperature * (x - shift)))
 
 def get_rewards(self, query: str, responses, type: str, time_limit) -> torch.FloatTensor:
-    print("-----here is getting reward part------")
     default_high_process_time = time_limit 
     response_times = torch.FloatTensor([
         response.dendrite.process_time if response.dendrite.process_time is not None else default_high_process_time
