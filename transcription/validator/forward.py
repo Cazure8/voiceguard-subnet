@@ -49,9 +49,8 @@ async def forward(self):
         self (:obj:`bittensor.neuron.Neuron`): The neuron object which contains all the necessary state for the validator.
 
     """
-    # miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-    miner_uids = [3]
-    if random.random() < 0.0:
+    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    if random.random() < 0.5:
         audio_sample, ground_truth_transcription = generate_or_load_audio_sample()
         audio_sample_base64 = encode_audio_to_base64(audio_sample)
     
@@ -62,7 +61,7 @@ async def forward(self):
             synapse=Transcription(audio_input=audio_sample_base64),
             deserialize=False,
         )
-        rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, type="not_url")
+        rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, type="not_url", time_limit=12)
 
     else:
         random_url = select_random_url('youtube_urls.txt')
@@ -75,19 +74,16 @@ async def forward(self):
         model, processor = load_model(output_filepath)
         waveform, sample_rate = read_audio(output_filepath)
         transcription = transcribe(model, processor, waveform, sample_rate)
-        print("------validator transcription--------")
-        print(transcription)
-        print("--------------------")
 
         responses = self.dendrite.query(
             # Send the query to selected miner axons in the network.
             axons=[self.metagraph.axons[uid] for uid in miner_uids],
             synapse = Transcription(input_type="url", audio_input=random_url, segment=synapse_segment),
             deserialize=False,
-            timeout=30
+            timeout=60
         )
 
-        rewards = get_rewards(self, query=transcription, responses=responses, type="url")
+        rewards = get_rewards(self, query=transcription, responses=responses, type="url", time_limit=60)
 
     bt.logging.info(f"Scored responses: {rewards}")
     # Update the scores based on the rewards. You may want to define your own update_scores function for custom behavior.
@@ -323,6 +319,6 @@ def generate_validator_segment(duration):
         return [start, start + 100]
     
 def generate_synapse_segment(duration, validator_start):
-    start = max(0, validator_start - 100)
-    end = min(duration, validator_start + 200)
+    start = max(0, validator_start - 50)
+    end = min(duration, validator_start + 150)
     return [start, end]

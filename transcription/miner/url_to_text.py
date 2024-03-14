@@ -30,9 +30,7 @@ def url_to_text(self, synapse: Transcription) -> str:
         model, processor = load_model(output_filepath)
         waveform, sample_rate = read_audio(output_filepath)
         transcription = transcribe(model, processor, waveform, sample_rate)
-        print("--------------------")
-        print(transcription)
-        print("--------------------")
+
         start, end = segment
         return format_transcription(start, transcription)
 
@@ -191,5 +189,32 @@ def transcribe(model, processor, waveform, sample_rate):
     transcription = processor.batch_decode(predicted_ids)
     return transcription[0]
 
+def check_urls(file_path):
+    valid_urls = []
+    with open(file_path, 'r') as file:
+        urls = file.readlines()
+    
+    for url in urls:
+        try:
+            yt = YouTube(url.strip())
+            print(f"URL is valid: {url}")
+            valid_urls.append(url.strip())
+        except Exception as e:
+            print(f"URL is not valid or has restrictions: {url}. Reason: {e}")
+    
+    # Optionally, save the valid URLs to a new file
+    with open('valid_youtube_urls.txt', 'w') as valid_urls_file:
+        for url in valid_urls:
+            valid_urls_file.write(url + '\n')
+    
+    print(f"Total valid URLs: {len(valid_urls)}")
+    return valid_urls
 
-
+# TO check valid URLs
+# import sys
+# if __name__ == "__main__":
+#     if len(sys.argv) < 2:
+#         print("Usage: python3 url_to_text.py <path_to_your_file>")
+#     else:
+#         file_path = sys.argv[1]
+#         check_urls(file_path)

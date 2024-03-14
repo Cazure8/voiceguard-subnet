@@ -20,27 +20,23 @@ import torch
 from typing import List
 import Levenshtein
 import spacy
+import nltk
+from nltk.translate.bleu_score import sentence_bleu
+from nltk.tokenize import word_tokenize
 
 nlp = spacy.load("en_core_web_md")
+nltk.download('punkt')
 
 def reward(query: str, response: str, response_time: float, max_response_time: float, type: str) -> float:
-    print("------response--------")
-    print(response)
-    print("----------------------")
     if response is None or response.strip() == "":
         correctness_score = 0.0 
         speed_score = 0.0 
     else:
         if type == "url":
-            correctness_score = 1 if word_overlap_score(query, response) > 0.2 else 0
-            print("-----wordoverlap score--------")
-            print(word_overlap_score(query, response))
-            print("------------------------------")
+            correctness_score = 1 if get_bleu_score(query, response) > 0.3 else 0
         else:
             correctness_score = overall_correctness_score(query, response)
-            print("-----overall_correctness_score--------")
-            print(overall_correctness_score(query, response))
-            print("------------------------------")
+            
         
         normalized_speed_score = 1 - response_time / max_response_time
         
@@ -60,9 +56,9 @@ def sigmoid(x, temperature=1.0, shift=0.0):
     """
     return 1 / (1 + torch.exp(-temperature * (x - shift)))
 
-def get_rewards(self, query: str, responses, type: str) -> torch.FloatTensor:
+def get_rewards(self, query: str, responses, type: str, time_limit) -> torch.FloatTensor:
     print("-----here is getting reward part------")
-    default_high_process_time = 12 
+    default_high_process_time = time_limit 
     response_times = torch.FloatTensor([
         response.dendrite.process_time if response.dendrite.process_time is not None else default_high_process_time
         for response in responses
@@ -123,3 +119,13 @@ def overall_correctness_score(original, response, weight_overlap=0.4, weight_sim
         weight_levenshtein * levenshtein_score
     )
     return overall_score
+
+def get_bleu_score(request, response):
+    # Tokenize the reference and candidate sentences
+    request_tokens = [word_tokenize(request.lower())]
+    response_tokens = word_tokenize(response.lower())
+    
+    weights = (1, 0, 0, 0)  # This gives full weight to 1-gram precision, ignoring longer n-grams
+    score = sentence_bleu(request_tokens, response_tokens, weights=weights)
+    
+    return score
