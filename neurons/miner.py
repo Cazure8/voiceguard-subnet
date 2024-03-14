@@ -50,7 +50,7 @@ class Miner(BaseMinerNeuron):
             synapse.transcription_output = url_to_text(self, synapse)
         else:
             synapse.transcription_output = audio_to_text(self, synapse)
-            
+        
         return synapse
 
     async def blacklist(

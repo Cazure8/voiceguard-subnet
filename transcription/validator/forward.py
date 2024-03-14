@@ -26,6 +26,7 @@ import glob
 import pyttsx3
 import torchaudio
 from pydub import AudioSegment
+from pytube import YouTube
 from requests.exceptions import HTTPError
 from transcription.protocol import Transcription
 from transcription.validator.reward import get_rewards
@@ -35,6 +36,8 @@ import random
 import torchaudio.transforms as T
 import torch
 import soundfile as sf
+
+from transcription.miner.url_to_text import download_youtube_segment, load_model, read_audio, transcribe
 
 async def forward(self):
     """
@@ -46,23 +49,41 @@ async def forward(self):
         self (:obj:`bittensor.neuron.Neuron`): The neuron object which contains all the necessary state for the validator.
 
     """
-    audio_sample, ground_truth_transcription = generate_or_load_audio_sample()
-    audio_sample_base64 = encode_audio_to_base64(audio_sample)
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    if random.random() < 0.5:
+        audio_sample, ground_truth_transcription = generate_or_load_audio_sample()
+        audio_sample_base64 = encode_audio_to_base64(audio_sample)
     
-    # The dendrite client queries the network.
-    responses = self.dendrite.query(
-        # Send the query to selected miner axons in the network.
-        axons=[self.metagraph.axons[uid] for uid in miner_uids],
-        synapse=Transcription(audio_input=audio_sample_base64),
-        deserialize=False,
-    )
-    
-    # Log the results for monitoring purposes.
-    # bt.logging.info(f"Received responses: {responses}")
+        # The dendrite client queries the network.
+        responses = self.dendrite.query(
+            # Send the query to selected miner axons in the network.
+            axons=[self.metagraph.axons[uid] for uid in miner_uids],
+            synapse=Transcription(audio_input=audio_sample_base64),
+            deserialize=False,
+        )
+        rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, type="not_url", time_limit=12)
 
-    # Adjust the scores based on responses from miners.
-    rewards = get_rewards(self, query=ground_truth_transcription, responses=responses)
+    else:
+        random_url = select_random_url('youtube_urls.txt')
+        duration = get_video_duration(random_url)
+        validator_segment = generate_validator_segment(duration)
+        synapse_segment = generate_synapse_segment(duration, validator_segment[0])
+
+        #TODO: refactoring functions required
+        output_filepath = download_youtube_segment(random_url, validator_segment)
+        model, processor = load_model(output_filepath)
+        waveform, sample_rate = read_audio(output_filepath)
+        transcription = transcribe(model, processor, waveform, sample_rate)
+
+        responses = self.dendrite.query(
+            # Send the query to selected miner axons in the network.
+            axons=[self.metagraph.axons[uid] for uid in miner_uids],
+            synapse = Transcription(input_type="url", audio_input=random_url, segment=synapse_segment),
+            deserialize=False,
+            timeout=60
+        )
+
+        rewards = get_rewards(self, query=transcription, responses=responses, type="url", time_limit=60)
 
     bt.logging.info(f"Scored responses: {rewards}")
     # Update the scores based on the rewards. You may want to define your own update_scores function for custom behavior.
@@ -185,7 +206,6 @@ def waveform_to_binary(waveform, sample_rate=16000, format='FLAC'):
     
     return audio_data
 
-
 def search_for_any_audio_file(base_path):
     """Searches through the entire dataset to find and return any audio file and its transcript."""
     subsets = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
@@ -273,3 +293,32 @@ def generate_random_text(num_sentences=5, sentence_length=5):
 def encode_audio_to_base64(audio_data):
     # Encode binary audio data to Base64 string
     return base64.b64encode(audio_data).decode('utf-8')
+
+def get_video_duration(url):
+    try:
+        # Create a YouTube object with the URL
+        yt = YouTube(url)
+        
+        # Fetch the duration of the video in seconds
+        duration_seconds = yt.length
+        return duration_seconds
+    except Exception as e:
+        print(f"Error fetching video duration: {e}")
+        return 0
+    
+def select_random_url(filename):
+    with open(filename, 'r') as file:
+        urls = file.readlines()
+    return random.choice(urls).strip()
+
+def generate_validator_segment(duration):
+    if duration <= 100:
+        return [0, duration]
+    else:
+        start = random.randint(0, duration - 100)
+        return [start, start + 100]
+    
+def generate_synapse_segment(duration, validator_start):
+    start = max(0, validator_start - 50)
+    end = min(duration, validator_start + 150)
+    return [start, end]
