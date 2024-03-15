@@ -50,7 +50,7 @@ async def forward(self):
 
     """
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-    if random.random() < 0.0:
+    if random.random() < 0.7:
         audio_sample, ground_truth_transcription = generate_or_load_audio_sample()
         audio_sample_base64 = encode_audio_to_base64(audio_sample)
     
@@ -64,30 +64,23 @@ async def forward(self):
         rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, type="not_url", time_limit=12)
 
     else:
-        # random_url = select_random_url('youtube_urls.txt')
-        urls = select_all_url('youtube_urls.txt')
-        i = 312
-        while(len(urls) > i):
-            random_url = urls[i]
-            duration = get_video_duration(random_url)
-            validator_segment = generate_validator_segment(duration)
-            synapse_segment = generate_synapse_segment(duration, validator_segment[0])
+        random_url = select_random_url('youtube_urls.txt')
+        duration = get_video_duration(random_url)
+        validator_segment = generate_validator_segment(duration)
+        synapse_segment = generate_synapse_segment(duration, validator_segment[0])
 
-            #TODO: refactoring functions required
-            output_filepath = download_youtube_segment(random_url, validator_segment)
-            model, processor = load_model(output_filepath)
-            waveform, sample_rate = read_audio(output_filepath)
-            transcription = transcribe(model, processor, waveform, sample_rate)
-            print(transcription)
-            i = i + 1
-            print(f"------{i}----------------------------------------------------------------------")
+        #TODO: refactoring functions required
+        output_filepath = download_youtube_segment(random_url, validator_segment)
+        model, processor = load_model(output_filepath)
+        waveform, sample_rate = read_audio(output_filepath)
+        transcription = transcribe(model, processor, waveform, sample_rate)
 
         responses = self.dendrite.query(
             # Send the query to selected miner axons in the network.
             axons=[self.metagraph.axons[uid] for uid in miner_uids],
             synapse = Transcription(input_type="url", audio_input=random_url, segment=synapse_segment),
             deserialize=False,
-            timeout=1
+            timeout=60
         )
 
         rewards = get_rewards(self, query=transcription, responses=responses, type="url", time_limit=60)
@@ -318,17 +311,12 @@ def select_random_url(filename):
         urls = file.readlines()
     return random.choice(urls).strip()
 
-def select_all_url(filename):
-    with open(filename, 'r') as file:
-        urls = file.readlines()
-    return urls
-
 def generate_validator_segment(duration):
     if duration <= 100:
         return [0, duration]
     else:
         start = random.randint(0, duration - 100)
-        return [start, start + 5]
+        return [start, start + 100]
     
 def generate_synapse_segment(duration, validator_start):
     start = max(0, validator_start - 50)
