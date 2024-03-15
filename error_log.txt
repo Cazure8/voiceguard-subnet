@@ -1,0 +1,12 @@
+===========================
+Error: gp2VvmUJJc8 is age restricted, and can't be accessed without logging in.. URL https://www.youtube.com/watch?v=gp2VvmUJJc8
+ is age restricted and cannot be processed without logging in.
+https://www.youtube.com/watch?v=gp2VvmUJJc8
+
+===========================
+===========================
+Error: LbL4_ybemO4 is age restricted, and can't be accessed without logging in.. URL https://www.youtube.com/watch?v=LbL4_ybemO4
+ is age restricted and cannot be processed without logging in.
+https://www.youtube.com/watch?v=LbL4_ybemO4
+
+===========================
