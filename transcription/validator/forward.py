@@ -50,7 +50,7 @@ async def forward(self):
 
     """
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-    if random.random() < 0.7:
+    if random.random() < 0.3:
         audio_sample, ground_truth_transcription = generate_or_load_audio_sample()
         audio_sample_base64 = encode_audio_to_base64(audio_sample)
     
@@ -80,7 +80,7 @@ async def forward(self):
             axons=[self.metagraph.axons[uid] for uid in miner_uids],
             synapse = Transcription(input_type="url", audio_input=random_url, segment=synapse_segment),
             deserialize=False,
-            timeout=70
+            timeout=100
         )
 
         rewards = get_rewards(self, query=transcription, responses=responses, type="url", time_limit=60)

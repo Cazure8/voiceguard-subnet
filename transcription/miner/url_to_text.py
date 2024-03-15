@@ -7,8 +7,8 @@ import torchaudio
 from transcription.protocol import Transcription
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 from datetime import datetime
-from pytube import YouTube
 from speechbrain.pretrained import SpeakerRecognition
+from uuid import uuid4
 
 recognition_model = SpeakerRecognition.from_hparams(source="speechbrain/lang-id-commonlanguage_ecapa", savedir="tmpdir")
 
@@ -44,28 +44,27 @@ def download_youtube_segment(youtube_url, segment, output_format='flac'):
     if not os.path.exists('downloads'):
         os.makedirs('downloads')
 
-    yt = YouTube(youtube_url)
-    audio_stream = yt.streams.get_audio_only()
-    base_filename = yt.title.replace(" ", "_").replace("/", "_")
+    file_uuid = uuid4()  # Unique identifier for the output file
+    output_template = os.path.join('downloads', f"{file_uuid}.%(ext)s")
 
-    # Extract start and end times from the segment tuple
     start_seconds, end_seconds = segment
-    start_time = convert_seconds_to_time(start_seconds)
     duration = end_seconds - start_seconds
-    # Define filenames and paths
-    output_filename = f"{base_filename}_{start_seconds}-{end_seconds}.{output_format}"
-    output_filepath = os.path.join("downloads", output_filename)
 
-    # Handle potential filename duplicates
+    output_filepath = os.path.join('downloads', f"{file_uuid}.{output_format}")
     output_filepath = handle_filename_duplicates(output_filepath)
 
-    print(f"Downloading segment: {start_seconds} to {end_seconds}")
-    print(f"yt.streams.first().url: {yt.streams.first().url}")
-    # Directly use ffmpeg to download and convert segment without intermediate file
-    command = ['ffmpeg', '-ss', str(start_time), '-i', yt.streams.first().url, '-t', str(duration), 
-               '-vn', '-ar', '16000', '-ac', '1', '-ab', '192k', '-f', output_format, output_filepath]
-    subprocess.run(command)
-    
+    command = [
+        'yt-dlp',
+        '-x',  # Extract audio
+        '--audio-format', output_format,
+        '--postprocessor-args',
+        f"-ss {start_seconds} -t {duration} -ac 1 -ar 16000 -ab 128k",  # Segment extraction and conversion options
+        '-o', output_template,
+        youtube_url
+    ]
+
+    subprocess.run(command, check=True) 
+
     print(f"Segment audio downloaded and converted to {output_format}: {output_filepath}")
     return output_filepath
 
