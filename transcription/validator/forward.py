@@ -80,7 +80,7 @@ async def forward(self):
             axons=[self.metagraph.axons[uid] for uid in miner_uids],
             synapse = Transcription(input_type="url", audio_input=random_url, segment=synapse_segment),
             deserialize=False,
-            timeout=60
+            timeout=40
         )
 
         rewards = get_rewards(self, query=transcription, responses=responses, type="url", time_limit=60)
