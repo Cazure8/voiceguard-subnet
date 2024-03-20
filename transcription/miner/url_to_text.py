@@ -26,15 +26,21 @@ def url_to_text(self, synapse: Transcription) -> str:
         return transcription
     
     elif is_youtube(audio_url):
-        output_filepath = download_youtube_segment(audio_url, segment)
-        model, processor = load_model(output_filepath)
-        waveform, sample_rate = read_audio(output_filepath)
-        transcription = transcribe(model, processor, waveform, sample_rate)
-        print("---miner transcript--")
-        print(transcription)
-        print("---------------------")
-        start, end = segment
-        return format_transcription(start, transcription)
+        try:
+            output_filepath = download_youtube_segment(audio_url, segment)
+            model, processor = load_model(output_filepath)
+            waveform, sample_rate = read_audio(output_filepath)
+            transcription = transcribe(model, processor, waveform, sample_rate)
+
+            print("---miner transcript--")
+            print(transcription)
+            print("---------------------")
+
+            start, _ = segment
+            return format_transcription(start, transcription)
+        except Exception as e:
+            print(f"Failed during model loading or transcription: {e}")
+            return ""
 
 def format_transcription(segment_start, transcription):
     formatted_transcription = f"{segment_start}$$_{transcription}"
