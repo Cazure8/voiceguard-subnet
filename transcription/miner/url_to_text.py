@@ -28,6 +28,12 @@ def url_to_text(self, synapse: Transcription) -> str:
     elif is_youtube(audio_url):
         try:
             output_filepath = download_youtube_segment(audio_url, segment)
+            
+            if not os.path.exists(output_filepath):
+                print("Output file does not exist. Returning empty transcription.")
+                start, _ = segment
+                return format_transcription(start, "")
+            
             model, processor = load_model(output_filepath)
             waveform, sample_rate = read_audio(output_filepath)
             transcription = transcribe(model, processor, waveform, sample_rate)
@@ -47,32 +53,35 @@ def format_transcription(segment_start, transcription):
     return formatted_transcription
 
 def download_youtube_segment(youtube_url, segment, output_format='flac'):
-    if not os.path.exists('downloads'):
-        os.makedirs('downloads')
+    try:
+        if not os.path.exists('downloads'):
+            os.makedirs('downloads')
 
-    file_uuid = uuid4()  # Unique identifier for the output file
-    output_template = os.path.join('downloads', f"{file_uuid}.%(ext)s")
+        file_uuid = uuid4()  # Unique identifier for the output file
+        output_template = os.path.join('downloads', f"{file_uuid}.%(ext)s")
 
-    start_seconds, end_seconds = segment
-    duration = end_seconds - start_seconds
+        start_seconds, end_seconds = segment
+        duration = end_seconds - start_seconds
 
-    output_filepath = os.path.join('downloads', f"{file_uuid}.{output_format}")
-    output_filepath = handle_filename_duplicates(output_filepath)
+        output_filepath = os.path.join('downloads', f"{file_uuid}.{output_format}")
+        output_filepath = handle_filename_duplicates(output_filepath)
 
-    command = [
-        'yt-dlp',
-        '-x',  # Extract audio
-        '--audio-format', output_format,
-        '--postprocessor-args',
-        f"-ss {start_seconds} -t {duration} -ac 1 -ar 16000 -ab 128k",  # Segment extraction and conversion options
-        '-o', output_template,
-        youtube_url
-    ]
+        command = [
+            'yt-dlp',
+            '-x',  # Extract audio
+            '--audio-format', output_format,
+            '--postprocessor-args',
+            f"-ss {start_seconds} -t {duration} -ac 1 -ar 16000 -ab 128k",  # Segment extraction and conversion options
+            '-o', output_template,
+            youtube_url
+        ]
 
-    subprocess.run(command, check=True) 
+        subprocess.run(command, check=True) 
 
-    print(f"Segment audio downloaded and converted to {output_format}: {output_filepath}")
-    return output_filepath
+        print(f"Segment audio downloaded and converted to {output_format}: {output_filepath}")
+        return output_filepath
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 def convert_seconds_to_time(seconds):
     """Convert seconds to HH:MM:SS format."""
@@ -126,24 +135,29 @@ def download_twitter_space(url, output):
         return False
     
 def load_model(file):
-    # Predict the language
-    prediction_result = recognition_model.classify_file(file)
+    try:
+        # Predict the language
+        prediction_result = recognition_model.classify_file(file)
 
-    # Assuming the model returns a tuple where the last element contains language labels
-    language_labels = prediction_result[-1]  # Adjust according to actual model output
-    most_probable_language_label = language_labels[0]  # Assuming the first label is the most probable
-    
-    # Initialize model_id with a default model to ensure it's never empty
-    default_model_id = "facebook/wav2vec2-base-960h"
+        # Assuming the model returns a tuple where the last element contains language labels
+        language_labels = prediction_result[-1]  # Adjust according to actual model output
+        most_probable_language_label = language_labels[0]  # Assuming the first label is the most probable
+        
+        # Initialize model_id with a default model to ensure it's never empty
+        default_model_id = "facebook/wav2vec2-base-960h"
 
-    # Checking for Chinese variations
-    if "Chinese" in most_probable_language_label:
-        model_id = "ydshieh/wav2vec2-large-xlsr-53-chinese-zh-cn-gpt"
-    elif "English" in most_probable_language_label:
+        # Checking for Chinese variations
+        if "Chinese" in most_probable_language_label:
+            model_id = "ydshieh/wav2vec2-large-xlsr-53-chinese-zh-cn-gpt"
+        elif "English" in most_probable_language_label:
+            model_id = default_model_id
+        else:
+            model_id = default_model_id
+            print(f"Unexpected language detected: {most_probable_language_label}. Using default model.")
+            
+    except Exception as e:
+        print(f"An error occurred during language prediction: {e}. Falling back to default English model.")
         model_id = default_model_id
-    else:
-        model_id = default_model_id
-        print(f"Unexpected language detected: {most_probable_language_label}. Using default model.")
 
     print(f"Detected language: {most_probable_language_label}, using model: {model_id}")
 
