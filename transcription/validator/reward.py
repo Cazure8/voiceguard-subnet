@@ -21,6 +21,7 @@ from typing import List
 import Levenshtein
 import spacy
 import nltk
+import re
 from nltk.translate.bleu_score import sentence_bleu
 from nltk.tokenize import word_tokenize
 
@@ -31,7 +32,7 @@ def reward(query: str, response: str, response_time: float, max_response_time: f
     print("-------response transcript from miner----------")
     print(response)
     print("-----------------------------------------------")
-    if response is None or response.strip() == "":
+    if response is None or response.strip() == "" or not re.match(r"^\d+\$\$_\S+", response):
         correctness_score = 0.0 
         speed_score = 0.0 
     else:
