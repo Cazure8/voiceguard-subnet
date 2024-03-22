@@ -32,7 +32,7 @@ def reward(query: str, response: str, response_time: float, max_response_time: f
     print("-------response transcript from miner----------")
     print(response)
     print("-----------------------------------------------")
-    if response is None or response.strip() == "" or not re.match(r"^\d+\$\$_\S+", response):
+    if response is None or not response.strip() or re.match(r"^\d+\$\$_$", response):
         correctness_score = 0.0 
         speed_score = 0.0 
     else:
