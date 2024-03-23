@@ -64,27 +64,39 @@ async def forward(self):
         rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, type="not_url", time_limit=12)
 
     else:
-        random_url = select_random_url('youtube_urls.txt')
-        duration = get_video_duration(random_url)
-        validator_segment = generate_validator_segment(duration)
-        synapse_segment = generate_synapse_segment(duration, validator_segment[0])
+        try:
+            random_url = select_random_url('youtube_urls.txt')
+            duration = get_video_duration(random_url)
+            validator_segment = generate_validator_segment(duration)
+            synapse_segment = generate_synapse_segment(duration, validator_segment[0])
 
-        #TODO: refactoring functions required
-        output_filepath = download_youtube_segment(random_url, validator_segment)
-        model, processor = load_model(output_filepath)
-        waveform, sample_rate = read_audio(output_filepath)
-        transcription = transcribe(model, processor, waveform, sample_rate)
+            #TODO: refactoring functions required
+            output_filepath = download_youtube_segment(random_url, validator_segment)
 
-        responses = self.dendrite.query(
-            # Send the query to selected miner axons in the network.
-            axons=[self.metagraph.axons[uid] for uid in miner_uids],
-            synapse = Transcription(input_type="url", audio_input=random_url, segment=validator_segment),
-            deserialize=False,
-            timeout=30
-        )
+            if not os.path.exists(output_filepath):
+                print("Output file does not exist. Returning empty transcription.")
+                transcription = ""
+            else:
+                model, processor = load_model(output_filepath)
+                print("----output filepath-------")
+                print(output_filepath)
+                print("----------------------")
+                waveform, sample_rate = read_audio(output_filepath)
+                transcription = transcribe(model, processor, waveform, sample_rate)
 
-        rewards = get_rewards(self, query=transcription, responses=responses, type="url", time_limit=60)
+            responses = self.dendrite.query(
+                # Send the query to selected miner axons in the network.
+                axons=[self.metagraph.axons[uid] for uid in miner_uids],
+                synapse = Transcription(input_type="url", audio_input=random_url, segment=validator_segment),
+                deserialize=False,
+                timeout=30
+            )
 
+            rewards = get_rewards(self, query=transcription, responses=responses, type="url", time_limit=60)
+        
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        
     bt.logging.info(f"Scored responses: {rewards}")
     # Update the scores based on the rewards. You may want to define your own update_scores function for custom behavior.
     self.update_scores(rewards, miner_uids)
