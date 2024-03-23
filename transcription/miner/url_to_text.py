@@ -135,6 +135,7 @@ def download_twitter_space(url, output):
         return False
     
 def load_model(file):
+    default_model_id = "facebook/wav2vec2-base-960h"
     try:
         # Predict the language
         prediction_result = recognition_model.classify_file(file)
@@ -144,7 +145,6 @@ def load_model(file):
         most_probable_language_label = language_labels[0]  # Assuming the first label is the most probable
         
         # Initialize model_id with a default model to ensure it's never empty
-        default_model_id = "facebook/wav2vec2-base-960h"
 
         # Checking for Chinese variations
         if "Chinese" in most_probable_language_label:
@@ -154,7 +154,7 @@ def load_model(file):
         else:
             model_id = default_model_id
             print(f"Unexpected language detected: {most_probable_language_label}. Using default model.")
-            
+
     except Exception as e:
         print(f"An error occurred during language prediction: {e}. Falling back to default English model.")
         model_id = default_model_id
