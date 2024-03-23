@@ -136,6 +136,9 @@ def download_twitter_space(url, output):
     
 def load_model(file):
     default_model_id = "facebook/wav2vec2-base-960h"
+    model_id = default_model_id  
+    most_probable_language_label = "Unknown" 
+
     try:
         # Predict the language
         prediction_result = recognition_model.classify_file(file)
@@ -144,22 +147,18 @@ def load_model(file):
         language_labels = prediction_result[-1]  # Adjust according to actual model output
         most_probable_language_label = language_labels[0]  # Assuming the first label is the most probable
         
-        # Initialize model_id with a default model to ensure it's never empty
-
-        # Checking for Chinese variations
+        # Checking for specific language variations
         if "Chinese" in most_probable_language_label:
             model_id = "ydshieh/wav2vec2-large-xlsr-53-chinese-zh-cn-gpt"
         elif "English" in most_probable_language_label:
             model_id = default_model_id
         else:
-            model_id = default_model_id
             print(f"Unexpected language detected: {most_probable_language_label}. Using default model.")
+            
+        print(f"Detected language: {most_probable_language_label}, using model: {model_id}")
 
     except Exception as e:
         print(f"An error occurred during language prediction: {e}. Falling back to default English model.")
-        model_id = default_model_id
-
-    print(f"Detected language: {most_probable_language_label}, using model: {model_id}")
 
     # Load the model and processor using the determined model_id
     model = Wav2Vec2ForCTC.from_pretrained(model_id)
