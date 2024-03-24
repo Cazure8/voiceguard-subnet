@@ -96,7 +96,7 @@ async def forward(self):
         
         except Exception as e:
             print(f"An error occurred: {e}")
-            rewards = None
+            rewards = torch.zeros(len(miner_uids))
         
     bt.logging.info(f"Scored responses: {rewards}")
     # Update the scores based on the rewards. You may want to define your own update_scores function for custom behavior.
