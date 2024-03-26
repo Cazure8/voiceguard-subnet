@@ -105,7 +105,7 @@ def is_twitter_space(url):
     return re.match(pattern, url) is not None
 
 def is_youtube(url):
-    pattern = r'(https?://)?(www\.|m\.)?(youtube\.com/watch\?v=|youtube\.com/playlist\?list=|youtube\.com/channel/|youtube\.com/user/|youtu\.be/)[\w-]+(&[\w-]+=[\w-]+)*'
+    pattern = r'(https?://)?(www\.|m\.)?(youtube\.com/watch\?v=|youtube\.com/playlist\?list=|youtube\.com/channel/|youtube\.com/user/|youtu\.be/)[\w-]+(\?[\w-&=]*)?'
     return re.match(pattern, url) is not None
 
 def download_twitter_space(url, output):
