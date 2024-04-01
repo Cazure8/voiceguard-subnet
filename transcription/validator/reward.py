@@ -37,7 +37,7 @@ def reward(query: str, response: str, response_time: float, max_response_time: f
         speed_score = 0.0 
     else:
         if type == "url":
-            correctness_score = 1 if get_bleu_score(query, response) > 0.8 else 0
+            correctness_score = 1 if get_bleu_score(query, response) > 0.9 else 0
         else:
             correctness_score = overall_correctness_score(query, response)
             
