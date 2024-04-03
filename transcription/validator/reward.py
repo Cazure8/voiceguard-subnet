@@ -45,8 +45,8 @@ def reward(query: str, response: str, response_time: float, max_response_time: f
         # Apply sigmoid to speed score for normalization between 0 and 1
         speed_score = sigmoid(torch.tensor([normalized_speed_score]), temperature=1.0, shift=0.5).item()
         
-    correctness_weight = 0.5
-    speed_weight = 0.5
+    correctness_weight = 0.8
+    speed_weight = 0.2
     
     combined_score = (correctness_weight * correctness_score) + (speed_weight * speed_score)
 
