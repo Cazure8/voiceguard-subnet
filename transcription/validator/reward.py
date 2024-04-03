@@ -21,7 +21,7 @@ import Levenshtein
 import spacy
 import nltk
 import re
-from nltk.translate.bleu_score import sentence_bleu
+from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from nltk.tokenize import word_tokenize
 
 nlp = spacy.load("en_core_web_md")
@@ -31,20 +31,19 @@ def reward(query: str, response: str, response_time: float, max_response_time: f
     print("-------response transcript from miner----------")
     print(response)
     print("-----------------------------------------------")
-    if response is None or not response.strip() or re.match(r"^\d+\$\$__$", response):
-        correctness_score = 0.0 
-        speed_score = 0.0 
-    else:
-        cleaned_response = re.sub(r"^\d+\$\$__", "", response)
-        print("--------cleaned----------")
-        print(cleaned_response)
-        print("=========================")
-        correctness_score = overall_correctness_score(query, cleaned_response)
-        normalized_speed_score = 1 - response_time / max_response_time
-        
-        # Apply sigmoid to speed score for normalization between 0 and 1
-        speed_score = sigmoid(torch.tensor([normalized_speed_score]), temperature=1.0, shift=0.5).item()
-        
+    if not response.startswith(r"\d+\$\$__"):
+        return 0.0
+    
+    cleaned_response = re.sub(r"^\d+\$\$__", "", response)
+    print("--------cleaned----------")
+    print(cleaned_response)
+    print("=========================")
+    correctness_score = overall_correctness_score(query, cleaned_response)
+    normalized_speed_score = 1 - response_time / max_response_time
+    
+    # Apply sigmoid to speed score for normalization between 0 and 1
+    speed_score = sigmoid(torch.tensor([normalized_speed_score]), temperature=1.0, shift=0.5).item()
+    
     correctness_weight = 0.5
     speed_weight = 0.5
     
@@ -52,7 +51,7 @@ def reward(query: str, response: str, response_time: float, max_response_time: f
 
     return combined_score
 
-def sigmoid(x, temperature=1.0, shift=0.0):
+def sigmoid(x, temperature=10, shift=0.5):
     """
     Apply a sigmoid function to normalize scores.
     """
@@ -104,7 +103,7 @@ def semantic_similarity(original, response):
     return similarity_score
 
 
-def overall_correctness_score(original, response, weight_overlap=0.3, weight_similarity=0.3, weight_levenshtein=0.2, weight_bleu=0.2):
+def overall_correctness_score(original, response, weight_overlap=0.25, weight_similarity=0.25, weight_levenshtein=0.25, weight_bleu=0.25):
     if response is None:
         return 0.0
     # Handle the case when response is a single string
@@ -122,12 +121,7 @@ def overall_correctness_score(original, response, weight_overlap=0.3, weight_sim
     )
     return overall_score
 
-def get_bleu_score(request, response):
-    # Tokenize the reference and candidate sentences
-    request_tokens = [word_tokenize(request.lower())]
-    response_tokens = word_tokenize(response.lower())
-    
-    weights = (0.25, 0.25, 0.25, 0.25)  # This gives full weight to 1-gram precision, ignoring longer n-grams
-    score = sentence_bleu(request_tokens, response_tokens, weights=weights)
-    
-    return score
+def get_bleu_score(reference, candidate):
+    """Calculate BLEU score for a single reference and a candidate."""
+    smoothing_function = SmoothingFunction().method4
+    return sentence_bleu([word_tokenize(reference.lower())], word_tokenize(candidate.lower()), smoothing_function=smoothing_function)
