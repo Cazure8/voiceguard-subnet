@@ -49,7 +49,7 @@ def url_to_text(self, synapse: Transcription) -> str:
             return ""
 
 def format_transcription(segment_start, transcription):
-    formatted_transcription = f"{segment_start}$$__{transcription}"
+    formatted_transcription = f"{segment_start}$$_{transcription}"
     return formatted_transcription
 
 def download_youtube_segment(youtube_url, segment, output_format='mp3'):

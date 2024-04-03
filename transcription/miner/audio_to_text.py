@@ -76,7 +76,7 @@ def audio_to_text(self, synapse: transcription.protocol.Transcription) -> str:
         print("--------------------------------")
         print(transcription[0])
         print("--------------------------------")
-        return f"0$$__{transcription[0]}"
+        return f"0$$_{transcription[0]}"
     
     except Exception as e:
         bt.logging.error(f"Error in Wave2Vec transcription: {e}")
