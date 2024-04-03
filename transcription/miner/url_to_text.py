@@ -100,7 +100,7 @@ def handle_filename_duplicates(filepath):
     return filepath
 
 def transcribe_with_whisper(audio_filepath):
-    model = whisper.load_model("base")  # Consider "tiny", "base", "small", "medium", or "large" based on your needs
+    model = whisper.load_model("large")
     result = model.transcribe(audio_filepath)
     return result["text"]
 
