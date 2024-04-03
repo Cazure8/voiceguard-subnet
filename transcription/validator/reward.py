@@ -31,7 +31,7 @@ def reward(query: str, response: str, response_time: float, max_response_time: f
     print("-------response transcript from miner----------")
     print(response)
     print("-----------------------------------------------")
-    if not response.startswith(r"\d+\$\$__"):
+    if not re.match(r"\d+\$\$__", response):
         return 0.0
     
     cleaned_response = re.sub(r"^\d+\$\$__", "", response)
