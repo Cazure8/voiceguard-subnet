@@ -1,5 +1,4 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
 # Copyright © 2023 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -28,27 +27,26 @@ from nltk.tokenize import word_tokenize
 nlp = spacy.load("en_core_web_md")
 nltk.download('punkt')
 
-def reward(query: str, response: str, response_time: float, max_response_time: float, type: str) -> float:
+def reward(query: str, response: str, response_time: float, max_response_time: float) -> float:
     print("-------response transcript from miner----------")
     print(response)
     print("-----------------------------------------------")
-    if response is None or not response.strip() or re.match(r"^\d+\$\$_$", response):
+    if response is None or not response.strip() or re.match(r"^\d+\$\$__$", response):
         correctness_score = 0.0 
         speed_score = 0.0 
     else:
-        if type == "url":
-            correctness_score = 1 if get_bleu_score(query, response) > 0.9 else 0
-        else:
-            correctness_score = overall_correctness_score(query, response)
-            
-        
+        cleaned_response = re.sub(r"^\d+\$\$__", "", response)
+        print("--------cleaned----------")
+        print(cleaned_response)
+        print("=========================")
+        correctness_score = overall_correctness_score(query, cleaned_response)
         normalized_speed_score = 1 - response_time / max_response_time
         
         # Apply sigmoid to speed score for normalization between 0 and 1
         speed_score = sigmoid(torch.tensor([normalized_speed_score]), temperature=1.0, shift=0.5).item()
         
-    correctness_weight = 0.7
-    speed_weight = 0.3
+    correctness_weight = 0.5
+    speed_weight = 0.5
     
     combined_score = (correctness_weight * correctness_score) + (speed_weight * speed_score)
 
@@ -60,7 +58,7 @@ def sigmoid(x, temperature=1.0, shift=0.0):
     """
     return 1 / (1 + torch.exp(-temperature * (x - shift)))
 
-def get_rewards(self, query: str, responses, type: str, time_limit) -> torch.FloatTensor:
+def get_rewards(self, query: str, responses, time_limit) -> torch.FloatTensor:
     default_high_process_time = time_limit 
     response_times = torch.FloatTensor([
         response.dendrite.process_time if response.dendrite.process_time is not None else default_high_process_time
@@ -73,8 +71,7 @@ def get_rewards(self, query: str, responses, type: str, time_limit) -> torch.Flo
         query, 
         resp.transcription_output, 
         resp.dendrite.process_time if resp.dendrite.process_time is not None else default_high_process_time, 
-        max_response_time.item(),
-        type
+        max_response_time.item()
         ) for resp in responses
     ])
 
@@ -107,19 +104,21 @@ def semantic_similarity(original, response):
     return similarity_score
 
 
-def overall_correctness_score(original, response, weight_overlap=0.4, weight_similarity=0.4, weight_levenshtein=0.2):
+def overall_correctness_score(original, response, weight_overlap=0.3, weight_similarity=0.3, weight_levenshtein=0.2, weight_bleu=0.2):
     if response is None:
         return 0.0
     # Handle the case when response is a single string
     overlap_score = word_overlap_score(original, response)
     similarity_score = semantic_similarity(original, response)
-
     levenshtein_score = levenshtein_similarity(original, response)
+    bleu_score = get_bleu_score(original, response)
+
     # Combine scores with specified weights
     overall_score = (
         weight_overlap * overlap_score +
         weight_similarity * similarity_score +
-        weight_levenshtein * levenshtein_score
+        weight_levenshtein * levenshtein_score +
+        weight_bleu * bleu_score
     )
     return overall_score
 
@@ -128,7 +127,7 @@ def get_bleu_score(request, response):
     request_tokens = [word_tokenize(request.lower())]
     response_tokens = word_tokenize(response.lower())
     
-    weights = (1, 0, 0, 0)  # This gives full weight to 1-gram precision, ignoring longer n-grams
+    weights = (0.25, 0.25, 0.25, 0.25)  # This gives full weight to 1-gram precision, ignoring longer n-grams
     score = sentence_bleu(request_tokens, response_tokens, weights=weights)
     
     return score
