@@ -37,7 +37,7 @@ import torchaudio.transforms as T
 import torch
 import soundfile as sf
 
-from transcription.miner.url_to_text import download_youtube_segment, load_model, read_audio, transcribe
+from transcription.miner.url_to_text import download_youtube_segment, load_model, transcribe_with_whisper
 
 async def forward(self):
     """
@@ -49,7 +49,8 @@ async def forward(self):
         self (:obj:`bittensor.neuron.Neuron`): The neuron object which contains all the necessary state for the validator.
 
     """
-    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    # miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    miner_uids = [3]
     if random.random() < 0.6:
         audio_sample, ground_truth_transcription = generate_or_load_audio_sample()
         audio_sample_base64 = encode_audio_to_base64(audio_sample)
@@ -61,14 +62,13 @@ async def forward(self):
             synapse=Transcription(audio_input=audio_sample_base64),
             deserialize=False,
         )
-        rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, type="not_url", time_limit=12)
+        rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, time_limit=12)
 
     else:
         try:
             random_url = select_random_url('youtube_urls.txt')
             duration = get_video_duration(random_url)
             validator_segment = generate_validator_segment(duration)
-            synapse_segment = generate_synapse_segment(duration, validator_segment[0])
 
             #TODO: refactoring functions required
             output_filepath = download_youtube_segment(random_url, validator_segment)
@@ -77,22 +77,20 @@ async def forward(self):
                 print("Output file does not exist. Returning empty transcription.")
                 transcription = ""
             else:
-                model, processor = load_model(output_filepath)
-                print("----output filepath-------")
-                print(output_filepath)
-                print("----------------------")
-                waveform, sample_rate = read_audio(output_filepath)
-                transcription = transcribe(model, processor, waveform, sample_rate)
+                transcription = transcribe_with_whisper(output_filepath)
 
+            print("------validator transcript--------")
+            print(transcription)
+            print("----------------------------------")
             responses = self.dendrite.query(
                 # Send the query to selected miner axons in the network.
                 axons=[self.metagraph.axons[uid] for uid in miner_uids],
                 synapse = Transcription(input_type="url", audio_input=random_url, segment=validator_segment),
                 deserialize=False,
-                timeout=20
+                timeout=50
             )
 
-            rewards = get_rewards(self, query=transcription, responses=responses, type="url", time_limit=60)
+            rewards = get_rewards(self, query=transcription, responses=responses, time_limit=60)
         
         except Exception as e:
             print(f"An error occurred: {e}")

@@ -9,6 +9,7 @@ from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 from datetime import datetime
 from speechbrain.pretrained import SpeakerRecognition
 from uuid import uuid4
+import whisper
 
 recognition_model = SpeakerRecognition.from_hparams(source="speechbrain/lang-id-commonlanguage_ecapa", savedir="tmpdir")
 
@@ -34,9 +35,7 @@ def url_to_text(self, synapse: Transcription) -> str:
                 start, _ = segment
                 return format_transcription(start, "")
             
-            model, processor = load_model(output_filepath)
-            waveform, sample_rate = read_audio(output_filepath)
-            transcription = transcribe(model, processor, waveform, sample_rate)
+            transcription = transcribe_with_whisper(output_filepath)
 
             print("---miner transcript--")
             print(transcription)
@@ -44,26 +43,26 @@ def url_to_text(self, synapse: Transcription) -> str:
 
             start, _ = segment
             return format_transcription(start, transcription)
+        
         except Exception as e:
             print(f"Failed during model loading or transcription: {e}")
             return ""
 
 def format_transcription(segment_start, transcription):
-    formatted_transcription = f"{segment_start}$$_{transcription}"
+    formatted_transcription = f"{segment_start}$$__{transcription}"
     return formatted_transcription
 
-def download_youtube_segment(youtube_url, segment, output_format='flac'):
+def download_youtube_segment(youtube_url, segment, output_format='mp3'):
     try:
         if not os.path.exists('downloads'):
             os.makedirs('downloads')
 
-        file_uuid = uuid4()  # Unique identifier for the output file
-        output_template = os.path.join('downloads', f"{file_uuid}.%(ext)s")
-
+        file_uuid = uuid4()
         start_seconds, end_seconds = segment
         duration = end_seconds - start_seconds
 
-        output_filepath = os.path.join('downloads', f"{file_uuid}.{output_format}")
+        output_filename = f"{file_uuid}.{output_format}"
+        output_filepath = os.path.join('downloads', output_filename)
         output_filepath = handle_filename_duplicates(output_filepath)
 
         command = [
@@ -72,7 +71,7 @@ def download_youtube_segment(youtube_url, segment, output_format='flac'):
             '--audio-format', output_format,
             '--postprocessor-args',
             f"-ss {start_seconds} -t {duration} -ac 1 -ar 16000 -ab 128k",  # Segment extraction and conversion options
-            '-o', output_template,
+            '-o', output_filepath,
             youtube_url
         ]
 
@@ -80,6 +79,7 @@ def download_youtube_segment(youtube_url, segment, output_format='flac'):
 
         print(f"Segment audio downloaded and converted to {output_format}: {output_filepath}")
         return output_filepath
+    
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
@@ -99,6 +99,10 @@ def handle_filename_duplicates(filepath):
         counter += 1
     return filepath
 
+def transcribe_with_whisper(audio_filepath):
+    model = whisper.load_model("base")  # Consider "tiny", "base", "small", "medium", or "large" based on your needs
+    result = model.transcribe(audio_filepath)
+    return result["text"]
 
 def is_twitter_space(url):
     pattern = r'https://twitter\.com/i/spaces/\S+'
@@ -229,12 +233,3 @@ def check_urls(file_path):
     
     print(f"Total valid URLs: {len(valid_urls)}")
     return valid_urls
-
-# TO check valid URLs
-# import sys
-# if __name__ == "__main__":
-#     if len(sys.argv) < 2:
-#         print("Usage: python3 url_to_text.py <path_to_your_file>")
-#     else:
-#         file_path = sys.argv[1]
-#         check_urls(file_path)
