@@ -61,7 +61,7 @@ async def forward(self):
             synapse=Transcription(audio_input=audio_sample_base64),
             deserialize=False,
         )
-        rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, time_limit=12)
+        rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, time_limit=2)
 
     else:
         try:
