@@ -61,7 +61,7 @@ async def forward(self):
             synapse=Transcription(audio_input=audio_sample_base64),
             deserialize=False,
         )
-        rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, time_limit=2)
+        rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, time_limit=1)
 
     else:
         try:
@@ -89,7 +89,7 @@ async def forward(self):
                 timeout=50
             )
 
-            rewards = get_rewards(self, query=transcription, responses=responses, time_limit=60)
+            rewards = get_rewards(self, query=transcription, responses=responses, time_limit=50)
         
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -101,7 +101,7 @@ async def forward(self):
     
 def generate_or_load_audio_sample(base_path='librispeech_dataset'):
     # Attempt to generate audio using TTS
-    script = generate_random_text(num_sentences=25, sentence_length=10)
+    script = generate_random_text(num_sentences=2, sentence_length=10)
     mp3_file_name = f"temp_{random.randint(0, 10000)}.mp3"
 
     if random.random() < 0.2 and (google_tts(script, mp3_file_name) or local_tts(script, mp3_file_name)):
