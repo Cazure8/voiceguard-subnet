@@ -65,7 +65,7 @@ async def forward(self):
 
     else:
         try:
-            random_url = select_random_url('youtube_urls.txt')
+            random_url = select_random_url()
             duration = get_video_duration(random_url)
             validator_segment = generate_validator_segment(duration)
 
@@ -86,10 +86,10 @@ async def forward(self):
                 axons=[self.metagraph.axons[uid] for uid in miner_uids],
                 synapse = Transcription(input_type="url", audio_input=random_url, segment=validator_segment),
                 deserialize=False,
-                timeout=50
+                timeout=45
             )
 
-            rewards = get_rewards(self, query=transcription, responses=responses, time_limit=50)
+            rewards = get_rewards(self, query=transcription, responses=responses, time_limit=45)
         
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -316,9 +316,23 @@ def get_video_duration(url):
         print(f"Error fetching video duration: {e}")
         return 0
     
-def select_random_url(filename):
-    with open(filename, 'r') as file:
+def select_random_url(directory='Youtube_urls'):
+    # List all .txt files in the specified directory
+    txt_files = [f for f in os.listdir(directory) if f.endswith('.txt')]
+    if not txt_files:
+        raise FileNotFoundError("No text files found in the directory.")
+
+    # Select a random .txt file
+    random_file = random.choice(txt_files)
+    file_path = os.path.join(directory, random_file)
+
+    # Read URLs from the selected file
+    with open(file_path, 'r') as file:
         urls = file.readlines()
+    
+    if not urls:
+        raise ValueError("The selected file is empty.")
+
     return random.choice(urls).strip()
 
 def generate_validator_segment(duration):
