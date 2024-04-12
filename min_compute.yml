@@ -11,6 +11,14 @@ compute_spec:
       recommended_speed: 3.5  # Recommended speed per core (GHz)
       architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
 
+    gpu:
+      required: True                       # Does the application require a GPU?
+      min_vram: 8                          # Minimum GPU VRAM (GB)
+      recommended_vram: 10                 # Recommended GPU VRAM (GB)
+      cuda_cores: 1024                     # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 6.0          # Minimum CUDA compute capability
+      recommended_compute_capability: 7.0  # Recommended CUDA compute capability
+
     memory:
       min_ram: 16          # Minimum RAM (GB)
       min_swap: 4          # Minimum swap space (GB)
@@ -34,6 +42,14 @@ compute_spec:
       recommended_cores: 8    # Recommended number of CPU cores
       recommended_speed: 3.5  # Recommended speed per core (GHz)
       architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: True                       # Does the application require a GPU?
+      min_vram: 8                          # Minimum GPU VRAM (GB)
+      recommended_vram: 10                 # Recommended GPU VRAM (GB)
+      cuda_cores: 1024                     # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 6.0          # Minimum CUDA compute capability
+      recommended_compute_capability: 7.0  # Recommended CUDA compute capability
 
     memory:
       min_ram: 16          # Minimum RAM (GB)
