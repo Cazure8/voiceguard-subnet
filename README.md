@@ -70,7 +70,6 @@ sudo apt install libsox-dev
 
 ### Download datasets for transcription scoring and training
 ```bash
-python3 -m spacy download en_core_web_md
 python3 transcription/utils/download.py
 ```
 
