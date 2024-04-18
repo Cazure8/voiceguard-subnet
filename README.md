@@ -139,7 +139,7 @@ pm2 start neurons/miner.py --name miner --interpreter python3 --
     --axon.port # the port you allowed
     --logging.debug # run in debug mode, alternatively --logging.trace for trace mode
     --batch_size # the number of data points processed in a single iteration, default = 12
-    --device gpu:0,2 # the device will be used for model training, default = gpu
+    --device # the device will be used for model training, default = gpu
 ```
 
 
