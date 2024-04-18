@@ -86,10 +86,10 @@ async def forward(self):
                 axons=[self.metagraph.axons[uid] for uid in miner_uids],
                 synapse = Transcription(input_type="url", audio_input=random_url, segment=validator_segment),
                 deserialize=False,
-                timeout=50
+                timeout=80
             )
 
-            rewards = get_rewards(self, query=transcription, responses=responses, time_limit=50)
+            rewards = get_rewards(self, query=transcription, responses=responses, time_limit=80)
         
         except Exception as e:
             print(f"An error occurred: {e}")
