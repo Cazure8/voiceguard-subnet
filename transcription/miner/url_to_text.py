@@ -10,8 +10,10 @@ from datetime import datetime
 from speechbrain.pretrained import SpeakerRecognition
 from uuid import uuid4
 import whisper
+from dotenv import load_dotenv
 
 recognition_model = SpeakerRecognition.from_hparams(source="speechbrain/lang-id-commonlanguage_ecapa", savedir="tmpdir")
+proxy_url = os.getenv('PROXY_URL')
 
 def url_to_text(self, synapse: Transcription) -> str:
     audio_url = synapse.audio_input
@@ -52,7 +54,7 @@ def format_transcription(segment_start, transcription):
     formatted_transcription = f"{segment_start}$$_{transcription}"
     return formatted_transcription
 
-def download_youtube_segment(youtube_url, segment, output_format='mp3'):
+def download_youtube_segment(youtube_url, segment, output_format='mp3', proxy=proxy_url):
     try:
         if not os.path.exists('downloads'):
             os.makedirs('downloads')
@@ -74,6 +76,9 @@ def download_youtube_segment(youtube_url, segment, output_format='mp3'):
             '-o', output_filepath,
             youtube_url
         ]
+
+        if proxy:
+            command += ['--proxy', proxy]
 
         subprocess.run(command, check=True) 
 

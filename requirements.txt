@@ -145,6 +145,7 @@ pymorphy3-dicts-uk==2.4.1.1.1663094765
 PyNaCl==1.5.0
 pytest==7.4.4
 pytest-asyncio==0.23.3
+python-dotenv==1.0.1
 python-Levenshtein==0.23.0
 pyttsx3==2.90
 pytube==15.0.0
@@ -195,7 +196,7 @@ toolz==0.12.0
 torch==2.2.0
 torchaudio==2.2.0
 tqdm==4.66.1
--e git+https://github.com/Cazure8/transcription-subnet.git@b8e2c82be120fdc697ef759355e3794c286f4bb3#egg=transcription_subnet
+-e git+https://github.com/Cazure8/transcription-subnet.git@414be5fc7104635ae2ccec7190b45062ddedfcdf#egg=transcription_subnet
 transformers==4.36.2
 triton==2.2.0
 twspace-dl==2023.7.24.1
