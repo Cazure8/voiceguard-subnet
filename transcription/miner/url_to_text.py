@@ -12,6 +12,8 @@ from uuid import uuid4
 import whisper
 from dotenv import load_dotenv
 
+load_dotenv()
+
 recognition_model = SpeakerRecognition.from_hparams(source="speechbrain/lang-id-commonlanguage_ecapa", savedir="tmpdir")
 proxy_url = os.getenv('PROXY_URL')
 
@@ -76,10 +78,10 @@ def download_youtube_segment(youtube_url, segment, output_format='mp3', proxy=pr
             '-o', output_filepath,
             youtube_url
         ]
-
+        print(f"Proxy value inside function: {proxy}")  # Debug print
         if proxy:
             command += ['--proxy', proxy]
-
+       
         subprocess.run(command, check=True) 
 
         print(f"Segment audio downloaded and converted to {output_format}: {output_filepath}")
