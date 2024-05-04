@@ -1,3 +1,5 @@
+import time
+import asyncio
 import torch
 from torch.utils.data import DataLoader
 from transformers import Wav2Vec2Config, Wav2Vec2ForCTC, Wav2Vec2Processor
@@ -12,6 +14,21 @@ import re
 from torch.nn.utils.rnn import pad_sequence
 import torchaudio.transforms as T
 import random
+from huggingface_hub import HfApi, upload_file, HfFolder, update_repo_visibility
+from healthcare.utils.chain import Chain
+from dotenv import load_dotenv
+load_dotenv()
+
+@contextmanager
+def suppress_stdout_stderr():
+    """A context manager that redirects stdout and stderr to devnull"""
+    with open(os.devnull, 'w') as fnull:
+        old_stdout, old_stderr = sys.stdout, sys.stderr
+        sys.stdout, sys.stderr = fnull, fnull
+        try:
+            yield
+        finally:
+            sys.stdout, sys.stderr = old_stdout, old_stderr
 
 class AudioDataset(Dataset):
     def __init__(self, audio_paths, transcripts, processor, augmentation_prob=0.5):
@@ -205,6 +222,59 @@ class ModelTrainer:
                     self.save_model_and_processor(save_path)
                     min_loss = epoch_loss  # Update minimum loss
 
+                    # upload the model metadata HF and write them on-chain
+                    # check HF keys
+                    access_token = os.getenv("HF_ACCESS_TOKEN")
+                    try:
+                        api = HfApi()
+                        username = api.whoami(access_token)["name"]
+                        self.repo_id = username + "/" + os.getenv('REPO_ID')
+                        api.create_repo(token=access_token, repo_id=self.repo_id, exist_ok = True)
+                    except Exception as e:
+                        bt.logging.error(f"❌ Error occured while creating a repository : {e}")
+                    
+                    HfFolder.save_token(self.access_token)
+                    try:
+                        # Make the repository as private before uploading
+                        update_repo_visibility(self.repo_id, private = True)
+
+                        # Upload the model to hugging face
+                        for root, dirs, files in os.walk(self.model_directory):
+                            for file in files:
+                                # Generate the full path and then remove the base directory part
+                                full_path = os.path.join(root, file)
+                                relative_path = os.path.relpath(full_path, self.model_directory)
+                                with suppress_stdout_stderr():
+                                    upload_file(
+                                        path_or_fileobj=full_path,
+                                        path_in_repo=relative_path,
+                                        repo_id=self.repo_id
+                                    )
+                        bt.logging.info(f"✅ Best model uploaded at {self.repo_id}")
+
+                        # Retrieve the latest commit information
+                        api = HfApi()
+                        repo_info = api.repo_info(repo_id=self.repo_id, token=self.access_token)
+                        last_commit_hash = repo_info.sha
+                        
+                        # Push the metadata to the chain
+                        data = " ".join([self.repo_id, last_commit_hash])
+                        while True:
+                            try:
+                                asyncio.run(self.chain.store_metadata(data))
+                                bt.logging.info("✅ Stored the model to the chain.")
+                                break
+                            except Exception as e:
+                                bt.logging.info(f"❌ Error occured while pushing the model to chain : {e}")
+                                time.sleep(12)
+                                continue
+
+                    except Exception as e:
+                        print(f"❌ Error occured while pushing the model : {e}")
+                    
+                    # Make the repository as public
+                    update_repo_visibility(self.repo_id, private = False)
+
                 epoch += 1  # Increment epoch after each complete pass through the data_loader
 
 
@@ -265,4 +335,3 @@ def apply_augmentation(waveform, sample_rate):
         waveform += noise
 
     return waveform
-

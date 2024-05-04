@@ -28,7 +28,7 @@ from traceback import print_exception
 from transcription.utils.misc import update_repository
 
 from transcription.base.neuron import BaseNeuron
-
+from validator_model import Validator
 
 class BaseValidatorNeuron(BaseNeuron):
     """
@@ -38,6 +38,8 @@ class BaseValidatorNeuron(BaseNeuron):
     def __init__(self, config=None):
         super().__init__(config=config)
 
+        # run model training validator
+        self.model_validator = Validator
         # Save a copy of the hotkeys to local memory.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
 
@@ -115,7 +117,7 @@ class BaseValidatorNeuron(BaseNeuron):
             KeyboardInterrupt: If the miner is stopped by a manual interruption.
             Exception: For unforeseen errors during the miner's operation, which are logged for diagnosis.
         """
-
+        asyncio.run(self.model_validator.run())
         # Check that validator is registered on the network.
         self.sync()
 
@@ -245,12 +247,14 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.debug("uint_weights", uint_weights)
         bt.logging.debug("uint_uids", uint_uids)
 
+        # combining forward score and training score
+        final_weights = uint_weights * 0.7 + self.model_validator.weights * 0.3
         # Set the weights on chain via our subtensor connection.
         result, msg = self.subtensor.set_weights(
             wallet=self.wallet,
             netuid=self.config.netuid,
             uids=uint_uids,
-            weights=uint_weights,
+            weights=final_weights,
             wait_for_finalization=False,
             wait_for_inclusion=False,
             version_key=self.spec_version,
