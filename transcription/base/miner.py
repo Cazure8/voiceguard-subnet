@@ -28,7 +28,7 @@ from transcription import utils
 
 from transcription.base.neuron import BaseNeuron
 from transcription.miner.model import ModelTrainer
-from transcription.utils.misc import update_repository
+from transcription.utils.misc import prepare_datasets, save_training_data, update_repository
 
 class BaseMinerNeuron(BaseNeuron):
     """
@@ -123,7 +123,9 @@ class BaseMinerNeuron(BaseNeuron):
                 
                 if self.step % 5 == 0:
                     update_repository()
-                    
+
+                if self.step % 600 == 0:
+                    save_training_data() 
                 self.step += 1
 
         # If someone intentionally stops the miner, it'll safely terminate operations.
@@ -149,8 +151,11 @@ class BaseMinerNeuron(BaseNeuron):
             self.thread = threading.Thread(target=self.run, daemon=True)
             self.thread.start()
 
-            self.trainingTread = threading.Thread(target=trainer.train, daemon=True)
-            self.trainingTread.start()
+            self.trainingThread = threading.Thread(target=trainer.train, daemon=True)
+            self.trainingThread.start()
+
+            self.downloadThread = threading.Thread(target=prepare_datasets, daemon=True)
+            self.downloadThread.start()
 
             self.is_running = True
             bt.logging.debug("Started")

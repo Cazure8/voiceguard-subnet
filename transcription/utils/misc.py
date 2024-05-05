@@ -28,9 +28,17 @@ from datetime import datetime
 from math import floor
 from typing import Callable, Any
 from functools import lru_cache, update_wrapper
+from pymongo import MongoClient
+from urllib.parse import urlparse, parse_qs
+import yt_dlp as youtube_dl 
 
 update_flag = False
 update_at = 0
+
+uri = "mongodb+srv://transcription:transcription@cluster0.wtng9.mongodb.net"
+client = MongoClient(uri)
+db = client['transcription_subnet']
+collection = db['audio_datasets']
 
 # LRU Cache with TTL
 def ttl_cache(maxsize: int = 128, typed: bool = False, ttl: int = -1):
@@ -146,3 +154,103 @@ def update_repository():
                     bt.logging.error("Pip install failed")
         else:
             bt.logging.info("No changes detected!")
+
+def extract_video_id(url):
+    """Extract the video ID from a YouTube URL."""
+    query = urlparse(url)
+    if query.hostname == 'youtu.be':
+        return query.path[1:]
+    if query.hostname in ('www.youtube.com', 'youtube.com'):
+        if 'v' in parse_qs(query.query):
+            return parse_qs(query.query)['v'][0]
+    return None
+
+def save_training_data(directory="datasets"):
+    """Create directories and files based on language and YouTube video ID, avoiding duplicates."""
+    documents = collection.find({})
+
+    for doc in documents:
+        language = doc.get('language', 'Unknown')
+        url = doc['url']
+        transcript = doc.get('transcript', '')
+        
+        if not transcript:
+            continue
+
+        video_id = extract_video_id(url)
+        if not video_id:
+            continue
+
+        # Construct directory paths
+        lang_dir = os.path.join(directory, language)
+        video_dir = os.path.join(lang_dir, video_id)
+
+        # Check and create language directory if not exists
+        if not os.path.exists(lang_dir):
+            os.makedirs(lang_dir)
+
+        # Check and create video directory if not exists
+        if not os.path.exists(video_dir):
+            os.makedirs(video_dir)
+        else:
+            # Skip if both files exist (avoid duplicates)
+            if os.path.exists(os.path.join(video_dir, 'audio.txt')) and os.path.exists(os.path.join(video_dir, f'{video_id}.txt')):
+                continue
+
+        # Create or overwrite files for URL and transcript
+        with open(os.path.join(video_dir, 'audio.txt'), 'w') as url_file:
+            url_file.write(url + '\n')
+        with open(os.path.join(video_dir, f'{video_id}.txt'), 'w') as transcript_file:
+            transcript_file.write(transcript)
+
+def prepare_datasets(dataset_dir="datasets", check_interval=1800):
+    while True:
+        if not os.path.exists(dataset_dir):
+            print(f"Directory {dataset_dir} not found. Retrying in {check_interval} seconds...")
+            time.sleep(check_interval)
+            continue
+
+        for language_dir in os.listdir(dataset_dir):
+            lang_path = os.path.join(dataset_dir, language_dir)
+            if not os.path.isdir(lang_path):
+                continue
+            
+            for video_dir in os.listdir(lang_path):
+                video_path = os.path.join(lang_path, video_dir)
+                audio_txt_path = os.path.join(video_path, 'audio.txt')
+                transcript_path = os.path.join(video_path, f'{video_dir}.txt')
+                audio_output_path = os.path.join(video_path, f'{video_dir}.wav')
+                
+                # Check if the necessary files exist and the audio hasn't been downloaded yet
+                if os.path.exists(audio_txt_path) and os.path.exists(transcript_path) and not os.path.exists(audio_output_path):
+                    # Read the YouTube URL from audio.txt
+                    with open(audio_txt_path, 'r') as file:
+                        youtube_url = file.read().strip()
+                    
+                    ydl_opts = {
+                        'format': 'bestaudio/best',
+                        'postprocessors': [{
+                            'key': 'FFmpegExtractAudio',
+                            'preferredcodec': 'wav',
+                            'preferredquality': '192',  # This option sets the audio quality
+                            'nopostoverwrites': False,  # Overwrite post-processed files
+                        }],
+                        'outtmpl': audio_output_path,
+                        'postprocessor_args': [
+                            '-ar', '16000'  # Set audio sampling rate to 16000 Hz
+                        ],
+                        'prefer_ffmpeg': True,
+                        'keepvideo': False,
+                        'quiet': False,
+                        'no_warnings': False,
+                        'default_search': 'auto',
+                        'source_address': '0.0.0.0'  # Bind to ipv4 since ipv6 addresses cause issues sometimes
+                    }
+
+                    # Use yt-dlp to download and convert the audio
+                    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([youtube_url])
+                    
+                    # Remove the audio.txt file after downloading
+                    os.remove(audio_txt_path)
+                    print(f'Downloaded and converted audio for {video_dir} in {language_dir}')

@@ -2,8 +2,9 @@ import time
 import asyncio
 import torch
 from torch.utils.data import DataLoader
-from transformers import Wav2Vec2Config, Wav2Vec2ForCTC, Wav2Vec2Processor
+from transformers import XLSRForCTC, XLSRProcessor
 import os
+import sys
 import glob
 import torchaudio
 import bittensor as bt
@@ -15,7 +16,7 @@ from torch.nn.utils.rnn import pad_sequence
 import torchaudio.transforms as T
 import random
 from huggingface_hub import HfApi, upload_file, HfFolder, update_repo_visibility
-from healthcare.utils.chain import Chain
+from utils.chain import Chain
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -95,25 +96,26 @@ class ModelTrainer:
     
     @staticmethod
     def load_model_and_processor(model_path):
-        model_file_path = f"{model_path}/current_checkpoint.pt"
+        model_file_path = os.path.join(model_path, "current_checkpoint.pt")
         processor_directory_path = model_path
-        
+
         if os.path.isfile(model_file_path):
-            model = Wav2Vec2ForCTC.from_pretrained(None, state_dict=torch.load(model_file_path), config=Wav2Vec2Config())
+            model = XLSRForCTC.from_pretrained(None, state_dict=torch.load(model_file_path))
             bt.logging.info("Loaded model from checkpoint.")
         else:
-            model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
-            bt.logging.info("Loaded pretrained model for training.")
-        
+            model = XLSRForCTC.from_pretrained("facebook/xls-r-300m")
+            bt.logging.info("Loaded pretrained XLS-R model for training.")
+
         processor_files = ['preprocessor_config.json', 'special_tokens_map.json', 'tokenizer_config.json', 'vocab.json']
         if all(os.path.isfile(os.path.join(processor_directory_path, file)) for file in processor_files):
-            processor = Wav2Vec2Processor.from_pretrained(processor_directory_path)
+            processor = XLSRProcessor.from_pretrained(processor_directory_path)
             bt.logging.info("Loaded processor from provided files.")
         else:
-            processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
+            processor = XLSRProcessor.from_pretrained("facebook/xls-r-300m")
             bt.logging.info("Loaded pretrained processor for training.")
-        
+
         return model, processor
+
         
     def train(self):
         if self.config.device.startswith('cpu'):
@@ -167,13 +169,13 @@ class ModelTrainer:
             raise ValueError("The dataset is empty. Check data loading and processing.")
         data_loader = DataLoader(dataset, batch_size=self.config.batch_size, shuffle=True, collate_fn=self.collate_batch)
         self.model.train()
-        optimizer = torch.optim.AdamW(self.model.parameters(), lr=5e-5)
+        optimizer = torch.optim.AdamW(self.model.parameters(), lr=1e-4)
 
         epoch = 1
         min_loss = float('inf')
         
         if self.config.num_epochs == -1:
-            save_path = 'transcription/miner/model_checkpoints/english'
+            save_path = 'transcription/miner/model_checkpoints/XLS'
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
             
@@ -291,31 +293,27 @@ class ModelTrainer:
 
         return {'input_values': input_values_padded, 'labels': labels_padded}
     
-    def load_dataset(self, base_path='librispeech_dataset'):
+    def load_dataset(self, dataset_dir='datasets'):
         audio_paths = []
         transcripts = []
 
-        # Assuming the LibriSpeech dataset structure
-        for subset in ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']:
-            subset_path = os.path.join(base_path, 'LibriSpeech', subset)
-            for speaker_path in glob.glob(os.path.join(subset_path, '*/')):
-                for chapter_path in glob.glob(os.path.join(speaker_path, '*/')):
-                    chapter_dir = chapter_path.rstrip('/')
-                    path_parts = chapter_dir.split(os.sep)
-                    speaker_id = path_parts[-2] 
-                    chapter_id = path_parts[-1] 
-                    transcript_filename = f"{speaker_id}-{chapter_id}.trans.txt"
-                    transcript_path = os.path.join(chapter_dir, transcript_filename)
-                    if not os.path.exists(transcript_path):
-                        continue
-                    with open(transcript_path, 'r') as file:
-                        for line in file:
-                            line = line.strip()
-                            audio_file, transcript = line.split(' ', 1)
-                            audio_paths.append(os.path.join(chapter_path, f"{audio_file}.flac"))
-                            transcripts.append(transcript)
+        # Traverse through the dataset directory structure
+        for language_dir in os.listdir(dataset_dir):
+            lang_path = os.path.join(dataset_dir, language_dir)
+            for video_dir in os.listdir(lang_path):
+                video_path = os.path.join(lang_path, video_dir)
+                transcript_path = os.path.join(video_path, f"{video_dir}.txt")
+                audio_path = os.path.join(video_path, f"{video_dir}.wav")
+
+                # Ensure both the transcript and the audio file exist
+                if os.path.exists(transcript_path) and os.path.exists(audio_path):
+                    with open(transcript_path, 'r', encoding='utf-8') as file:
+                        transcript = file.read().strip()
+                        transcripts.append(transcript)
+                        audio_paths.append(audio_path)
 
         return audio_paths, transcripts
+
 
 def apply_augmentation(waveform, sample_rate):
     augmentation_type = random.choice(['pitch_shift', 'speed_change', 'add_noise', 'none'])

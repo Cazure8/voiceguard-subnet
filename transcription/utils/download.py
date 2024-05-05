@@ -94,7 +94,7 @@ models_to_download = [
 ]
 
 if __name__ == "__main__":
-    download_entire_librispeech()
+    # download_entire_librispeech()
 
     for model in models_to_download:
         download_spacy_model(model)
