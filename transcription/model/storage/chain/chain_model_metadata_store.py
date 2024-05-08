@@ -2,12 +2,12 @@ import asyncio
 import functools
 import bittensor as bt
 import os
-from model.data import ModelId, ModelMetadata
+from transcription.model.data import ModelId, ModelMetadata
 import constants
-from model.storage.model_metadata_store import ModelMetadataStore
+from transcription.model.storage.model_metadata_store import ModelMetadataStore
 from typing import Optional
 
-from utilities import utils
+from transcription.utils import chain
 
 
 class ChainModelMetadataStore(ModelMetadataStore):
@@ -37,7 +37,7 @@ class ChainModelMetadataStore(ModelMetadataStore):
             self.subnet_uid,
             model_id.to_compressed_str(),
         )
-        utils.run_in_subprocess(partial, 60)
+        chain.run_in_subprocess(partial, 60)
 
     async def retrieve_model_metadata(self, hotkey: str) -> Optional[ModelMetadata]:
         """Retrieves model metadata on this subnet for specific hotkey"""
@@ -47,7 +47,7 @@ class ChainModelMetadataStore(ModelMetadataStore):
             bt.extrinsics.serving.get_metadata, self.subtensor, self.subnet_uid, hotkey
         )
 
-        metadata = utils.run_in_subprocess(partial, 20)
+        metadata = chain.run_in_subprocess(partial, 20)
 
         if not metadata:
             return None

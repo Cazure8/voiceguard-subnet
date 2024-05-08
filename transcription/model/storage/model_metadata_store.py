@@ -1,6 +1,6 @@
 import abc
 from typing import Optional
-from model.data import ModelId, ModelMetadata
+from transcription.model.data import ModelId, ModelMetadata
 
 
 class ModelMetadataStore(abc.ABC):

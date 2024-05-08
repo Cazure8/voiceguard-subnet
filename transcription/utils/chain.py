@@ -56,6 +56,7 @@ class Chain:
         self.hotkey = hotkey
 
     async def store_metadata(self, data):
+        print("--------I am happy----------")
         """Store the metadata to the chain"""
         # Wrap calls to the subtensor in a subprocess with a timeout to handle potential hangs.
         partial = functools.partial(

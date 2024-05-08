@@ -49,6 +49,7 @@ async def forward(self):
         self (:obj:`bittensor.neuron.Neuron`): The neuron object which contains all the necessary state for the validator.
 
     """
+    print("-------forward----------")
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
     if random.random() < 0.1:
         audio_sample, ground_truth_transcription = generate_or_load_audio_sample()

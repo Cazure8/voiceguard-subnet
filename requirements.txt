@@ -23,6 +23,7 @@ cffi==1.16.0
 charset-normalizer==3.3.2
 click==8.1.7
 cloudpathlib==0.16.0
+colorama==0.4.6
 confection==0.1.4
 cryptography==42.0.0
 cymem==2.0.8
@@ -32,6 +33,7 @@ DAWG-Python==0.7.2
 ddt==1.6.0
 de-core-news-lg @ https://github.com/explosion/spacy-models/releases/download/de_core_news_lg-3.7.0/de_core_news_lg-3.7.0-py3-none-any.whl
 decorator==5.1.1
+dnspython==2.6.1
 ecdsa==0.18.0
 el-core-news-md @ https://github.com/explosion/spacy-models/releases/download/el_core_news_md-3.7.0/el_core_news_md-3.7.0-py3-none-any.whl
 en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.1/en_core_web_lg-3.7.1-py3-none-any.whl
@@ -139,6 +141,7 @@ pycryptodomex==3.20.0
 pydantic==1.10.13
 pydub==0.25.1
 Pygments==2.17.2
+pymongo==4.7.1
 pymorphy3==2.0.1
 pymorphy3-dicts-ru==2.4.417150.4580142
 pymorphy3-dicts-uk==2.4.1.1.1663094765
@@ -147,6 +150,7 @@ pytest==7.4.4
 pytest-asyncio==0.23.3
 python-dotenv==1.0.1
 python-Levenshtein==0.23.0
+python-statemachine==2.1.2
 pyttsx3==2.90
 pytube==15.0.0
 PyYAML==6.0.1
@@ -190,14 +194,14 @@ termcolor==2.4.0
 terminaltables==3.1.10
 thinc==8.2.2
 tiktoken==0.6.0
-tokenizers==0.15.0
+tokenizers==0.19.1
 tomli==2.0.1
 toolz==0.12.0
 torch==2.2.0
 torchaudio==2.2.0
 tqdm==4.66.1
--e git+https://github.com/Cazure8/transcription-subnet.git@414be5fc7104635ae2ccec7190b45062ddedfcdf#egg=transcription_subnet
-transformers==4.36.2
+-e git+https://github.com/Cazure8/transcription-subnet.git@aa89fcce17ce208623e8fb1c4ffa426ffecb1c71#egg=transcription_subnet
+transformers==4.40.1
 triton==2.2.0
 twspace-dl==2023.7.24.1
 typer==0.9.0

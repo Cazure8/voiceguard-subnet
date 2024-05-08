@@ -3,9 +3,9 @@ import datetime
 import os
 from typing import Dict
 from constants import CompetitionParameters
-from model.data import Model, ModelId
-from model.storage.disk import utils
-from model.storage.local_model_store import LocalModelStore
+from transcription.model.data import Model, ModelId
+from transcription.model.storage.disk import utils
+from transcription.model.storage.local_model_store import LocalModelStore
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from pathlib import Path
 

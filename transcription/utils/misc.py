@@ -204,6 +204,7 @@ def save_training_data(directory="datasets"):
             transcript_file.write(transcript)
 
 def prepare_datasets(dataset_dir="datasets", check_interval=1800):
+    print("-----here's prepare datasets-------")
     while True:
         if not os.path.exists(dataset_dir):
             print(f"Directory {dataset_dir} not found. Retrying in {check_interval} seconds...")
@@ -214,16 +215,14 @@ def prepare_datasets(dataset_dir="datasets", check_interval=1800):
             lang_path = os.path.join(dataset_dir, language_dir)
             if not os.path.isdir(lang_path):
                 continue
-            
+
             for video_dir in os.listdir(lang_path):
                 video_path = os.path.join(lang_path, video_dir)
                 audio_txt_path = os.path.join(video_path, 'audio.txt')
                 transcript_path = os.path.join(video_path, f'{video_dir}.txt')
-                audio_output_path = os.path.join(video_path, f'{video_dir}.wav')
-                
-                # Check if the necessary files exist and the audio hasn't been downloaded yet
+                audio_output_path = os.path.join(video_path, video_dir)
+
                 if os.path.exists(audio_txt_path) and os.path.exists(transcript_path) and not os.path.exists(audio_output_path):
-                    # Read the YouTube URL from audio.txt
                     with open(audio_txt_path, 'r') as file:
                         youtube_url = file.read().strip()
                     
@@ -232,25 +231,23 @@ def prepare_datasets(dataset_dir="datasets", check_interval=1800):
                         'postprocessors': [{
                             'key': 'FFmpegExtractAudio',
                             'preferredcodec': 'wav',
-                            'preferredquality': '192',  # This option sets the audio quality
-                            'nopostoverwrites': False,  # Overwrite post-processed files
+                            'preferredquality': '192',
+                            'nopostoverwrites': False,
                         }],
                         'outtmpl': audio_output_path,
-                        'postprocessor_args': [
-                            '-ar', '16000'  # Set audio sampling rate to 16000 Hz
-                        ],
+                        'postprocessor_args': ['-ar', '16000'],
                         'prefer_ffmpeg': True,
                         'keepvideo': False,
                         'quiet': False,
                         'no_warnings': False,
                         'default_search': 'auto',
-                        'source_address': '0.0.0.0'  # Bind to ipv4 since ipv6 addresses cause issues sometimes
+                        'source_address': '0.0.0.0'
                     }
 
-                    # Use yt-dlp to download and convert the audio
-                    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                        ydl.download([youtube_url])
-                    
-                    # Remove the audio.txt file after downloading
-                    os.remove(audio_txt_path)
-                    print(f'Downloaded and converted audio for {video_dir} in {language_dir}')
+                    try:
+                        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                            ydl.download([youtube_url])
+                        print(f'Downloaded and converted audio for {video_dir} in {language_dir}')
+                        os.remove(audio_txt_path)
+                    except Exception as e:
+                        print(f"Failed to download audio for {video_dir}: {e}")

@@ -43,11 +43,11 @@ import multiprocessing
 from rich.table import Table
 from rich.console import Console
 
-from validator_utils import compute_wins
-from utils.miner_iterator import MinerIterator
-from utils import utils
-from utils.perf_monitor import PerfMonitor
-from utils.rater import rate
+from transcription.base.validator_utils import compute_wins
+from transcription.utils.miner_iterator import MinerIterator
+from transcription.utils import uids
+from transcription.utils.perf_monitor import PerfMonitor
+from transcription.utils.rater import rate
 
 import math
 import torch
@@ -256,7 +256,7 @@ class Validator:
 
         # Dont check registration status if offline.
         if not self.config.offline:
-            self.uid = utils.assert_registered(self.wallet, self.metagraph)
+            self.uid = uids.assert_registered(self.wallet, self.metagraph)
 
         # Track how may run_steps this validator has completed.
         self.run_step_count = 0
@@ -961,7 +961,7 @@ class Validator:
         #         step=self.global_step,
         #     )
 
-    async def run(self):
+    async def run_validator(self):
         while True:
             try:
                 while (
@@ -991,4 +991,6 @@ class Validator:
                 bt.logging.error(
                     f"Error in validator loop \n {e} \n {traceback.format_exc()}"
                 )
+    def run(self):
+        asyncio.run(self.run_validator())
 

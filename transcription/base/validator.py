@@ -25,10 +25,10 @@ import bittensor as bt
 
 from typing import List
 from traceback import print_exception
-from transcription.utils.misc import update_repository
+from transcription.utils.misc import prepare_datasets, update_repository
 
 from transcription.base.neuron import BaseNeuron
-from validator_model import Validator
+from transcription.base.validator_model import Validator as Validator_model
 
 class BaseValidatorNeuron(BaseNeuron):
     """
@@ -39,7 +39,7 @@ class BaseValidatorNeuron(BaseNeuron):
         super().__init__(config=config)
 
         # run model training validator
-        self.model_validator = Validator
+        self.model_validator = Validator_model()
         # Save a copy of the hotkeys to local memory.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
 
@@ -117,7 +117,6 @@ class BaseValidatorNeuron(BaseNeuron):
             KeyboardInterrupt: If the miner is stopped by a manual interruption.
             Exception: For unforeseen errors during the miner's operation, which are logged for diagnosis.
         """
-        asyncio.run(self.model_validator.run())
         # Check that validator is registered on the network.
         self.sync()
 
@@ -133,6 +132,7 @@ class BaseValidatorNeuron(BaseNeuron):
                 bt.logging.info(f"step({self.step}) block({self.block})")
 
                 # Run multiple forwards concurrently.
+                print("-------inside true--------")
                 self.loop.run_until_complete(self.concurrent_forward())
 
                 # Check if we should exit.
@@ -168,6 +168,13 @@ class BaseValidatorNeuron(BaseNeuron):
             self.should_exit = False
             self.thread = threading.Thread(target=self.run, daemon=True)
             self.thread.start()
+
+            self.model_validator_thread = threading.Thread(target=self.model_validator.run, daemon=True)
+            self.model_validator_thread.start()
+
+            self.downloadThread = threading.Thread(target=prepare_datasets, daemon=True)
+            self.downloadThread.start()
+            
             self.is_running = True
             bt.logging.debug("Started")
 
@@ -249,6 +256,9 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # combining forward score and training score
         final_weights = uint_weights * 0.7 + self.model_validator.weights * 0.3
+        print("-----final_weights-----")
+        print(final_weights)
+        print("-----------------------")
         # Set the weights on chain via our subtensor connection.
         result, msg = self.subtensor.set_weights(
             wallet=self.wallet,

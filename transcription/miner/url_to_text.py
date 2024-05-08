@@ -146,7 +146,7 @@ def download_twitter_space(url, output):
         return False
     
 def load_model(file):
-    default_model_id = "facebook/wav2vec2-base-960h"
+    default_model_id = "facebook/wav2vec2-xls-r-300m"
     model_id = default_model_id  
     most_probable_language_label = "Unknown" 
 

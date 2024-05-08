@@ -48,8 +48,8 @@ class Miner(BaseMinerNeuron):
         """
         if synapse.is_url():
             synapse.transcription_output = url_to_text(self, synapse)
-        else:
-            synapse.transcription_output = audio_to_text(self, synapse)
+        # else:
+            # synapse.transcription_output = audio_to_text(self, synapse)
         
         return synapse
 

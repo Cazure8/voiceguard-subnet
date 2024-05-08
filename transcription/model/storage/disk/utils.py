@@ -4,7 +4,7 @@ import hashlib
 import os
 import shutil
 import sys
-from model.data import ModelId
+from transcription.model.data import ModelId
 
 
 def get_local_miners_dir(base_dir: str) -> str:

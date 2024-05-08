@@ -1,6 +1,6 @@
 import abc
 from typing import Dict
-from model.data import Model, ModelId
+from transcription.model.data import Model, ModelId
 from constants import CompetitionParameters
 
 

@@ -10,28 +10,38 @@ import torchaudio
 import transcription
 from transformers import Wav2Vec2Config, Wav2Vec2ForCTC, Wav2Vec2Processor
 
-default_model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
-default_processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
+default_model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-xls-r-300m")
+# default_processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-xls-r-300m")
+
+# def load_model_and_processor(model_path):
+#         model_file_path = f"{model_path}/current_checkpoint.pt"
+#         processor_directory_path = model_path
+        
+#         if os.path.isfile(model_file_path):
+#             model = Wav2Vec2ForCTC.from_pretrained(None, state_dict=torch.load(model_file_path), config=Wav2Vec2Config())
+#             bt.logging.info("Loaded model from checkpoint.")
+#         else:
+#             model = default_model
+#             bt.logging.info("Loaded pretrained model for benchmarking.")
+        
+#         processor_files = ['preprocessor_config.json', 'special_tokens_map.json', 'tokenizer_config.json', 'vocab.json']
+#         if all(os.path.isfile(os.path.join(processor_directory_path, file)) for file in processor_files):
+#             processor = Wav2Vec2Processor.from_pretrained(processor_directory_path)
+#             bt.logging.info("Loaded processor from provided files.")
+#         else:
+#             processor = default_processor
+#             bt.logging.info("Loaded pretrained processor for benchmarking.")
+        
+#         return model, processor
 
 def load_model_and_processor(model_path):
-        model_file_path = f"{model_path}/current_checkpoint.pt"
-        processor_directory_path = model_path
-        
-        if os.path.isfile(model_file_path):
-            model = Wav2Vec2ForCTC.from_pretrained(None, state_dict=torch.load(model_file_path), config=Wav2Vec2Config())
-            bt.logging.info("Loaded model from checkpoint.")
-        else:
-            model = default_model
-            bt.logging.info("Loaded pretrained model for benchmarking.")
-        
-        processor_files = ['preprocessor_config.json', 'special_tokens_map.json', 'tokenizer_config.json', 'vocab.json']
-        if all(os.path.isfile(os.path.join(processor_directory_path, file)) for file in processor_files):
-            processor = Wav2Vec2Processor.from_pretrained(processor_directory_path)
-            bt.logging.info("Loaded processor from provided files.")
-        else:
-            processor = default_processor
-            bt.logging.info("Loaded pretrained processor for benchmarking.")
-        
+        try:
+            model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-xls-r-300m")
+            processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-xls-r-300m")
+            print("Model and processor successfully loaded.")
+        except Exception as e:
+            print(f"Failed to load model and processor: {e}")
+
         return model, processor
     
 def audio_to_text(self, synapse: transcription.protocol.Transcription) -> str:

@@ -3,11 +3,11 @@ import asyncio
 from typing import Optional
 from constants import CompetitionParameters, COMPETITION_SCHEDULE
 import constants
-from model.data import ModelMetadata, Model
-from model.model_tracker import ModelTracker
-from model.storage.local_model_store import LocalModelStore
-from model.storage.model_metadata_store import ModelMetadataStore
-from model.storage.remote_model_store import RemoteModelStore
+from transcription.model.data import ModelMetadata, Model
+from transcription.model.model_tracker import ModelTracker
+from transcription.model.storage.local_model_store import LocalModelStore
+from transcription.model.storage.model_metadata_store import ModelMetadataStore
+from transcription.model.storage.remote_model_store import RemoteModelStore
 
 
 class ModelUpdater:

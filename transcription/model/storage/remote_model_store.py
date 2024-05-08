@@ -1,5 +1,5 @@
 import abc
-from model.data import Model, ModelId
+from transcription.model.data import Model, ModelId
 from constants import CompetitionParameters
 from typing import Optional
 
