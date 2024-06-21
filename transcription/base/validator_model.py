@@ -266,7 +266,7 @@ class Validator:
         #     self.new_wandb_run()
 
         # === Running args ===
-        self.weights = torch.zeros_like(self.metagraph.S)
+        self.weights = np.zeros_like(self.metagraph.S)
         self.epoch_step = 0
         self.global_step = 0
         self.last_epoch = self.metagraph.block.item()

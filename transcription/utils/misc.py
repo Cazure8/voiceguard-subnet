@@ -23,6 +23,7 @@ import transcription
 import bittensor as bt
 import codecs
 import re
+import random
 import hashlib as rpccheckhealth
 from datetime import datetime
 from math import floor
@@ -250,4 +251,40 @@ def prepare_datasets(dataset_dir="datasets", check_interval=1800):
                         print(f'Downloaded and converted audio for {video_dir} in {language_dir}')
                         os.remove(audio_txt_path)
                     except Exception as e:
-                        print(f"Failed to download audio for {video_dir}: {e}")
+                        print(f"Failed to download audio for {video_dir}: {e}")   
+                        
+def select_random_url(directory='Youtube_urls'):
+    # List all .txt files in the specified directory
+    txt_files = [f for f in os.listdir(directory) if f.endswith('.txt')]
+    if not txt_files:
+        raise FileNotFoundError("No text files found in the directory.")
+
+    # Select a random .txt file
+    random_file = random.choice(txt_files)
+    file_path = os.path.join(directory, random_file)
+
+    # Read URLs from the selected file
+    with open(file_path, 'r') as file:
+        urls = file.readlines()
+    
+    if not urls:
+        raise ValueError("The selected file is empty.")
+
+    return random.choice(urls).strip()      
+
+def handle_filename_duplicates(filepath):
+    """Ensure the filepath is unique to avoid overwriting existing files."""
+    base, extension = os.path.splitext(filepath)
+    counter = 1
+    while os.path.exists(filepath):
+        filepath = f"{base}_{counter}{extension}"
+        counter += 1
+    return filepath     
+
+def is_twitter_space(url):
+    pattern = r'https://twitter\.com/i/spaces/\S+'
+    return re.match(pattern, url) is not None
+
+def is_youtube(url):
+    pattern = r'(https?://)?(www\.|m\.)?(youtube\.com/watch\?v=|youtube\.com/playlist\?list=|youtube\.com/channel/|youtube\.com/user/|youtu\.be/)[\w-]+(\?[\w=&-]*)?'
+    return re.match(pattern, url) is not None          

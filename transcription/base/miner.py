@@ -151,11 +151,11 @@ class BaseMinerNeuron(BaseNeuron):
             self.thread = threading.Thread(target=self.run, daemon=True)
             self.thread.start()
 
-            self.downloadThread = threading.Thread(target=prepare_datasets, daemon=True)
-            self.downloadThread.start()
+            # self.downloadThread = threading.Thread(target=prepare_datasets, daemon=True)
+            # self.downloadThread.start()
 
-            self.trainingThread = threading.Thread(target=trainer.train, daemon=True)
-            self.trainingThread.start()
+            # self.trainingThread = threading.Thread(target=trainer.train, daemon=True)
+            # self.trainingThread.start()
 
             self.is_running = True
             bt.logging.debug("Started")

@@ -36,8 +36,8 @@ import random
 import torchaudio.transforms as T
 import torch
 import soundfile as sf
-
-from transcription.miner.url_to_text import download_youtube_segment, load_model, transcribe_with_whisper
+from transcription.utils.transcribe_manage import download_youtube_segment, transcribe_with_whisper, get_video_duration
+from transcription.utils.misc import select_random_url
 
 async def forward(self):
     """
@@ -305,36 +305,36 @@ def encode_audio_to_base64(audio_data):
     # Encode binary audio data to Base64 string
     return base64.b64encode(audio_data).decode('utf-8')
 
-def get_video_duration(url):
-    try:
-        # Create a YouTube object with the URL
-        yt = YouTube(url)
+# def get_video_duration(url):
+#     try:
+#         # Create a YouTube object with the URL
+#         yt = YouTube(url)
         
-        # Fetch the duration of the video in seconds
-        duration_seconds = yt.length
-        return duration_seconds
-    except Exception as e:
-        print(f"Error fetching video duration: {e}")
-        return 0
+#         # Fetch the duration of the video in seconds
+#         duration_seconds = yt.length
+#         return duration_seconds
+#     except Exception as e:
+#         print(f"Error fetching video duration: {e}")
+#         return 0
     
-def select_random_url(directory='Youtube_urls'):
-    # List all .txt files in the specified directory
-    txt_files = [f for f in os.listdir(directory) if f.endswith('.txt')]
-    if not txt_files:
-        raise FileNotFoundError("No text files found in the directory.")
+# def select_random_url(directory='Youtube_urls'):
+#     # List all .txt files in the specified directory
+#     txt_files = [f for f in os.listdir(directory) if f.endswith('.txt')]
+#     if not txt_files:
+#         raise FileNotFoundError("No text files found in the directory.")
 
-    # Select a random .txt file
-    random_file = random.choice(txt_files)
-    file_path = os.path.join(directory, random_file)
+#     # Select a random .txt file
+#     random_file = random.choice(txt_files)
+#     file_path = os.path.join(directory, random_file)
 
-    # Read URLs from the selected file
-    with open(file_path, 'r') as file:
-        urls = file.readlines()
+#     # Read URLs from the selected file
+#     with open(file_path, 'r') as file:
+#         urls = file.readlines()
     
-    if not urls:
-        raise ValueError("The selected file is empty.")
+#     if not urls:
+#         raise ValueError("The selected file is empty.")
 
-    return random.choice(urls).strip()
+#     return random.choice(urls).strip()
 
 def generate_validator_segment(duration):
     if duration <= 100:
