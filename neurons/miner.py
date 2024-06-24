@@ -46,6 +46,7 @@ class Miner(BaseMinerNeuron):
         """
         Processes the incoming 'Transcription' synapse by transcribing the audio input using Wave2Vec.
         """
+        print(f"here is start of miner synapse---------")
         if synapse.is_url():
             synapse.transcription_output = url_to_text(self, synapse)
         # else:

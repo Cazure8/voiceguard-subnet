@@ -264,9 +264,8 @@ class Validator:
         # Dont log to wandb if offline.
         # if not self.config.offline and self.config.wandb_project:
         #     self.new_wandb_run()
-
         # === Running args ===
-        self.weights = np.zeros_like(self.metagraph.S)
+        self.weights = torch.zeros_like(torch.tensor(self.metagraph.S))
         self.epoch_step = 0
         self.global_step = 0
         self.last_epoch = self.metagraph.block.item()
@@ -316,7 +315,7 @@ class Validator:
         for uid, hotkey in enumerate(list(self.metagraph.hotkeys)):
             competition_ids[uid] = constants.ORIGINAL_COMPETITION_ID
 
-        self.weights.copy_(self.metagraph.C)
+        self.weights.copy_(torch.tensor(self.metagraph.C))
 
         for competition in constants.COMPETITION_SCHEDULE:
             bt.logging.trace(
@@ -624,7 +623,6 @@ class Validator:
         for uid_i in uids:
             # Check that the model is in the tracker.
             hotkey = self.metagraph.hotkeys[uid_i]
-
             if self.uids_queue.epochs == 0 and uid_i not in self.uid_last_checked:
                 # On the first step, don't ignore models that have not been synced unless we have tried to sync and failed.
                 hotkey = self.metagraph.hotkeys[uid_i]
@@ -678,7 +676,6 @@ class Validator:
                 not_in_tracker.append(uid_i)
 
             uid_to_hotkey_and_model_metadata[uid_i] = (hotkey, model_i_metadata)
-
         seed = random.randint(0, 2**16)
 
         batch_size = self.config.batch_size
@@ -692,7 +689,6 @@ class Validator:
             model_i_metadata,
         )) in enumerate(pbar):
             scores = None
-
             if model_i_metadata is not None:
                 if (
                     model_i_metadata.id.competition_id
@@ -758,7 +754,6 @@ class Validator:
             scores_per_uid[uid_i] = scores
             if scores is not None:
                 bt.logging.debug(f"Computed model scores for uid {uid_i}. Mean: {np.array(scores).mean()}")
-
         # Update the first and second moments.
         # Use a exponential moving average to update the sample mean and variance.
         ema_alpha = self.ema_alpha
@@ -781,7 +776,6 @@ class Validator:
         num = 8
         sample_mean_per_uid_corrected, sample_var_per_uid_corrected = self.sample_stats_corrected
         win_rate = compute_wins(sample_mean_per_uid_corrected, sample_var_per_uid_corrected, self.block, num=num)
-
         if self.uids_queue.epoch_is_done:
             # Make sure the winrate of any uids that we have never evaluated is zero, so we don't give validators
             # positive winrate.
@@ -807,7 +801,6 @@ class Validator:
                 ]
             )
         alpha = constants.alpha
-
         # Only update the weights once we have completed a full epoch, for each epoch.
         if self.uids_queue.epoch_is_done:
             self.weights = (
@@ -818,7 +811,6 @@ class Validator:
         # Randomly sample a new set of uids from the list of models that we currently have.
         self.seeds_to_eval, uids_to_eval = self.uids_queue.take(16)
         self.uids_to_eval[competition_parameters.competition_id] = uids_to_eval
-
         # Log the performance of the eval loop.
         bt.logging.debug(load_model_perf.summary_str())
         bt.logging.debug(compute_loss_perf.summary_str())
@@ -839,7 +831,6 @@ class Validator:
             )
         except Exception as e:
             bt.logging.warning(f"Error during log_step: {e}")
-
         # Increment the number of completed run steps by 1
         self.run_step_count += 1
 
@@ -899,7 +890,7 @@ class Validator:
             except:
                 pass
         console = Console()
-        console.print(table)
+        # console.print(table)
 
         ws, ui = self.weights.topk(len(self.weights))
         table = Table(title="Weights > 0.001")
@@ -909,7 +900,7 @@ class Validator:
             if weight > 0.001:
                 table.add_row(str(index), str(round(weight, 4)))
         console = Console()
-        console.print(table)
+        # console.print(table)
 
         # Sink step log.
         bt.logging.trace(f"Step results: {step_log}")
@@ -966,19 +957,18 @@ class Validator:
             try:
                 while (
                     self.metagraph.block.item() - self.last_epoch
-                    < self.config.blocks_per_epoch
+                    < 20 # self.config.blocks_per_epoch
                 ):
                     await self.try_run_step(ttl=60 * 40)
                     bt.logging.debug(
                         f"{self.metagraph.block.item() - self.last_epoch } / {self.config.blocks_per_epoch} blocks until next epoch."
                     )
                     self.global_step += 1
-
                 if not self.config.dont_set_weights and not self.config.offline:
                     await self.try_set_weights(ttl=120)
                 self.last_epoch = self.metagraph.block.item()
                 self.epoch_step += 1
-
+                
             except KeyboardInterrupt:
                 bt.logging.info(
                     "KeyboardInterrupt caught, gracefully closing run..."
@@ -991,6 +981,7 @@ class Validator:
                 bt.logging.error(
                     f"Error in validator loop \n {e} \n {traceback.format_exc()}"
                 )
+                
     def run(self):
         asyncio.run(self.run_validator())
 

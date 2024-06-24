@@ -22,6 +22,7 @@ import torch
 import asyncio
 import threading
 import bittensor as bt
+import numpy as np
 
 from typing import List
 from traceback import print_exception
@@ -49,7 +50,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Set up initial scoring weights for validation
         bt.logging.info("Building validation weights.")
-        self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
+        self.scores = torch.zeros_like(torch.tensor(self.metagraph.S), dtype=torch.float32)
 
         # Init sync with the network. Updates the metagraph.
         self.sync()
@@ -254,8 +255,10 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.debug("uint_weights", uint_weights)
         bt.logging.debug("uint_uids", uint_uids)
 
+        print(f"uint_weights: {uint_weights}")
+        print(f"self.model_validator.weights: {self.model_validator.weights}")
         # combining forward score and training score
-        final_weights = uint_weights * 0.7 + self.model_validator.weights * 0.3
+        final_weights = self.calc_final_score(uint_weights, self.model_validator.weights)
         print("-----final_weights-----")
         print(final_weights)
         print("-----------------------")
@@ -361,3 +364,36 @@ class BaseValidatorNeuron(BaseNeuron):
         self.step = state["step"]
         self.scores = state["scores"]
         self.hotkeys = state["hotkeys"]
+
+    def calc_final_score(backbone_weights, model_weights):
+        # Sort model_weights while keeping track of original indices
+        indices = np.argsort(model_weights)[::-1]
+
+        # Normalize backbone_weights
+        backbone_weights = np.array(backbone_weights)
+        backbone_weights_normalized = backbone_weights / np.sum(backbone_weights) if np.sum(backbone_weights) != 0 else backbone_weights
+
+        # Initial top 3 indices
+        top_3_indices = indices[:3]
+
+        # Check and adjust for zero backbone_weight in the initial top 3
+        valid_top_3_indices = [idx for idx in top_3_indices if backbone_weights[idx] != 0]
+        remaining_needed = 3 - len(valid_top_3_indices)
+        if remaining_needed > 0:
+            # Add the next best indices that are not in the initial top 3 and have non-zero backbone weights
+            next_best_indices = [idx for idx in indices[3:] if backbone_weights[idx] != 0]
+            valid_top_3_indices.extend(next_best_indices[:remaining_needed])
+
+        # Apply fixed weights of 5, 3, and 2 to the adjusted top 3 model weights, set others to zero
+        weighted_model_scores = np.zeros_like(model_weights)
+        fixed_weights = [5, 3, 2]  # Weights for the top 3 positions
+        for i, idx in enumerate(valid_top_3_indices[:3]):
+            weighted_model_scores[idx] = fixed_weights[i]
+
+        # Normalize the weighted model scores
+        filtered_model_weights_normalized = weighted_model_scores / np.sum(weighted_model_scores) if np.sum(weighted_model_scores) != 0 else weighted_model_scores
+
+        # Calculate the final scores
+        final_scores = 0.7 * backbone_weights_normalized + 0.3 * filtered_model_weights_normalized
+
+        return final_scores

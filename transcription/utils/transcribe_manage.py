@@ -65,6 +65,7 @@ def download_youtube_segment(youtube_url, segment, output_format='mp3', proxy=pr
             '--postprocessor-args',
             f"-ss {start_seconds} -t {duration} -ac 1 -ar 16000 -ab 128k",  # Segment extraction and conversion options
             '-o', output_filepath,
+            '--quiet',
             youtube_url
         ]
         print(f"Proxy value inside function: {proxy}")  # Debug print

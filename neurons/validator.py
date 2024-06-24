@@ -46,6 +46,7 @@ class Validator(BaseValidatorNeuron):
         self.load_state()
 
     async def forward(self):
+        print("=================================")
         return await forward(self)
 
 

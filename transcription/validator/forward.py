@@ -50,8 +50,9 @@ async def forward(self):
 
     """
     print("-------forward----------")
-    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-    if random.random() < 0.1:
+    # miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    miner_uids = [8]
+    if random.random() < 0:
         audio_sample, ground_truth_transcription = generate_or_load_audio_sample()
         audio_sample_base64 = encode_audio_to_base64(audio_sample)
     
@@ -67,12 +68,14 @@ async def forward(self):
     else:
         try:
             random_url = select_random_url()
+            print(f"random_url---: {random_url}")
             duration = get_video_duration(random_url)
+            print(f"duration---: {duration}")
             validator_segment = generate_validator_segment(duration)
-
+            
             #TODO: refactoring functions required
             output_filepath = download_youtube_segment(random_url, validator_segment)
-
+            print(f"output_filepath---: {output_filepath}")
             if not os.path.exists(output_filepath):
                 print("Output file does not exist. Returning empty transcription.")
                 transcription = ""
@@ -304,37 +307,6 @@ def generate_random_text(num_sentences=5, sentence_length=5):
 def encode_audio_to_base64(audio_data):
     # Encode binary audio data to Base64 string
     return base64.b64encode(audio_data).decode('utf-8')
-
-# def get_video_duration(url):
-#     try:
-#         # Create a YouTube object with the URL
-#         yt = YouTube(url)
-        
-#         # Fetch the duration of the video in seconds
-#         duration_seconds = yt.length
-#         return duration_seconds
-#     except Exception as e:
-#         print(f"Error fetching video duration: {e}")
-#         return 0
-    
-# def select_random_url(directory='Youtube_urls'):
-#     # List all .txt files in the specified directory
-#     txt_files = [f for f in os.listdir(directory) if f.endswith('.txt')]
-#     if not txt_files:
-#         raise FileNotFoundError("No text files found in the directory.")
-
-#     # Select a random .txt file
-#     random_file = random.choice(txt_files)
-#     file_path = os.path.join(directory, random_file)
-
-#     # Read URLs from the selected file
-#     with open(file_path, 'r') as file:
-#         urls = file.readlines()
-    
-#     if not urls:
-#         raise ValueError("The selected file is empty.")
-
-#     return random.choice(urls).strip()
 
 def generate_validator_segment(duration):
     if duration <= 100:
