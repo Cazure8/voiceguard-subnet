@@ -119,7 +119,6 @@ class BaseNeuron(ABC):
             self.resync_metagraph()
 
         if self.should_set_weights():
-            print("--------we are setting weights here---------")
             self.set_weights()
 
         # Always save state.

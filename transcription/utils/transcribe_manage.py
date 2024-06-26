@@ -68,7 +68,7 @@ def download_youtube_segment(youtube_url, segment, output_format='mp3', proxy=pr
             '--quiet',
             youtube_url
         ]
-        print(f"Proxy value inside function: {proxy}")  # Debug print
+
         if proxy:
             command += ['--proxy', proxy]
        

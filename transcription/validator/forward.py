@@ -68,14 +68,12 @@ async def forward(self):
     else:
         try:
             random_url = select_random_url()
-            print(f"random_url---: {random_url}")
             duration = get_video_duration(random_url)
-            print(f"duration---: {duration}")
             validator_segment = generate_validator_segment(duration)
             
             #TODO: refactoring functions required
             output_filepath = download_youtube_segment(random_url, validator_segment)
-            print(f"output_filepath---: {output_filepath}")
+
             if not os.path.exists(output_filepath):
                 print("Output file does not exist. Returning empty transcription.")
                 transcription = ""

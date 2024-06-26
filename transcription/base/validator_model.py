@@ -265,7 +265,7 @@ class Validator:
         # if not self.config.offline and self.config.wandb_project:
         #     self.new_wandb_run()
         # === Running args ===
-        self.weights = torch.zeros_like(torch.tensor(self.metagraph.S))
+        self.weights = torch.zeros_like((self.metagraph.S))
         self.epoch_step = 0
         self.global_step = 0
         self.last_epoch = self.metagraph.block.item()
@@ -315,7 +315,7 @@ class Validator:
         for uid, hotkey in enumerate(list(self.metagraph.hotkeys)):
             competition_ids[uid] = constants.ORIGINAL_COMPETITION_ID
 
-        self.weights.copy_(torch.tensor(self.metagraph.C))
+        self.weights.copy_((self.metagraph.C))
 
         for competition in constants.COMPETITION_SCHEDULE:
             bt.logging.trace(
