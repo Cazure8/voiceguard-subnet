@@ -21,7 +21,7 @@ class CompetitionParameters:
 # The validator WANDB project.
 WANDB_PROJECT = "voiceguard-subnet"
 # The uid for this subnet.
-SUBNET_UID = 11
+SUBNET_UID = 44
 # The start block of this subnet
 SUBNET_START_BLOCK = 2635801
 # The root directory of this project.
