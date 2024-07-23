@@ -15,12 +15,12 @@ import os
 import argparse
 import torch
 import constants
-from model.storage.hugging_face.hugging_face_model_store import HuggingFaceModelStore
-from model.model_updater import ModelUpdater
+from voiceguard.model.storage.hugging_face.hugging_face_model_store import HuggingFaceModelStore
+from voiceguard.model.model_updater import ModelUpdater
 import bittensor as bt
-from utilities import utils
-from model.data import Model, ModelId
-from model.storage.chain.chain_model_metadata_store import ChainModelMetadataStore
+from voiceguard.utils.uids import assert_registered, validate_hf_repo_id
+from voiceguard.model.data import Model, ModelId
+from voiceguard.model.storage.chain.chain_model_metadata_store import ChainModelMetadataStore
 from huggingface_hub import update_repo_visibility
 import time
 import hashlib
@@ -153,7 +153,7 @@ async def main(config: bt.config):
     metagraph: bt.metagraph = subtensor.metagraph(config.netuid)
 
     # Make sure we're registered and have a HuggingFace token.
-    utils.assert_registered(wallet, metagraph)
+    assert_registered(wallet, metagraph)
 
     # Get current model parameters
     parameters = ModelUpdater.get_competition_parameters(config.competition_id)
@@ -162,7 +162,7 @@ async def main(config: bt.config):
             f"Could not get competition parameters for block {config.competition_id}"
         )
 
-    repo_namespace, repo_name = utils.validate_hf_repo_id(config.hf_repo_id)
+    repo_namespace, repo_name = validate_hf_repo_id(config.hf_repo_id)
     model_id = ModelId(
         namespace=repo_namespace,
         name=repo_name,
