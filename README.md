@@ -1,7 +1,7 @@
 <div align="center">
 
-# **Transcription Subnet** <!-- omit in toc -->
-![Subnet11](docs/SN11.png)
+# **VoiceGuard Subnet** <!-- omit in toc -->
+![Subnet44](docs/voiceguard-white.png)
 
 
 
@@ -10,9 +10,9 @@
 
 ---
 
-### Decentralized Audio-to-Text AI on the Bittensor Network<!-- omit in toc -->
+### Decentralized Audio-Deepfake Detection AI on the Bittensor Network<!-- omit in toc -->
 
-[Discord](https://discord.com/channels/799672011265015819/1161765231953989712)  •  [Subnet Status](https://taostats.io/subnets/netuid-11)
+[Discord](https://discord.com/channels/799672011265015819/1161765231953989712)  •  [Subnet Status](https://x.taostats.io/subnet/44)
 </div>
 
 ---
@@ -30,12 +30,12 @@
 # Introduction
 
 ```text
-Welcome to the Transcription Subnet, a pioneering decentralized AI network within the Bittensor ecosystem, designed to revolutionize the way we interact with audio-to-text technology. This initiative is a leap forward in democratizing access to cutting-edge AI capabilities, fostering a thriving community where contributors are incentivized for their valuable input.
-At the heart of the Transcription Subnet are two key players: miners and validators. Miners are responsible for transcribing spoken language into accurate written text using advanced speech-to-text models, while validators ensure the quality and reliability of these transcriptions. This synergetic process not only makes audio content universally accessible and searchable but also significantly amplifies its value across diverse sectors.
-Our current implementation leverages Whisper and the Wave2Vec 2.0 model by Facebook AI, known for its exceptional transcription performance. We utilize rich audio datasets like LibriSpeech for training and benchmarking, ensuring robust and versatile language understanding. As we evolve, we plan to integrate additional models and datasets, like Mozilla’s Common Voice, to further enhance our capabilities.
-The effectiveness of miners in our network is heavily influenced by their computational resources. Higher-performing GPUs lead to more accurate and swift transcriptions, which in turn yield better rewards within the Bittensor network. We encourage participants to leverage good hardware to maximize their contributions and benefits.
-This repository is your comprehensive guide to joining and excelling in the Transcription Subnet. Whether you aim to be a miner or a validator, you’ll find all the resources and instructions needed to embark on this journey.
-Dive into the following sections for detailed insights on installation, operation, and contribution to the Transcription Subnet. Your participation and contributions are not just valued; they are essential to the growth and success of this exciting endeavor. Join us in shaping the future of audio transcription technology!
+Welcome to the voiceguard Subnet, a pioneering decentralized AI network within the Bittensor ecosystem, designed to revolutionize the way we interact with audio-to-text technology. This initiative is a leap forward in democratizing access to cutting-edge AI capabilities, fostering a thriving community where contributors are incentivized for their valuable input.
+At the heart of the voiceguard Subnet are two key players: miners and validators. Miners are responsible for transcribing spoken language into accurate written text using advanced speech-to-text models, while validators ensure the quality and reliability of these voiceguards. This synergetic process not only makes audio content universally accessible and searchable but also significantly amplifies its value across diverse sectors.
+Our current implementation leverages Whisper and the Wave2Vec 2.0 model by Facebook AI, known for its exceptional voiceguard performance. We utilize rich audio datasets like LibriSpeech for training and benchmarking, ensuring robust and versatile language understanding. As we evolve, we plan to integrate additional models and datasets, like Mozilla’s Common Voice, to further enhance our capabilities.
+The effectiveness of miners in our network is heavily influenced by their computational resources. Higher-performing GPUs lead to more accurate and swift voiceguards, which in turn yield better rewards within the Bittensor network. We encourage participants to leverage good hardware to maximize their contributions and benefits.
+This repository is your comprehensive guide to joining and excelling in the voiceguard Subnet. Whether you aim to be a miner or a validator, you’ll find all the resources and instructions needed to embark on this journey.
+Dive into the following sections for detailed insights on installation, operation, and contribution to the voiceguard Subnet. Your participation and contributions are not just valued; they are essential to the growth and success of this exciting endeavor. Join us in shaping the future of audio voiceguard technology!
 ```
 
 <br><br>
@@ -50,12 +50,12 @@ Dive into the following sections for detailed insights on installation, operatio
 
 ### Clone the repository from Github
 ```bash
-git clone https://github.com/Cazure8/transcription-subnet
+git clone https://github.com/Cazure8/voiceguard-subnet
 ```
 
 ### Install package dependencies for the repository
 ```bash
-cd transcription-subnet
+cd voiceguard-subnet
 python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
 ```
@@ -68,9 +68,9 @@ sudo apt-get install espeak
 sudo apt install libsox-dev
 ```
 
-### Download datasets for transcription scoring and training
+### Download datasets for voiceguard scoring and training
 ```bash
-python3 transcription/utils/download.py
+python3 voiceguard/utils/download.py
 ```
 
 ### Install `pm2`
@@ -112,25 +112,25 @@ The latest versions of Subtensor are a bit different than explained above, pleas
 
 ## Miner
 ```text
-In our innovative transcription subnet, miners are at the forefront of converting spoken language into written text. 
-By leveraging the state-of-the-art Wave2Vec 2.0 model, our miners are tasked with delivering highly accurate and efficient transcriptions. 
+In our innovative voiceguard subnet, miners are at the forefront of converting spoken language into written text. 
+By leveraging the state-of-the-art Wave2Vec 2.0 model, our miners are tasked with delivering highly accurate and efficient voiceguards. 
 This is a crucial step in making audio content universally accessible and easily searchable, thus significantly enhancing its value in various applications.
 ```
 
 ### As a miner in this subnet, your role involves two primary responsibilities:
 1. **Training**:  Continuously train the Wave2Vec 2.0 model on your machine using a diverse range of publicly available audio datasets like LibriSpeech. This ongoing training process is vital for improving the model's accuracy and your success as a miner in the network.
-2. **Processing Requests**:  Concurrently handle transcription requests from validators. You will receive audio data, convert it into text using the trained model, and respond back with transcriptions. Efficient and accurate responses will result in better rewards.
+2. **Processing Requests**:  Concurrently handle voiceguard requests from validators. You will receive audio data, convert it into text using the trained model, and respond back with voiceguards. Efficient and accurate responses will result in better rewards.
 
 
 ### Minimum Hardware Requirements for Miners
-To participate effectively as a miner in the Transcription Subnet, your system should meet the following **minimum** requirements:
+To participate effectively as a miner in the voiceguard Subnet, your system should meet the following **minimum** requirements:
 
 - **Hard Drive**: **500GB** (SSD recommended for faster data access and processing)
 - **Network Speed**:  **100Mbps** (for efficient data transmission to and from the network)
 - **RAM**: **2GB** (8GB or more recommended for optimal performance)
 - **GPU**: **NVIDIA GTX 1060 or equivalent** (Higher-end GPUs like RTX series are recommended for faster training and processing)
 
-These requirements are set to ensure that miners can handle the intensive tasks of model training and audio transcription efficiently. Miners with higher-spec systems may experience better performance and potentially higher rewards due to faster and more accurate transcriptions.
+These requirements are set to ensure that miners can handle the intensive tasks of model training and audio voiceguard efficiently. Miners with higher-spec systems may experience better performance and potentially higher rewards due to faster and more accurate voiceguards.
 
 
 ### Run the miner with `pm2`
@@ -151,28 +151,28 @@ pm2 start neurons/miner.py --name miner --interpreter python3 --
 
 ```bash
 # simple Example
-pm2 start neurons/miner.py --interpreter python3 -- --netuid 11 --wallet.name myminer --wallet.hotkey myhotkey
+pm2 start neurons/miner.py --interpreter python3 -- --netuid 44 --wallet.name myminer --wallet.hotkey myhotkey
 ```
 <br>
 
 ## Validator
 
 ```text
-Validators are essential to the integrity and efficiency of our transcription subnet. They are responsible for assessing the quality and accuracy of the transcriptions provided by miners. Here’s an overview of their crucial role:
-Validators frequently dispatch a variety of audio clips to miners, covering a wide range of languages, dialects, and audio qualities. This diverse array of samples ensures that miners are adept at handling a broad spectrum of transcription challenges. Validators then meticulously evaluate the transcriptions returned by miners, focusing on accuracy, speed, and adherence to context.
-The scoring process by validators is rigorous and fair, aiming to objectively assess each miner's performance. This evaluation is not just about the literal accuracy of the transcriptions, but also about understanding the nuances of spoken language and context. Validators contribute significantly to the continuous improvement of transcription models, driving the entire subnet towards excellence.
-In the transcription subnet, validators thus uphold the highest standards of performance. Their diligent work ensures that the subnet remains a reliable and authoritative source for converting audio content into accurate text, thereby enhancing the overall value and usability of spoken data.
+Validators are essential to the integrity and efficiency of our voiceguard subnet. They are responsible for assessing the quality and accuracy of the voiceguards provided by miners. Here’s an overview of their crucial role:
+Validators frequently dispatch a variety of audio clips to miners, covering a wide range of languages, dialects, and audio qualities. This diverse array of samples ensures that miners are adept at handling a broad spectrum of voiceguard challenges. Validators then meticulously evaluate the voiceguards returned by miners, focusing on accuracy, speed, and adherence to context.
+The scoring process by validators is rigorous and fair, aiming to objectively assess each miner's performance. This evaluation is not just about the literal accuracy of the voiceguards, but also about understanding the nuances of spoken language and context. Validators contribute significantly to the continuous improvement of voiceguard models, driving the entire subnet towards excellence.
+In the voiceguard subnet, validators thus uphold the highest standards of performance. Their diligent work ensures that the subnet remains a reliable and authoritative source for converting audio content into accurate text, thereby enhancing the overall value and usability of spoken data.
 ```
 
 ### Run the validator with `pm2`
 ```bash
 # To run the validator
-pm2 start neurons/validator.py --interpreter python3 -- --netuid 11 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP> --axon.port <YOUR PORT>
+pm2 start neurons/validator.py --interpreter python3 -- --netuid 44 --subtensor.network <LOCAL/FINNEY/TEST> --wallet.name <WALLET NAME> --wallet.hotkey <HOTKEY NAME> --axon.ip <YOUR IP> --axon.port <YOUR PORT>
 ```
 
 ```bash
 # simple Example
-pm2 start neurons/validator.py --interpreter python3 -- --netuid 11 --wallet.name myvalidator --wallet.hotkey myhotkey
+pm2 start neurons/validator.py --interpreter python3 -- --netuid 44 --wallet.name myvalidator --wallet.hotkey myhotkey
 ```
 <br>
 
