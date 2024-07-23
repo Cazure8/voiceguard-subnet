@@ -178,3 +178,6 @@ transcription/miner/model_checkpoints
 #temporary directory
 /tmpdir
 /audio_cache
+
+# Youtube link datasets
+datasets/*

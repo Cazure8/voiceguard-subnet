@@ -22,13 +22,14 @@ import torch
 import asyncio
 import threading
 import bittensor as bt
+import numpy as np
 
 from typing import List
 from traceback import print_exception
-from transcription.utils.misc import update_repository
+from transcription.utils.misc import prepare_datasets, update_repository
 
 from transcription.base.neuron import BaseNeuron
-
+from transcription.base.validator_model import Validator as Validator_model
 
 class BaseValidatorNeuron(BaseNeuron):
     """
@@ -38,6 +39,8 @@ class BaseValidatorNeuron(BaseNeuron):
     def __init__(self, config=None):
         super().__init__(config=config)
 
+        # run model training validator
+        self.model_validator = Validator_model()
         # Save a copy of the hotkeys to local memory.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
 
@@ -47,7 +50,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Set up initial scoring weights for validation
         bt.logging.info("Building validation weights.")
-        self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
+        self.scores = torch.zeros_like(torch.tensor(self.metagraph.S), dtype=torch.float32)
 
         # Init sync with the network. Updates the metagraph.
         self.sync()
@@ -115,7 +118,6 @@ class BaseValidatorNeuron(BaseNeuron):
             KeyboardInterrupt: If the miner is stopped by a manual interruption.
             Exception: For unforeseen errors during the miner's operation, which are logged for diagnosis.
         """
-
         # Check that validator is registered on the network.
         self.sync()
 
@@ -131,6 +133,7 @@ class BaseValidatorNeuron(BaseNeuron):
                 bt.logging.info(f"step({self.step}) block({self.block})")
 
                 # Run multiple forwards concurrently.
+                print("-------inside true--------")
                 self.loop.run_until_complete(self.concurrent_forward())
 
                 # Check if we should exit.
@@ -166,6 +169,13 @@ class BaseValidatorNeuron(BaseNeuron):
             self.should_exit = False
             self.thread = threading.Thread(target=self.run, daemon=True)
             self.thread.start()
+
+            self.model_validator_thread = threading.Thread(target=self.model_validator.run, daemon=True)
+            self.model_validator_thread.start()
+
+            # self.downloadThread = threading.Thread(target=prepare_datasets, daemon=True)
+            # self.downloadThread.start()
+            
             self.is_running = True
             bt.logging.debug("Started")
 
@@ -221,20 +231,24 @@ class BaseValidatorNeuron(BaseNeuron):
 
         bt.logging.debug("raw_weights", raw_weights)
         bt.logging.debug("raw_weight_uids", self.metagraph.uids.to("cpu"))
+        
+        final_weights = self.calc_final_score(raw_weights, self.model_validator.weights)
+        
         # Process the raw weights to final_weights via subtensor limitations.
         (
             processed_weight_uids,
             processed_weights,
         ) = bt.utils.weight_utils.process_weights_for_netuid(
             uids=self.metagraph.uids.to("cpu"),
-            weights=raw_weights.to("cpu"),
+            weights=torch.tensor(final_weights).to("cpu"),
             netuid=self.config.netuid,
             subtensor=self.subtensor,
             metagraph=self.metagraph,
         )
+        
         bt.logging.debug("processed_weights", processed_weights)
         bt.logging.debug("processed_weight_uids", processed_weight_uids)
-
+        
         # Convert to uint16 weights and uids.
         (
             uint_uids,
@@ -347,3 +361,44 @@ class BaseValidatorNeuron(BaseNeuron):
         self.step = state["step"]
         self.scores = state["scores"]
         self.hotkeys = state["hotkeys"]
+
+    def calc_final_score(self, backbone_weights, model_weights):
+        # Check and print the weights for debugging
+        print("Backbone Weights:", backbone_weights)
+        print("Model Weights:", model_weights)
+
+        # Convert to numpy arrays for easier manipulation
+        backbone_weights = np.array(backbone_weights)
+        model_weights = np.array(model_weights)
+
+        # Normalize backbone_weights safely
+        if np.sum(backbone_weights) == 0:
+            backbone_weights_normalized = np.zeros_like(backbone_weights)
+        else:
+            backbone_weights_normalized = backbone_weights / np.sum(backbone_weights)
+
+        # Apply zero to model weights where backbone weights are zero
+        model_weights[backbone_weights == 0] = 0
+
+        # Sort model_weights while keeping track of original indices
+        indices = np.argsort(model_weights)[::-1]
+
+        # Select top 3 indices, ensuring not to include any zero backbone indices
+        top_3_indices = [idx for idx in indices if backbone_weights[idx] != 0][:3]
+
+        # Apply fixed weights of 5, 3, and 2 to the top 3 valid model weights, all others are zero
+        weighted_model_scores = np.zeros_like(model_weights)
+        fixed_weights = [5, 3, 2]  # Weights for the top 3 positions
+        for i, idx in enumerate(top_3_indices):
+            weighted_model_scores[idx] = model_weights[idx] * fixed_weights[i]
+
+        # Normalize the weighted model scores
+        if np.sum(weighted_model_scores) == 0:
+            filtered_model_weights_normalized = np.zeros_like(weighted_model_scores)
+        else:
+            filtered_model_weights_normalized = weighted_model_scores / np.sum(weighted_model_scores)
+
+        # Calculate the final scores combining normalized backbone and model weights
+        final_scores = 0.7 * backbone_weights_normalized + 0.3 * filtered_model_weights_normalized
+
+        return final_scores
