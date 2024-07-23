@@ -28,16 +28,16 @@ import torchaudio
 from pydub import AudioSegment
 from pytube import YouTube
 from requests.exceptions import HTTPError
-from transcription.protocol import Transcription
-from transcription.validator.reward import get_rewards
-from transcription.utils.uids import get_random_uids
+from voiceguard.protocol import Transcription
+from voiceguard.validator.reward import get_rewards
+from voiceguard.utils.uids import get_random_uids
 from gtts import gTTS, gTTSError
 import random
 import torchaudio.transforms as T
 import torch
 import soundfile as sf
-from transcription.utils.transcribe_manage import download_youtube_segment, transcribe_with_whisper, get_video_duration
-from transcription.utils.misc import select_random_url
+from voiceguard.utils.transcribe_manage import download_youtube_segment, transcribe_with_whisper, get_video_duration
+from voiceguard.utils.misc import select_random_url
 
 async def forward(self):
     """

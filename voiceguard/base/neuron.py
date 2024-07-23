@@ -24,9 +24,9 @@ import bittensor as bt
 from abc import ABC, abstractmethod
 
 # Sync calls set weights and also resyncs the metagraph.
-from transcription.utils.config import check_config, add_args, config
-from transcription.utils.misc import ttl_get_block
-from transcription import __spec_version__ as spec_version
+from voiceguard.utils.config import check_config, add_args, config
+from voiceguard.utils.misc import ttl_get_block
+from voiceguard import __spec_version__ as spec_version
 
 
 class BaseNeuron(ABC):

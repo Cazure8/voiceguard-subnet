@@ -54,7 +54,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 # loading version from setup.py
 with codecs.open(
-    os.path.join(here, "transcription/__init__.py"), encoding="utf-8"
+    os.path.join(here, "voiceguard/__init__.py"), encoding="utf-8"
 ) as init_file:
     version_match = re.search(
         r"^__version__ = ['\"]([^'\"]*)['\"]", init_file.read(), re.M
@@ -62,12 +62,12 @@ with codecs.open(
     version_string = version_match.group(1)
 
 setup(
-    name="transcription-subnet",
+    name="voiceguard-subnet",
     version=version_string,
-    description="Audio to text transcription subnet",
+    description="Fake AI-generated Detector Subnet",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/Cazure8/transcription-subnet", 
+    url="https://github.com/Cazure8/voiceguard-subnet", 
     author="Cazure",
     packages=find_packages(),
     include_package_data=True,

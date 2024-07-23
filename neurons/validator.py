@@ -23,11 +23,11 @@ import time
 import bittensor as bt
 
 # Bittensor Validator Template:
-import transcription
-from transcription.validator import forward
+import voiceguard
+from voiceguard.validator import forward
 
 # import base validator class which takes care of most of the boilerplate
-from transcription.base.validator import BaseValidatorNeuron
+from voiceguard.base.validator import BaseValidatorNeuron
 
 
 class Validator(BaseValidatorNeuron):

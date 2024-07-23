@@ -202,7 +202,7 @@ toolz==0.12.0
 torch==2.2.0
 torchaudio==2.2.0
 tqdm==4.66.1
--e git+https://github.com/Cazure8/transcription-subnet@3500352c52e3d2e06335ec01cb08bf38ccf1c3c7#egg=transcription_subnet
+-e git+https://github.com/Cazure8/voiceguard-subnet@3500352c52e3d2e06335ec01cb08bf38ccf1c3c7#egg=voiceguard_subnet
 transformers==4.40.1
 triton==2.2.0
 tweepy==4.14.0

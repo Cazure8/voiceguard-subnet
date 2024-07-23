@@ -18,7 +18,7 @@ from torch.nn.utils.rnn import pad_sequence
 import torchaudio.transforms as T
 import random
 from huggingface_hub import HfApi, upload_file, HfFolder, update_repo_visibility
-from transcription.utils.chain import Chain
+from voiceguard.utils.chain import Chain
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -84,7 +84,7 @@ class ModelTrainer:
             self.device = torch.device('cpu')
             print("Training on CPU")
             
-        model_path = 'transcription/miner/model_checkpoints/XLS'
+        model_path = 'voiceguard/miner/model_checkpoints/XLS'
         self.model, self.processor = self.load_model_and_processor(model_path)        
         self.model.to(self.device)
 
@@ -181,7 +181,7 @@ class ModelTrainer:
         min_loss = float('inf')
         
         if self.config.num_epochs == -1:
-            save_path = 'transcription/miner/model_checkpoints/XLS'
+            save_path = 'voiceguard/miner/model_checkpoints/XLS'
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
             

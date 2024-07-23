@@ -173,7 +173,7 @@ librispeech_dataset/*
 downloads/
 
 #model checkpoints
-transcription/miner/model_checkpoints
+voiceguard/miner/model_checkpoints
 
 #temporary directory
 /tmpdir

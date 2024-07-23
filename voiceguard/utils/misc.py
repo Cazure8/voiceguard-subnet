@@ -19,7 +19,7 @@
 import os
 import time
 import subprocess
-import transcription
+import voiceguard
 import bittensor as bt
 import codecs
 import re
@@ -36,9 +36,9 @@ import yt_dlp as youtube_dl
 update_flag = False
 update_at = 0
 
-uri = "mongodb+srv://transcription:transcription@cluster0.wtng9.mongodb.net"
+uri = "mongodb+srv://voiceguard:voiceguard@cluster0.wtng9.mongodb.net"
 client = MongoClient(uri)
-db = client['transcription_subnet']
+db = client['voiceguard_subnet']
 collection = db['audio_datasets']
 
 # LRU Cache with TTL
@@ -145,10 +145,10 @@ def update_repository():
         version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", init_file.read(), re.M)
         if version_match:
             new_version = version_match.group(1)
-            bt.logging.success(f"current version: {transcription.__version__}, new version: {new_version}")
-            if transcription.__version__ != new_version:
+            bt.logging.success(f"current version: {voiceguard.__version__}, new version: {new_version}")
+            if voiceguard.__version__ != new_version:
                 try:
-                    # subprocess.run(["python3", "transcription/utils/download.py"], check=True)
+                    # subprocess.run(["python3", "voiceguard/utils/download.py"], check=True)
                     subprocess.run(["python3", "-m", "pip", "install", "-e", "."], check=True)
                     os._exit(1)
                 except subprocess.CalledProcessError:

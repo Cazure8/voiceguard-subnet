@@ -24,11 +24,11 @@ import traceback
 import os
 
 import bittensor as bt
-from transcription import utils
+from voiceguard import utils
 
-from transcription.base.neuron import BaseNeuron
-from transcription.miner.model import ModelTrainer
-from transcription.utils.misc import prepare_datasets, save_training_data, update_repository
+from voiceguard.base.neuron import BaseNeuron
+from voiceguard.miner.model import ModelTrainer
+from voiceguard.utils.misc import prepare_datasets, save_training_data, update_repository
 
 class BaseMinerNeuron(BaseNeuron):
     """

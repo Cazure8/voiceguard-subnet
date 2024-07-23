@@ -22,7 +22,7 @@ from pytube import YouTube
 from uuid import uuid4
 import whisper
 from dotenv import load_dotenv
-from transcription.utils.misc import handle_filename_duplicates
+from voiceguard.utils.misc import handle_filename_duplicates
 
 load_dotenv()
 

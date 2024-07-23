@@ -2,12 +2,12 @@ import asyncio
 import functools
 import bittensor as bt
 import os
-from transcription.model.data import ModelId, ModelMetadata
+from voiceguard.model.data import ModelId, ModelMetadata
 import constants
-from transcription.model.storage.model_metadata_store import ModelMetadataStore
+from voiceguard.model.storage.model_metadata_store import ModelMetadataStore
 from typing import Optional
 
-from transcription.utils import chain
+from voiceguard.utils import chain
 
 
 class ChainModelMetadataStore(ModelMetadataStore):

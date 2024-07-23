@@ -5,7 +5,7 @@ import functools
 import multiprocessing
 from typing import Any, Tuple
 
-from transcription.model.data import ModelId
+from voiceguard.model.data import ModelId
 from typing import List
 
 

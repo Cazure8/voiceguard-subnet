@@ -1,5 +1,5 @@
 import abc
-from transcription.model.data import Model, ModelId
+from voiceguard.model.data import Model, ModelId
 from constants import CompetitionParameters
 from typing import Optional
 

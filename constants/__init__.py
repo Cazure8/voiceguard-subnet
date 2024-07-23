@@ -19,7 +19,7 @@ class CompetitionParameters:
 # ---------------------------------
 
 # The validator WANDB project.
-WANDB_PROJECT = "transcription-subnet"
+WANDB_PROJECT = "voiceguard-subnet"
 # The uid for this subnet.
 SUBNET_UID = 11
 # The start block of this subnet

@@ -24,11 +24,11 @@ import bittensor as bt
 from neurons.validator import Neuron as Validator
 from neurons.miner import Neuron as Miner
 
-from transcription.protocol import Transcription
-from transcription.validator.forward import forward
-from transcription.utils.uids import get_random_uids
-from transcription.validator.reward import get_rewards
-from transcription.base.validator import BaseValidatorNeuron
+from voiceguard.protocol import Transcription
+from voiceguard.validator.forward import forward
+from voiceguard.utils.uids import get_random_uids
+from voiceguard.validator.reward import get_rewards
+from voiceguard.base.validator import BaseValidatorNeuron
 
 
 class TemplateValidatorNeuronTestCase(unittest.TestCase):

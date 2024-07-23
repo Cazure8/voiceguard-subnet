@@ -31,23 +31,23 @@ import argparse
 from threadpoolctl import threadpool_limits
 
 # import wandb
-from transcription.model.data import ModelMetadata
-from transcription.model.model_tracker import ModelTracker
-from transcription.model.model_updater import ModelUpdater
-from transcription.model.storage.chain.chain_model_metadata_store import ChainModelMetadataStore
-from transcription.model.storage.disk.disk_model_store import DiskModelStore
-from transcription.model.storage.disk.utils import get_hf_download_path
-from transcription.model.storage.hugging_face.hugging_face_model_store import HuggingFaceModelStore
+from voiceguard.model.data import ModelMetadata
+from voiceguard.model.model_tracker import ModelTracker
+from voiceguard.model.model_updater import ModelUpdater
+from voiceguard.model.storage.chain.chain_model_metadata_store import ChainModelMetadataStore
+from voiceguard.model.storage.disk.disk_model_store import DiskModelStore
+from voiceguard.model.storage.disk.utils import get_hf_download_path
+from voiceguard.model.storage.hugging_face.hugging_face_model_store import HuggingFaceModelStore
 import threading
 import multiprocessing
 from rich.table import Table
 from rich.console import Console
 
-from transcription.base.validator_utils import compute_wins
-from transcription.utils.miner_iterator import MinerIterator
-from transcription.utils import uids
-from transcription.utils.perf_monitor import PerfMonitor
-from transcription.utils.rater import rate
+from voiceguard.base.validator_utils import compute_wins
+from voiceguard.utils.miner_iterator import MinerIterator
+from voiceguard.utils import uids
+from voiceguard.utils.perf_monitor import PerfMonitor
+from voiceguard.utils.rater import rate
 
 import math
 import torch
