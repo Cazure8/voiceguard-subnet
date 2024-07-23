@@ -4,7 +4,7 @@ import threading
 from typing import Dict, List, Optional, Set
 import pickle
 import bittensor as bt
-from transcription.model.data import ModelMetadata
+from voiceguard.model.data import ModelMetadata
 
 
 class ModelTracker:

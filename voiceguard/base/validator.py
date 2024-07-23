@@ -26,10 +26,10 @@ import numpy as np
 
 from typing import List
 from traceback import print_exception
-from transcription.utils.misc import prepare_datasets, update_repository
+from voiceguard.utils.misc import prepare_datasets, update_repository
 
-from transcription.base.neuron import BaseNeuron
-from transcription.base.validator_model import Validator as Validator_model
+from voiceguard.base.neuron import BaseNeuron
+from voiceguard.base.validator_model import Validator as Validator_model
 
 class BaseValidatorNeuron(BaseNeuron):
     """

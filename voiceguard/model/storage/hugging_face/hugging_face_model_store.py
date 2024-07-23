@@ -1,12 +1,12 @@
 import tempfile
 import os
 from huggingface_hub import HfApi
-from transcription.model.data import Model, ModelId
-from transcription.model.storage.disk import utils
+from voiceguard.model.data import Model, ModelId
+from voiceguard.model.storage.disk import utils
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from constants import CompetitionParameters, MAX_HUGGING_FACE_BYTES
 
-from transcription.model.storage.remote_model_store import RemoteModelStore
+from voiceguard.model.storage.remote_model_store import RemoteModelStore
 import constants
 from huggingface_hub import HfApi
 from safetensors.torch import load_file, save_file

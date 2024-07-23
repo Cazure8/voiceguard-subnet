@@ -2,10 +2,10 @@ import re
 import os
 import subprocess
 import bittensor as bt
-from transcription.protocol import Transcription
+from voiceguard.protocol import Transcription
 from datetime import datetime
-from transcription.utils.misc import is_twitter_space, is_youtube
-from transcription.utils.transcribe_manage import download_youtube_segment, transcribe_with_whisper
+from voiceguard.utils.misc import is_twitter_space, is_youtube
+from voiceguard.utils.transcribe_manage import download_youtube_segment, transcribe_with_whisper
 
 def url_to_text(self, synapse: Transcription) -> str:
     audio_url = synapse.audio_input

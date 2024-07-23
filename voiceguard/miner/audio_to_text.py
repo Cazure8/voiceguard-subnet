@@ -7,7 +7,7 @@ import base64
 from google.cloud import speech
 import torch
 import torchaudio
-import transcription
+import voiceguard
 from transformers import Wav2Vec2Config, Wav2Vec2ForCTC, Wav2Vec2Processor
 
 default_model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-xls-r-300m")
@@ -44,7 +44,7 @@ def load_model_and_processor(model_path):
 
         return model, processor
     
-def audio_to_text(self, synapse: transcription.protocol.Transcription) -> str:
+def audio_to_text(self, synapse: voiceguard.protocol.Transcription) -> str:
     audio_content = safe_base64_decode(synapse.audio_input)
 
     try:
@@ -64,7 +64,7 @@ def audio_to_text(self, synapse: transcription.protocol.Transcription) -> str:
             waveform = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=16000)(waveform)
 
         # Process the waveform
-        checkpoint_path = 'transcription/miner/model_checkpoints/english'
+        checkpoint_path = 'voiceguard/miner/model_checkpoints/english'
         training_model, training_processor = load_model_and_processor(checkpoint_path)
         training_model.to(self.device)
         

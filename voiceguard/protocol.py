@@ -21,7 +21,7 @@ import bittensor as bt
 
 class Transcription(bt.Synapse):
     """
-    Protocol representation for handling transcription requests in the transcription subnet.
+    Protocol representation for handling transcription requests in the voiceguard subnet.
     Handles both raw audio data and audio URLs.
     """
     # Type indicator: 'data' for raw audio data, 'url' for audio URL
