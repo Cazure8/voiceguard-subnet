@@ -30,12 +30,7 @@
 # Introduction
 
 ```text
-Welcome to the voiceguard Subnet, a pioneering decentralized AI network within the Bittensor ecosystem, designed to revolutionize the way we interact with audio-to-text technology. This initiative is a leap forward in democratizing access to cutting-edge AI capabilities, fostering a thriving community where contributors are incentivized for their valuable input.
-At the heart of the voiceguard Subnet are two key players: miners and validators. Miners are responsible for transcribing spoken language into accurate written text using advanced speech-to-text models, while validators ensure the quality and reliability of these voiceguards. This synergetic process not only makes audio content universally accessible and searchable but also significantly amplifies its value across diverse sectors.
-Our current implementation leverages Whisper and the Wave2Vec 2.0 model by Facebook AI, known for its exceptional voiceguard performance. We utilize rich audio datasets like LibriSpeech for training and benchmarking, ensuring robust and versatile language understanding. As we evolve, we plan to integrate additional models and datasets, like Mozilla’s Common Voice, to further enhance our capabilities.
-The effectiveness of miners in our network is heavily influenced by their computational resources. Higher-performing GPUs lead to more accurate and swift voiceguards, which in turn yield better rewards within the Bittensor network. We encourage participants to leverage good hardware to maximize their contributions and benefits.
-This repository is your comprehensive guide to joining and excelling in the voiceguard Subnet. Whether you aim to be a miner or a validator, you’ll find all the resources and instructions needed to embark on this journey.
-Dive into the following sections for detailed insights on installation, operation, and contribution to the voiceguard Subnet. Your participation and contributions are not just valued; they are essential to the growth and success of this exciting endeavor. Join us in shaping the future of audio voiceguard technology!
+Welcome to the VoiceGuard Subnet on the Bittensor network, your cutting-edge solution against voice deepfakes. This subnet offers robust voice fake detection and high-speed, accurate transcriptions for YouTube videos, while also providing a specialized database for training voice deepfake detection models.
 ```
 
 <br><br>
@@ -112,28 +107,19 @@ The latest versions of Subtensor are a bit different than explained above, pleas
 
 ## Miner
 ```text
-In our innovative voiceguard subnet, miners are at the forefront of converting spoken language into written text. 
-By leveraging the state-of-the-art Wave2Vec 2.0 model, our miners are tasked with delivering highly accurate and efficient voiceguards. 
-This is a crucial step in making audio content universally accessible and easily searchable, thus significantly enhancing its value in various applications.
+Miners' Responsibilities:
+
+General Participation: Every miner is required to operate the Whisper Large model, facilitating a fine-tuned API for database generation and interactive video functions. This is accessible to non-technical individuals with moderate resources. Seventy percent of total rewards are distributed among these contributors.
+Specialized Contribution: Miners with AI expertise may opt to train advanced detection models using our provided database. The top three performers in this category will share thirty percent of the total rewards. Note: These miners must also maintain the Whisper model to ensure seamless API functionality.
 ```
-
-### As a miner in this subnet, your role involves two primary responsibilities:
-1. **Training**:  Continuously train the Wave2Vec 2.0 model on your machine using a diverse range of publicly available audio datasets like LibriSpeech. This ongoing training process is vital for improving the model's accuracy and your success as a miner in the network.
-2. **Processing Requests**:  Concurrently handle voiceguard requests from validators. You will receive audio data, convert it into text using the trained model, and respond back with voiceguards. Efficient and accurate responses will result in better rewards.
-
 
 ### Minimum Hardware Requirements for Miners
 To participate effectively as a miner in the voiceguard Subnet, your system should meet the following **minimum** requirements:
 
-- **Hard Drive**: **500GB** (SSD recommended for faster data access and processing)
-- **Network Speed**:  **100Mbps** (for efficient data transmission to and from the network)
-- **RAM**: **2GB** (8GB or more recommended for optimal performance)
-- **GPU**: **NVIDIA GTX 1060 or equivalent** (Higher-end GPUs like RTX series are recommended for faster training and processing)
+- **Network Speed**:  **1Gbps**
+- **GPU**: **20GVRAM**
 
-These requirements are set to ensure that miners can handle the intensive tasks of model training and audio voiceguard efficiently. Miners with higher-spec systems may experience better performance and potentially higher rewards due to faster and more accurate voiceguards.
-
-
-### Run the miner with `pm2`
+### Run the miner with `pm2` for normal contributors
 ```bash
  # To run the miner
 pm2 start neurons/miner.py --name miner --interpreter python3 -- 
@@ -148,20 +134,24 @@ pm2 start neurons/miner.py --name miner --interpreter python3 --
     --device # the device will be used for model training, default = gpu
 ```
 
-
 ```bash
 # simple Example
 pm2 start neurons/miner.py --interpreter python3 -- --netuid 44 --wallet.name myminer --wallet.hotkey myhotkey
+```
+
+### Run the miner for AI model trainers
+```bash
+python3 miner_model/upload_model.py --hf_repo_id HF_REPO --wallet.name WALLET  --wallet.hotkey HOTKEY --model_dir PATH_TO_MODEL   
 ```
 <br>
 
 ## Validator
 
 ```text
-Validators are essential to the integrity and efficiency of our voiceguard subnet. They are responsible for assessing the quality and accuracy of the voiceguards provided by miners. Here’s an overview of their crucial role:
-Validators frequently dispatch a variety of audio clips to miners, covering a wide range of languages, dialects, and audio qualities. This diverse array of samples ensures that miners are adept at handling a broad spectrum of voiceguard challenges. Validators then meticulously evaluate the voiceguards returned by miners, focusing on accuracy, speed, and adherence to context.
-The scoring process by validators is rigorous and fair, aiming to objectively assess each miner's performance. This evaluation is not just about the literal accuracy of the voiceguards, but also about understanding the nuances of spoken language and context. Validators contribute significantly to the continuous improvement of voiceguard models, driving the entire subnet towards excellence.
-In the voiceguard subnet, validators thus uphold the highest standards of performance. Their diligent work ensures that the subnet remains a reliable and authoritative source for converting audio content into accurate text, thereby enhancing the overall value and usability of spoken data.
+Validators' Roles:
+
+Performance Evaluation: Validators assess miners based on the response time and accuracy of their APIs.
+Model Optimization: They periodically review trained data and calculate loss metrics to enhance model performance.
 ```
 
 ### Run the validator with `pm2`
