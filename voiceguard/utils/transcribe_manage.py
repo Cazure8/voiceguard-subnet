@@ -52,7 +52,7 @@ def get_video_duration(url):
             return 0
     
 def transcribe_with_whisper(audio_filepath):
-    model = whisper.load_model("medium")
+    model = whisper.load_model("large")
     result = model.transcribe(audio_filepath)
     return result["text"]
 
