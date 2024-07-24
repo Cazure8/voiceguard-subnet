@@ -83,7 +83,7 @@ def audio_to_text(self, synapse: voiceguard.protocol.Transcription) -> str:
         # Decode the model output
         predicted_ids = torch.argmax(logits, dim=-1)
         transcription = training_processor.batch_decode(predicted_ids)
-        print("--------------------------------")
+        print("----------Miner transcript------------")
         print(transcription[0])
         print("--------------------------------")
         return f"0$$_{transcription[0]}"
