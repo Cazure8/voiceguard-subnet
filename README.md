@@ -32,7 +32,9 @@
 ## Introduction
 
 ```text
-Welcome to the Voice Guard Subnet on the Bittensor network, your cutting-edge solution against voice deepfakes. This subnet offers robust voice fake detection through model fine-tuning competition, and high-speed, accurate transcriptions for YouTube videos, while also providing a specialized database for training voice deepfake detection models.
+Welcome to the Voice Guard Subnet on the Bittensor network, your cutting-edge solution against voice deepfakes. Voice deepfakes are becoming a more serious problem each day with the rapid advancement of AI technology. Several critical incidents have been reported, such as the deepfake robocall incident in New Hampshire, which used AI to deter voters​ [source](https://www.politico.com/news/2024/02/06/robocalls-fcc-new-hampshire-texas-00139864)​​​, and numerous other significant deepfake incidents documented in various reports​ [source](https://virtualdoers.com/10-notable-deepfake-incidents-in-the-internet/)​.
+
+Voice Guard Subnet aims to resolve these issues through the power of decentralization. This subnet offers robust voice fake detection through model fine-tuning competitions and provides high-speed, accurate transcriptions for YouTube videos. Additionally, it offers a specialized database for training voice deepfake detection models. In the audio AI field, preparing datasets has been a significant challenge, but by harnessing Bittensor's decentralization power, we are resolving that problem together with the best model generation.
 ```
 
 ## Key Features
