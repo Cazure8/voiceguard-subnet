@@ -64,7 +64,7 @@ with codecs.open(
 setup(
     name="voiceguard-subnet",
     version=version_string,
-    description="Fake AI-generated Detector Subnet",
+    description="Voice deepfake Detector Subnet",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Cazure8/voiceguard-subnet", 
