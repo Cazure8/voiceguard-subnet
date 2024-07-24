@@ -143,8 +143,7 @@ class BaseMinerNeuron(BaseNeuron):
         Starts the miner's operations in a separate background thread.
         This is useful for non-blocking operations.
         """
-        trainer = ModelTrainer(self.config)
-        print("----run in bg check----")
+        # trainer = ModelTrainer(self.config)
         if not self.is_running:
             bt.logging.debug("Starting miner in background thread.")
             self.should_exit = False

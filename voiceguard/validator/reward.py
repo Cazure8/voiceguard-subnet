@@ -26,7 +26,7 @@ from nltk.tokenize import word_tokenize
 from transformers import AutoTokenizer, AutoModel
 import langid 
 
-nlp = spacy.load("en_core_web_md")
+nlp = spacy.load("en_core_web_lg")
 nltk.download('punkt')
 
 tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")

@@ -18,7 +18,7 @@
 
 import os
 import subprocess
-from pytube import YouTube
+import yt_dlp
 from uuid import uuid4
 import whisper
 from dotenv import load_dotenv
@@ -29,19 +29,30 @@ load_dotenv()
 proxy_url = os.getenv('PROXY_URL')
 
 def get_video_duration(url):
-    try:
-        # Create a YouTube object with the URL
-        yt = YouTube(url)
-        
-        # Fetch the duration of the video in seconds
-        duration_seconds = yt.length
-        return duration_seconds
-    except Exception as e:
-        print(f"Error fetching video duration: {e}")
-        return 0
+    ydl_opts = {
+        'quiet': True,        # Suppresses most console output
+        'no_warnings': True,  # Suppresses warnings
+        'noplaylist': True,   # Ensures only a single video is processed
+        'skip_download': True,  # No video download, just metadata
+        'extract_flat': True,  # Faster metadata extraction without full processing
+    }
+
+    if proxy_url:
+        ydl_opts['proxy'] = proxy_url 
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        try:
+            info_dict = ydl.extract_info(url, download=False)
+            duration_seconds = info_dict.get('duration')
+            if duration_seconds is None:
+                raise ValueError("Failed to fetch video duration; the duration is None.")
+            return duration_seconds
+        except Exception as e:
+            print(f"Error fetching video duration: {e}")
+            return 0
     
 def transcribe_with_whisper(audio_filepath):
-    model = whisper.load_model("large")
+    model = whisper.load_model("medium")
     result = model.transcribe(audio_filepath)
     return result["text"]
 

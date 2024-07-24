@@ -169,8 +169,8 @@ class BaseValidatorNeuron(BaseNeuron):
             self.thread = threading.Thread(target=self.run, daemon=True)
             self.thread.start()
 
-            self.model_validator_thread = threading.Thread(target=self.model_validator.run, daemon=True)
-            self.model_validator_thread.start()
+            # self.model_validator_thread = threading.Thread(target=self.model_validator.run, daemon=True)
+            # self.model_validator_thread.start()
 
             # self.downloadThread = threading.Thread(target=prepare_datasets, daemon=True)
             # self.downloadThread.start()

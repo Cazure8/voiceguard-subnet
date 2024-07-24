@@ -63,7 +63,7 @@ sudo apt-get install espeak
 sudo apt install libsox-dev
 ```
 
-### Download datasets for voiceguard scoring and training
+### Download datasets for scoring
 ```bash
 python3 voiceguard/utils/download.py
 ```

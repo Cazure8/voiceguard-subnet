@@ -10,7 +10,7 @@ import torchaudio
 import voiceguard
 from transformers import Wav2Vec2Config, Wav2Vec2ForCTC, Wav2Vec2Processor
 
-default_model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-xls-r-300m")
+# default_model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-xls-r-300m")
 # default_processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-xls-r-300m")
 
 # def load_model_and_processor(model_path):

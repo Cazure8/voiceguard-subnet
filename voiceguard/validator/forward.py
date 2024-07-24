@@ -51,7 +51,7 @@ async def forward(self):
     """
     print("-------forward----------")
     # miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-    miner_uids = [8]
+    miner_uids = [3]
         # audio_sample, ground_truth_transcription = generate_or_load_audio_sample()
         # audio_sample_base64 = encode_audio_to_base64(audio_sample)
     
@@ -67,7 +67,7 @@ async def forward(self):
     try:
         random_url = select_random_url()
         duration = get_video_duration(random_url)
-        validator_segment = generate_synapse_segment(duration)
+        validator_segment = generate_validator_segment(duration)
         
         #TODO: refactoring functions required
         output_filepath = download_youtube_segment(random_url, validator_segment)
@@ -98,8 +98,10 @@ async def forward(self):
     bt.logging.info(f"Scored responses: {rewards}")
     # Update the scores based on the rewards. You may want to define your own update_scores function for custom behavior.
     self.update_scores(rewards, miner_uids)
-  
-def generate_synapse_segment(duration, validator_start):
-    start = max(0, validator_start - 50)
-    end = min(duration, validator_start + 150)
-    return [start, end]
+
+def generate_validator_segment(duration):
+    if duration <= 100:
+        return [0, duration]
+    else:
+        start = random.randint(0, duration - 100)
+        return [start, start + 100]
