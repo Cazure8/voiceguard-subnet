@@ -100,8 +100,10 @@ npm i -g pm2
 ```
 
 #### Using proxy(Optional but strongly recommended)
+
 All validators and miners are strongly recommended to use a proxy to circumvent YouTube's download limitations and ensure reliable vtrust/trust. You have the option to set up your own proxy server. Alternatively, if you prefer using a proxy service, you can obtain a paid version rotating proxy, for example, from SmartProxy Dashboard(https://dashboard.smartproxy.com/).
 Get the rotating proxy url and put that it in .env file. Sample file .env.sample is already there in the codebase.
+
 ---
 
 <br><br>
