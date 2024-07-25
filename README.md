@@ -109,8 +109,6 @@ Get the rotating proxy url and put that it in .env file. Sample file .env.sample
 
 ---
 
-<br><br>
-
 ## Running
 
 ### Miner
@@ -143,8 +141,6 @@ pm2 start neurons/miner.py --interpreter python3 -- --netuid 44 --wallet.name my
 ```bash
 python3 miner_model/upload_model.py --hf_repo_id HF_REPO --wallet.name WALLET  --wallet.hotkey HOTKEY --model_dir PATH_TO_MODEL   
 ```
-<br>
-
 ### Validator
 #### Minimum Hardware Requirements for Validators
 To participate effectively as a validator in Voice Guard Subnet, your system should meet the following **minimum** requirements:
