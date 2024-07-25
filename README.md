@@ -115,7 +115,7 @@ Get the rotating proxy url and put that it in .env file. Sample file .env.sample
 To participate effectively as a miner in Voice Guard Subnet, your system should meet the following **minimum** requirements:
 
 - **Network Speed**:  **1Gbps**
-- **GPU**: **20GVRAM**
+- **GPU**: **16GB**
 
 #### Run the miner with `pm2` for normal contributors
 ```bash
@@ -144,7 +144,7 @@ python3 miner_model/upload_model.py --hf_repo_id HF_REPO --wallet.name WALLET  -
 To participate effectively as a validator in Voice Guard Subnet, your system should meet the following **minimum** requirements:
 
 - **Network Speed**:  **1Gbps**
-- **GPU**: **20GVRAM**
+- **GPU**: **16GB**
 
 #### Run the validator with `pm2`
 ```bash
