@@ -370,6 +370,11 @@ class BaseValidatorNeuron(BaseNeuron):
         backbone_weights = np.array(backbone_weights)
         model_weights = np.array(model_weights)
 
+        # Checking and adjusting array sizes
+        min_length = min(len(backbone_weights), len(model_weights))
+        backbone_weights = backbone_weights[:min_length]
+        model_weights = model_weights[:min_length]
+
         # Normalize backbone_weights safely
         if np.sum(backbone_weights) == 0:
             backbone_weights_normalized = np.zeros_like(backbone_weights)
