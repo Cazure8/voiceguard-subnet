@@ -265,7 +265,10 @@ class Validator:
         # if not self.config.offline and self.config.wandb_project:
         #     self.new_wandb_run()
         # === Running args ===
-        self.weights = torch.zeros_like((self.metagraph.S))
+        # Get only miner uids
+        miner_uids = (self.metagraph.Tv == 0).nonzero(as_tuple=True)[0]
+
+        self.weights = torch.zeros_like((self.metagraph.S[miner_uids]))
         self.epoch_step = 0
         self.global_step = 0
         self.last_epoch = self.metagraph.block.item()
