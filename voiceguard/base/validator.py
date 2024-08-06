@@ -392,6 +392,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Apply fixed weights of 5, 3, and 2 to the top 3 valid model weights, all others are zero
         weighted_model_scores = np.zeros_like(model_weights)
+        print("weighted_model_scores:", weighted_model_scores)
         fixed_weights = [5, 3, 2]  # Weights for the top 3 positions
         for i, idx in enumerate(top_3_indices):
             weighted_model_scores[idx] = model_weights[idx] * fixed_weights[i]
