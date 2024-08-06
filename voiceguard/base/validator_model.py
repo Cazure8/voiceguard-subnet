@@ -318,7 +318,7 @@ class Validator:
         for uid, hotkey in enumerate(list(self.metagraph.hotkeys)):
             competition_ids[uid] = constants.ORIGINAL_COMPETITION_ID
 
-        self.weights.copy_((self.metagraph.C))
+        self.weights.copy_((self.metagraph.C[miner_uids]))
 
         for competition in constants.COMPETITION_SCHEDULE:
             bt.logging.trace(
