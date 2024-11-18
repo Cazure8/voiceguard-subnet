@@ -15,6 +15,7 @@
 [Discord](https://discord.com/channels/799672011265015819/1161765231953989712)  •  [Subnet Status](https://x.taostats.io/subnet/44)
 </div>
 
+
 ---
 - [Introduction](#introduction)
 - [Key Features](#key-features)
