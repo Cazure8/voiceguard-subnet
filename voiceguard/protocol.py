@@ -1,6 +1,5 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# Copyright © 2023 Cazure
+# Copyright © 2024 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -19,28 +18,56 @@
 import typing
 import bittensor as bt
 
-class Transcription(bt.Synapse):
+class VoiceGuardSynapse(bt.Synapse):
     """
-    Protocol representation for handling transcription requests in the voiceguard subnet.
-    Handles both raw audio data and audio URLs.
+    Protocol representation for handling voiceguard requests and responses in the VoiceGuard subnet.
+    
+    This protocol supports three types of synapse interactions:
+    - Type I (stt): Speech-to-text conversion. Uses a YouTube URL and a time segment to generate transcription.
+    - Type II (clone): Voice cloning. Accepts a voice clip and text to generate a cloned audio output.
+    - Type III (detection): Deepfake detection. Processes an audio clip and returns a prediction of real or fake.
     """
-    # Type indicator: 'data' for raw audio data, 'url' for audio URL
-    input_type: str = 'data'
+    # Synapse type: 'stt', 'clone', or 'detection'
+    synapse_type: str = 'stt'
     
-    # Segment information: tuple of (start, end) times in seconds
-    segment: typing.Optional[typing.Tuple[int, int]] = None
-    
-    # Audio input can be raw audio data (bytes) or an audio URL (str).
-    audio_input: str = ''
-    # audio_input: None
+    # Fields for Type I (Speech-to-Text)
+    stt_link: str = ''  # URL for the audio source (YouTube URL)
+    stt_segment: typing.Optional[typing.Tuple[int, int]] = None  # Start and end times in seconds
+    stt_transcription: typing.Optional[str] = None  # Transcription output
 
-    # Optional response output, filled by the receiving miner.
-    transcription_output: typing.Optional[str] = ""
+    # Fields for Type II (Voice Cloning)
+    clone_clip: typing.Optional[bytes] = None  # Audio clip data as bytes
+    clone_text: typing.Optional[str] = None  # Text to be synthesized
+    clone_audio: typing.Optional[bytes] = None  # Generated cloned audio as bytes
 
-    def deserialize(self) -> str:
-        return self.transcription_output 
-    
-    def is_url(self) -> bool:
-        """ Check if the input is a URL. """
-        return self.input_type == 'url'
+    # Fields for Type III (Deepfake Detection)
+    detection_audio: typing.Optional[bytes] = None  # Audio data for detection
+    detection_prediction: typing.Optional[int] = None  # Prediction value
 
+    def deserialize(self) -> typing.Optional[str]:
+        """
+        Deserialize and return the appropriate output based on the synapse type.
+        """
+        if self.synapse_type == 'stt':
+            return self.stt_transcription
+        elif self.synapse_type == 'clone':
+            return self.clone_audio.decode() if self.clone_audio else None
+        elif self.synapse_type == 'detection':
+            return str(self.detection_prediction)
+        else:
+            raise ValueError("Invalid synapse type")
+
+    def is_valid_url(self) -> bool:
+        """
+        Check if the provided URL is valid for Type I (STT).
+        """
+        return bool(self.stt_link) and self.stt_link.startswith(('http://', 'https://'))
+
+    def set_synapse_type(self, synapse_type) -> str:
+        self.synapse_type = synapse_type
+        
+    def get_synapse_type(self) -> str:
+        """
+        Return the current synapse type.
+        """
+        return self.synapse_type

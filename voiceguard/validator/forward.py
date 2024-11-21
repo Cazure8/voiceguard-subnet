@@ -28,7 +28,7 @@ import torchaudio
 from pydub import AudioSegment
 from pytube import YouTube
 from requests.exceptions import HTTPError
-from voiceguard.protocol import Transcription
+from voiceguard.protocol import VoiceGuardSynapse
 from voiceguard.validator.reward import get_rewards
 from voiceguard.utils.uids import get_random_uids
 from gtts import gTTS, gTTSError
@@ -36,7 +36,7 @@ import random
 import torchaudio.transforms as T
 import torch
 import soundfile as sf
-from voiceguard.utils.transcribe_manage import download_youtube_segment, transcribe_with_whisper, get_video_duration
+from voiceguard.utils.stt_helper import download_youtube_segment, transcribe_with_whisper, get_video_duration
 from voiceguard.utils.misc import select_random_url
 
 async def forward(self):
@@ -64,30 +64,42 @@ async def forward(self):
         # rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, time_limit=5)
 
     try:
-        random_url = select_random_url()
-        duration = get_video_duration(random_url)
-        validator_segment = generate_validator_segment(duration)
-        
-        #TODO: refactoring functions required
-        output_filepath = download_youtube_segment(random_url, validator_segment)
+        # equally randomly send requests for tts, cloning, deepfake
+        if random.random() < 0.333: # tts requests
+            random_url = select_random_url()
+            duration = get_video_duration(random_url)
+            validator_segment = generate_validator_segment(duration)
+            output_filepath = download_youtube_segment(random_url, validator_segment)
 
-        if not os.path.exists(output_filepath):
-            print("Output file does not exist. Returning empty transcription.")
-            transcription = ""
-        else:
-            transcription = transcribe_with_whisper(output_filepath)
+            if not os.path.exists(output_filepath):
+                print("Output file does not exist. Returning empty transcription.")
+                transcription = ""
+            else:
+                transcription = transcribe_with_whisper(output_filepath)
 
-        print("------validator transcript--------")
-        print(transcription)
-        print("----------------------------------")
-        responses = self.dendrite.query(
-            # Send the query to selected miner axons in the network.
-            axons=[self.metagraph.axons[uid] for uid in miner_uids],
-            synapse = Transcription(input_type="url", audio_input=random_url, segment=validator_segment),
-            deserialize=False,
-            timeout=50
-        )
-
+            print("------validator transcript--------")
+            print(transcription)
+            print("----------------------------------")
+            responses = self.dendrite.query(
+                # Send the query to selected miner axons in the network.
+                axons=[self.metagraph.axons[uid] for uid in miner_uids],
+                synapse = VoiceGuardSynapse(synapse_type="stt", stt_link=random_url, stt_segment=validator_segment),
+                deserialize=False,
+                timeout=50
+            )
+            
+        elif random.random() < 0.667 and random.random() >= 0.333: # clone request
+            # read and get clone_audio segment and text to clone from DB
+            clone_text = "This is sample text to clone from DB like public one-WANBD"
+            clone_clip = "abc"
+            responses = self.dendrite.query(
+                # Send the query to selected miner axons in the network.
+                axons=[self.metagraph.axons[uid] for uid in miner_uids],
+                synapse = VoiceGuardSynapse(synapse_type="clone", clone_clip=clone_clip, clone_text=clone_text),
+                deserialize=False,
+                timeout=50
+            )
+            
         rewards = get_rewards(self, query=transcription, responses=responses, time_limit=50)
     
     except Exception as e:

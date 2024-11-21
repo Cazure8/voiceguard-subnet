@@ -26,7 +26,7 @@ import voiceguard
 # import base miner class which takes care of most of the boilerplate
 from voiceguard.base.miner import BaseMinerNeuron
 from voiceguard.miner.audio_to_text import audio_to_text
-from voiceguard.miner.url_to_text import url_to_text
+from voiceguard.miner.stt import speech_to_text
 
 class Miner(BaseMinerNeuron):
     """
@@ -41,20 +41,22 @@ class Miner(BaseMinerNeuron):
         super(Miner, self).__init__(config=config)
 
     async def forward(
-        self, synapse: voiceguard.protocol.Transcription
-    ) -> voiceguard.protocol.Transcription:
+        self, synapse: voiceguard.protocol.VoiceGuardSynapse
+    ) -> voiceguard.protocol.VoiceGuardSynapse:
         """
         Processes the incoming 'Transcription' synapse by transcribing the audio input using Wave2Vec.
         """
-        if synapse.is_url():
-            synapse.transcription_output = url_to_text(self, synapse)
-        # else:
-            # synapse.transcription_output = audio_to_text(self, synapse)
+        if synapse.get_synapse_type() == 'stt':
+            synapse.stt_transcription = speech_to_text(self, synapse)
+        elif synapse.get_synapse_type() == 'clone':
+            synapse.clone_audio = voice_clone(self, synapse)
+        elif synapse.get_synapse_type() == 'detection':
+            synapse.detection_prediction = deepfake_detection(self, synapse)
         
         return synapse
 
     async def blacklist(
-        self, synapse: voiceguard.protocol.Transcription
+        self, synapse: voiceguard.protocol.VoiceGuardSynapse
     ) -> typing.Tuple[bool, str]:
         """
         Determines whether an incoming request should be blacklisted and thus ignored. Your implementation should
@@ -65,7 +67,7 @@ class Miner(BaseMinerNeuron):
         requests before they are deserialized to avoid wasting resources on requests that will be ignored.
 
         Args:
-            synapse (voiceguard.protocol.Transcription): A synapse object constructed from the headers of the incoming request.
+            synapse (voiceguard.protocol.VoiceGuardSynapse): A synapse object constructed from the headers of the incoming request.
 
         Returns:
             Tuple[bool, str]: A tuple containing a boolean indicating whether the synapse's hotkey is blacklisted,
@@ -114,7 +116,7 @@ class Miner(BaseMinerNeuron):
         )
         return False, "Hotkey recognized!"
 
-    async def priority(self, synapse: voiceguard.protocol.Transcription) -> float:
+    async def priority(self, synapse: voiceguard.protocol.VoiceGuardSynapse) -> float:
         """
         The priority function determines the order in which requests are handled. More valuable or higher-priority
         requests are processed before others. You should design your own priority mechanism with care.
@@ -122,7 +124,7 @@ class Miner(BaseMinerNeuron):
         This implementation assigns priority to incoming requests based on the calling entity's stake in the metagraph.
 
         Args:
-            synapse (voiceguard.protocol.Transcription): The synapse object that contains metadata about the incoming request.
+            synapse (voiceguard.protocol.VoiceGuardSynapse): The synapse object that contains metadata about the incoming request.
 
         Returns:
             float: A priority score derived from the stake of the calling entity.
