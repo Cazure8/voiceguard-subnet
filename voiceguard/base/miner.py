@@ -1,6 +1,5 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# Copyright © 2023 Cazure
+# Copyright © 2024 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -23,12 +22,13 @@ import threading
 import traceback
 import os
 
+from typing import Union
 import bittensor as bt
 from voiceguard import utils
 
 from voiceguard.base.neuron import BaseNeuron
 from voiceguard.miner.model import ModelTrainer
-from voiceguard.utils.misc import prepare_datasets, save_training_data, update_repository
+from voiceguard.utils.misc import update_repository
 
 class BaseMinerNeuron(BaseNeuron):
     """
@@ -49,7 +49,11 @@ class BaseMinerNeuron(BaseNeuron):
             )
 
         # The axon handles request processing, allowing validators to send this miner requests.
-        self.axon = bt.axon(wallet=self.wallet, config=self.config)
+        # The axon handles request processing, allowing validators to send this miner requests.
+        self.axon = bt.axon(
+            wallet=self.wallet,
+            config=self.config() if callable(self.config) else self.config,
+        )
 
         # Attach determiners which functions are called when servicing a request.
         bt.logging.info(f"Attaching forward function to miner axon.")
@@ -63,7 +67,7 @@ class BaseMinerNeuron(BaseNeuron):
         # Instantiate runners
         self.should_exit: bool = False
         self.is_running: bool = False
-        self.thread: threading.Thread = None
+        self.thread: Union[threading.Thread, None] = None
         self.lock = asyncio.Lock()
 
     def run(self):
@@ -124,8 +128,6 @@ class BaseMinerNeuron(BaseNeuron):
                 if self.step % 5 == 0:
                     update_repository()
 
-                # if self.step % 600 == 0:
-                #     save_training_data() 
                 self.step += 1
 
         # If someone intentionally stops the miner, it'll safely terminate operations.
@@ -150,12 +152,6 @@ class BaseMinerNeuron(BaseNeuron):
             self.thread = threading.Thread(target=self.run, daemon=True)
             self.thread.start()
 
-            # self.downloadThread = threading.Thread(target=prepare_datasets, daemon=True)
-            # self.downloadThread.start()
-
-            # self.trainingThread = threading.Thread(target=trainer.train, daemon=True)
-            # self.trainingThread.start()
-
             self.is_running = True
             bt.logging.debug("Started")
 
@@ -166,7 +162,10 @@ class BaseMinerNeuron(BaseNeuron):
         if self.is_running:
             bt.logging.debug("Stopping miner in background thread.")
             self.should_exit = True
-            self.thread.join(5)
+
+            if self.thread is not None:
+                self.thread.join(5)
+
             self.is_running = False
             bt.logging.debug("Stopped")
 
@@ -192,38 +191,6 @@ class BaseMinerNeuron(BaseNeuron):
                        None if the context was exited without an exception.
         """
         self.stop_run_thread()
-
-    def set_weights(self):
-        """
-        Self-assigns a weight of 1 to the current miner (identified by its UID) and
-        a weight of 0 to all other peers in the network. The weights determine the trust level the miner assigns to other nodes on the network.
-
-        Raises:
-            Exception: If there's an error while setting weights, the exception is logged for diagnosis.
-        """
-        try:
-            # --- query the chain for the most current number of peers on the network
-            chain_weights = torch.zeros(
-                self.subtensor.subnetwork_n(netuid=self.metagraph.netuid)
-            )
-            chain_weights[self.uid] = 1
-
-            # --- Set weights.
-            self.subtensor.set_weights(
-                wallet=self.wallet,
-                netuid=self.metagraph.netuid,
-                uids=torch.arange(0, len(chain_weights)),
-                weights=chain_weights.to("cpu"),
-                wait_for_inclusion=False,
-                version_key=self.spec_version,
-            )
-
-        except Exception as e:
-            bt.logging.error(
-                f"Failed to set weights on chain with exception: { e }"
-            )
-
-        bt.logging.info(f"Set weights: {chain_weights}")
 
     def resync_metagraph(self):
         """Resyncs the metagraph and updates the hotkeys and moving averages based on the new metagraph."""

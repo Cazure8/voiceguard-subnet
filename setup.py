@@ -1,6 +1,5 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# Copyright © 2023 Cazure
+# Copyright © 2024 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -64,7 +63,7 @@ with codecs.open(
 setup(
     name="voiceguard-subnet",
     version=version_string,
-    description="Voice deepfake Detector Subnet",
+    description="Voice cloning and deepfake detection subnet",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Cazure8/voiceguard-subnet", 

@@ -1,6 +1,5 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# Copyright © 2023 Cazure
+# Copyright © 2024 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -17,11 +16,27 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
-import torch
 import argparse
+import subprocess
 import bittensor as bt
-from loguru import logger
+from .logging import setup_events_logger
 
+def is_cuda_available():
+    try:
+        output = subprocess.check_output(
+            ["nvidia-smi", "-L"], stderr=subprocess.STDOUT
+        )
+        if "NVIDIA" in output.decode("utf-8"):
+            return "cuda"
+    except Exception:
+        pass
+    try:
+        output = subprocess.check_output(["nvcc", "--version"]).decode("utf-8")
+        if "release" in output:
+            return "cuda"
+    except Exception:
+        pass
+    return "cpu"
 
 def check_config(cls, config: "bt.Config"):
     r"""Checks/validates the config namespace object."""
@@ -43,56 +58,44 @@ def check_config(cls, config: "bt.Config"):
 
     if not config.neuron.dont_save_events:
         # Add custom event logger for the events.
-        logger.level("EVENTS", no=38, icon="📝")
-        logger.add(
-            os.path.join(config.neuron.full_path, "events.log"),
-            rotation=config.neuron.events_retention_size,
-            serialize=True,
-            enqueue=True,
-            backtrace=False,
-            diagnose=False,
-            level="EVENTS",
-            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+        events_logger = setup_events_logger(
+            config.neuron.full_path, config.neuron.events_retention_size
         )
-
+        bt.logging.register_primary_logger(events_logger.name)
 
 def add_args(cls, parser):
     """
     Adds relevant arguments to the parser for operation.
     """
-    # Netuid Arg: The netuid of the subnet to connect to.
+
     parser.add_argument("--netuid", type=int, help="Subnet netuid", default=1)
-
-    neuron_type = (
-        "validator" if "miner" not in cls.__name__.lower() else "miner"
-    )
-
-    parser.add_argument(
-        "--neuron.name",
-        type=str,
-        help="Trials for this neuron go in neuron.root / (wallet_cold - wallet_hot) / neuron.name. ",
-        default=neuron_type,
-    )
 
     parser.add_argument(
         "--neuron.device",
         type=str,
         help="Device to run on.",
-        default="cpu",
+        default=is_cuda_available(),
     )
 
     parser.add_argument(
         "--neuron.epoch_length",
         type=int,
         help="The default epoch length (how often we set weights, measured in 12 second blocks).",
-        default=10,
+        default=100,
+    )
+
+    parser.add_argument(
+        "--mock",
+        action="store_true",
+        help="Mock neuron and all network components.",
+        default=False,
     )
 
     parser.add_argument(
         "--neuron.events_retention_size",
         type=str,
         help="Events retention size.",
-        default="2 GB",
+        default=2 * 1024 * 1024 * 1024,  # 2 GB
     )
 
     parser.add_argument(
@@ -102,108 +105,142 @@ def add_args(cls, parser):
         default=False,
     )
 
-    if neuron_type == "validator":
-        parser.add_argument(
-            "--neuron.num_concurrent_forwards",
-            type=int,
-            help="The number of concurrent forwards running at any time.",
-            default=1,
-        )
+    parser.add_argument(
+        "--wandb.off",
+        action="store_true",
+        help="Turn off wandb.",
+        default=False,
+    )
 
-        parser.add_argument(
-            "--neuron.sample_size",
-            type=int,
-            help="The number of miners to query in a single step.",
-            default=10,
-        )
+    parser.add_argument(
+        "--wandb.offline",
+        action="store_true",
+        help="Runs wandb in offline mode.",
+        default=False,
+    )
 
-        parser.add_argument(
-            "--neuron.disable_set_weights",
-            action="store_true",
-            help="Disables setting weights.",
-            default=False,
-        )
+    parser.add_argument(
+        "--wandb.notes",
+        type=str,
+        help="Notes to add to the wandb run.",
+        default="",
+    )
 
-        parser.add_argument(
-            "--neuron.moving_average_alpha",
-            type=float,
-            help="Moving average alpha parameter, how much to add of the new observation.",
-            default=0.05,
-        )
 
-        parser.add_argument(
-            "--neuron.axon_off",
-            "--axon_off",
-            action="store_true",
-            # Note: the validator needs to serve an Axon with their IP or they may
-            #   be blacklisted by the firewall of serving peers on the network.
-            help="Set this flag to not attempt to serve an Axon.",
-            default=False,
-        )
+def add_miner_args(cls, parser):
+    """Add miner specific arguments to the parser."""
 
-        parser.add_argument(
-            "--neuron.vpermit_tao_limit",
-            type=int,
-            help="The maximum number of TAO allowed to query a validator with a vpermit.",
-            default=4096,
-        )
+    parser.add_argument(
+        "--neuron.name",
+        type=str,
+        help="Trials for this neuron go in neuron.root / (wallet_cold - wallet_hot) / neuron.name. ",
+        default="miner",
+    )
 
-    else:
-        parser.add_argument(
-            "--blacklist.force_validator_permit",
-            action="store_true",
-            help="If set, we will force incoming requests to have a permit.",
-            default=False,
-        )
+    parser.add_argument(
+        "--blacklist.force_validator_permit",
+        action="store_true",
+        help="If set, we will force incoming requests to have a permit.",
+        default=False,
+    )
 
-        parser.add_argument(
-            "--blacklist.allow_non_registered",
-            action="store_true",
-            help="If set, miners will accept queries from non registered entities. (Dangerous!)",
-            default=False,
-        )
+    parser.add_argument(
+        "--blacklist.allow_non_registered",
+        action="store_true",
+        help="If set, miners will accept queries from non registered entities. (Dangerous!)",
+        default=False,
+    )
 
-        parser.add_argument(
-            "--num_epochs",
-            type = int,
-            default = -1,
-            help = "Number of training epochs (-1 is infinite)"
-        )
+    parser.add_argument(
+        "--wandb.project_name",
+        type=str,
+        default="template-miners",
+        help="Wandb project to log to.",
+    )
 
-        parser.add_argument(
-            "--batch_size",
-            type = int,
-            default = 12,
-            help = "Batch size"
-        )
+    parser.add_argument(
+        "--wandb.entity",
+        type=str,
+        default="opentensor-dev",
+        help="Wandb entity to log to.",
+    )
 
-        # parser.add_argument(
-        #     "--batch_size",
-        #     type = int,
-        #     default = 12,
-        #     help = "The batch size"
-        # )
-        
-        # parser.add_argument(
-        #     "--model_type",
-        #     type = str,
-        #     default = "wave2vec",
-        #     help = "The model type to return transcribed data among googleapi and wave2vec"
-        # )
 
-        parser.add_argument(
-            "--training_mode",
-            type = str,
-            default = "normal",
-            help = "Training mode either fast, normal or slow. This dictates the pace and intensity of the model training process "
-        )
+def add_validator_args(cls, parser):
+    """Add validator specific arguments to the parser."""
 
-        parser.add_argument(
-            '--device',
-            type = str,
-            default='gpu' if torch.cuda.is_available() else 'cpu', 
-            help="Device to run the model on. Use 'cuda' for GPU or 'cpu' for CPU."
-        )
+    parser.add_argument(
+        "--neuron.name",
+        type=str,
+        help="Trials for this neuron go in neuron.root / (wallet_cold - wallet_hot) / neuron.name. ",
+        default="validator",
+    )
+
+    parser.add_argument(
+        "--neuron.timeout",
+        type=float,
+        help="The timeout for each forward call in seconds.",
+        default=10,
+    )
+
+    parser.add_argument(
+        "--neuron.num_concurrent_forwards",
+        type=int,
+        help="The number of concurrent forwards running at any time.",
+        default=1,
+    )
+
+    parser.add_argument(
+        "--neuron.sample_size",
+        type=int,
+        help="The number of miners to query in a single step.",
+        default=50,
+    )
+
+    parser.add_argument(
+        "--neuron.disable_set_weights",
+        action="store_true",
+        help="Disables setting weights.",
+        default=False,
+    )
+
+    parser.add_argument(
+        "--neuron.moving_average_alpha",
+        type=float,
+        help="Moving average alpha parameter, how much to add of the new observation.",
+        default=0.1,
+    )
+
+    parser.add_argument(
+        "--neuron.axon_off",
+        "--axon_off",
+        action="store_true",
+        # Note: the validator needs to serve an Axon with their IP or they may
+        #   be blacklisted by the firewall of serving peers on the network.
+        help="Set this flag to not attempt to serve an Axon.",
+        default=False,
+    )
+
+    parser.add_argument(
+        "--neuron.vpermit_tao_limit",
+        type=int,
+        help="The maximum number of TAO allowed to query a validator with a vpermit.",
+        default=4096,
+    )
+
+    parser.add_argument(
+        "--wandb.project_name",
+        type=str,
+        help="The name of the project where you are sending the new run.",
+        default="template-validators",
+    )
+
+    parser.add_argument(
+        "--wandb.entity",
+        type=str,
+        help="The name of the project where you are sending the new run.",
+        default="opentensor-dev",
+    )
 
 
 def config(cls):

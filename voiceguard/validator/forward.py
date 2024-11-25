@@ -29,7 +29,7 @@ from pydub import AudioSegment
 from pytube import YouTube
 from requests.exceptions import HTTPError
 from voiceguard.protocol import VoiceGuardSynapse
-from voiceguard.validator.reward import get_rewards
+from voiceguard.validator.stt_reward import get_stt_rewards
 from voiceguard.utils.uids import get_random_uids
 from gtts import gTTS, gTTSError
 import random
@@ -88,7 +88,10 @@ async def forward(self):
                 timeout=50
             )
             
-        elif random.random() < 0.667 and random.random() >= 0.333: # clone request
+            rewards = get_stt_rewards(self, query=transcription, responses=responses, time_limit=50)
+            self.update_scores(rewards, miner_uids, score_type="stt")
+            
+        elif random.random() < 0.667: # clone request
             # read and get clone_audio segment and text to clone from DB
             clone_text = "This is sample text to clone from DB like public one-WANBD"
             clone_clip = "abc"
@@ -100,15 +103,16 @@ async def forward(self):
                 timeout=50
             )
             
-        rewards = get_rewards(self, query=transcription, responses=responses, time_limit=50)
+            rewards = get_clone_rewards(self, query=transcription, responses=responses, time_limit=50)
+            self.update_scores(rewards, miner_uids, score_type="clone")
     
     except Exception as e:
         print(f"An error occurred: {e}")
         rewards = torch.zeros(len(miner_uids))
         
     bt.logging.info(f"Scored responses: {rewards}")
-    # Update the scores based on the rewards. You may want to define your own update_scores function for custom behavior.
-    self.update_scores(rewards, miner_uids)
+    
+    
 
 def generate_validator_segment(duration):
     if duration <= 100:

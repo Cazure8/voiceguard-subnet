@@ -1,6 +1,5 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# Copyright © 2023 Cazure
+# Copyright © 2024 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -154,9 +153,12 @@ class BaseNeuron(ABC):
             return False
 
         # Define appropriate logic for when set weights.
+       
         return (
-            self.block - self.metagraph.last_update[self.uid]
-        ) > self.config.neuron.epoch_length
+            (self.block - self.metagraph.last_update[self.uid])
+            > self.config.neuron.epoch_length
+            and self.neuron_type != "MinerNeuron"
+        )  # don't set weights if you're a miner
 
     def save_state(self):
         bt.logging.warning(
