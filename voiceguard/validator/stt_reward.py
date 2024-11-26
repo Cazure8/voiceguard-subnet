@@ -15,7 +15,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import torch
+import numpy as np
 from typing import List
 import Levenshtein
 import spacy
@@ -111,7 +111,9 @@ def reward(query: str, response: str, response_time: float, max_response_time: f
         response_tokens = tokenizer(cleaned_response, return_tensors="pt", padding=True, truncation=True)
         query_embeddings = model(**query_tokens).last_hidden_state.mean(dim=1)
         response_embeddings = model(**response_tokens).last_hidden_state.mean(dim=1)
-        cosine_similarity_score = torch.cosine_similarity(query_embeddings, response_embeddings).item()
+        cosine_similarity_score = np.dot(query_embeddings, response_embeddings) / (
+            np.linalg.norm(query_embeddings) * np.linalg.norm(response_embeddings)
+        )
         print("--------BERT_orrectness_score---------------")
         print(cosine_similarity_score)
         print("----------------------------------------")
@@ -127,7 +129,7 @@ def reward(query: str, response: str, response_time: float, max_response_time: f
     normalized_speed_score = 1 - response_time / max_response_time
     
     # Apply sigmoid to speed score for normalization between 0 and 1
-    speed_score = sigmoid(torch.tensor([normalized_speed_score]), temperature=1.0, shift=0.5).item()
+    speed_score = sigmoid(np.array([normalized_speed_score]), temperature=1.0, shift=0.5).item()
     
     correctness_weight = 0.7
     speed_weight = 0.3
@@ -140,26 +142,26 @@ def sigmoid(x, temperature=5, shift=0.5):
     """
     Apply a sigmoid function to normalize scores.
     """
-    return 1 / (1 + torch.exp(-temperature * (x - shift)))
+    return 1 / (1 + np.exp(-temperature * (x - shift)))
 
-def get_stt_rewards(self, query: str, responses, time_limit) -> torch.FloatTensor:
+def get_stt_rewards(self, query: str, responses, time_limit) -> np.ndarray:
     default_high_process_time = time_limit 
-    response_times = torch.FloatTensor([
+    response_times = np.array([
         response.dendrite.process_time if response.dendrite.process_time is not None else default_high_process_time
         for response in responses
     ])
     
-    max_response_time = torch.max(response_times)
-    rewards = torch.FloatTensor([
-    reward(
-        query, 
-        resp.transcription_output, 
-        resp.dendrite.process_time if resp.dendrite.process_time is not None else default_high_process_time, 
-        max_response_time.item()
+    max_response_time = np.max(response_times)
+    rewards = np.array([
+        reward(
+            query, 
+            resp.transcription_output, 
+            resp.dendrite.process_time if resp.dendrite.process_time is not None else default_high_process_time, 
+            max_response_time
         ) for resp in responses
     ])
 
-    return rewards.to(self.device)
+    return rewards
 
 def levenshtein_similarity(original, response):
     return 1 - Levenshtein.distance(original, response) / max(len(original), len(response))

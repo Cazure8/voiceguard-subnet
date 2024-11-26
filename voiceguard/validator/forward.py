@@ -103,7 +103,7 @@ async def forward(self):
                 timeout=50
             )
             
-            rewards = get_clone_rewards(self, query=transcription, responses=responses, time_limit=50)
+            rewards = get_clone_rewards(self, clone_clip=clone_clip, responses=responses, clone_text=clone_text, time_limit=50)
             self.update_scores(rewards, miner_uids, score_type="clone")
     
     except Exception as e:
