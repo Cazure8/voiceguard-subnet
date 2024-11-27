@@ -1,7 +1,7 @@
 <div align="center">
 
-# **Voice Guard Subnet** <!-- omit in toc -->
-![Subnet44](docs/voiceguard-white.png)
+# **Voiceguard Subnet** <!-- omit in toc -->
+![Subnet]()
 
 
 
@@ -32,26 +32,22 @@
 ---
 ## Introduction
 
-Welcome to the Voice Guard Subnet on the Bittensor network, your cutting-edge solution against voice deepfakes. Voice deepfakes are becoming a more serious problem each day with the rapid advancement of AI technology. Several critical incidents have been reported, such as the deepfake robocall incident in New Hampshire, which used AI to deter voters​ [source](https://www.politico.com/news/2024/02/06/robocalls-fcc-new-hampshire-texas-00139864)​​​, and numerous other significant deepfake incidents documented in various reports​ [source](https://virtualdoers.com/10-notable-deepfake-incidents-in-the-internet/)​.
+Welcome to the Voiceguard Subnet on the Bittensor network, your cutting-edge solution against voice deepfakes. Voice deepfakes are becoming a more serious problem each day with the rapid advancement of AI technology. Several critical incidents have been reported, such as the deepfake robocall incident in New Hampshire, which used AI to deter voters​ [source](https://www.politico.com/news/2024/02/06/robocalls-fcc-new-hampshire-texas-00139864)​​​, and numerous other significant deepfake incidents documented in various reports​ [source](https://virtualdoers.com/10-notable-deepfake-incidents-in-the-internet/)​.
 
-Voice Guard Subnet aims to resolve these issues through the power of decentralization. This subnet offers robust voice fake detection through model fine-tuning competitions and provides high-speed, accurate transcriptions for YouTube videos. Additionally, it offers a specialized database for training voice deepfake detection models. In the audio AI field, preparing datasets has been a significant challenge, but by harnessing Bittensor's decentralization power, we are resolving that problem together with the best model generation.
-
-**IMPORTANT NOTICE**
-Until our subnet is fully supported by enough miners and we have accumulated sufficient datasets, the model competition feature will remain disabled.
+Voiceguard Subnet aims to resolve these issues through the power of decentralization. This subnet offers VOICE CLONING, robust voice DEEPFAKE DETECTION through and provides high-speed, accurate transcriptions for YouTube videos. Additionally, it offers a specialized database for training voice deepfake detection models. In the audio AI field, preparing datasets has been a significant challenge, but by harnessing Bittensor's decentralization power, we are resolving that problem together with the best model generation for voice cloning and deepfake detection.
 
 ## Key Features
 
-- 🧠 **Generate high quality of audio deepfake detection**: Voice guard subnet will generate a pioneering AI model to distinguish beween real voice and AI generated one.
+- 🧠 **Generate high quality of audio deepfake detection**: Voiceguard subnet will generate a pioneering AI model to distinguish between real voice and AI generated one.
+- 🧠 **Voice cloning model**: Advanced voice cloning model and its service will be provided.
 - 🧠 **Fast, accurate transcription**: Distributed transcription will provide high-speed, accurate transcription for Youtube videos in any language.
 - 🧠 **Large sized special database**: By harnessing miners hard work, specialized datasets for training anti-voice deepfake AI model will be created.
-- 🧠 **Fine tune any model in audio field**: Any audio related model can be fine-tuned for specific purpose with least loss value in training.
-- 🧠 **Friendly to everyone**: Not only tech people, but also non-tech ones can also get reward propelling Bittensor's evolution.
 
 ## Miner and Validator Functionality
 
 ### Miner
 
-- General Participation: Every miner is required to operate the Whisper Large model, facilitating a fine-tuned API for database generation and interactive video functions. This is accessible to non-technical individuals with moderate resources. Seventy percent of total rewards are distributed among these contributors.
+- Every miner is required to operate the Whisper Large model, facilitating a fine-tuned API for database generation and interactive video functions.
 - Specialized Contribution: Miners with AI expertise may opt to train advanced detection models using our provided database. They should upload the metadata for trained model to the Hugging Face. The top three performers in this category will share thirty percent of the total rewards. Note: These miners must also maintain the Whisper model to ensure seamless API functionality.
 
 ### Validator
@@ -113,7 +109,7 @@ Get the rotating proxy url and put that it in .env file. Sample file .env.sample
 ### Miner
 
 #### Minimum Hardware Requirements for Miners
-To participate effectively as a miner in Voice Guard Subnet, your system should meet the following **minimum** requirements:
+To participate effectively as a miner in Voiceguard Subnet, your system should meet the following **minimum** requirements:
 
 - **Network Speed**:  **1Gbps**
 - **GPU**: **16GB**
@@ -142,7 +138,7 @@ python3 miner_model/upload_model.py --hf_repo_id HF_REPO --wallet.name WALLET  -
 ```
 ### Validator
 #### Minimum Hardware Requirements for Validators
-To participate effectively as a validator in Voice Guard Subnet, your system should meet the following **minimum** requirements:
+To participate effectively as a validator in Voiceguard Subnet, your system should meet the following **minimum** requirements:
 
 - **Network Speed**:  **1Gbps**
 - **GPU**: **16GB**
