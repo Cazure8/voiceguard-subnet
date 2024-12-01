@@ -154,6 +154,24 @@ pm2 start neurons/validator.py --interpreter python3 -- --netuid 44 --subtensor.
 pm2 start neurons/validator.py --interpreter python3 -- --netuid 44 --wallet.name myvalidator --wallet.hotkey myhotkey
 ```
 
+## Roadmap
+
+- [x] Launch Voiceguard subnet on Bittensor testnet
+- [ ] Confirm transcription request and response working smoothly, and fully test its API from miners
+- [ ] Get approved voice cloning validation logic from community like OTF
+- [ ] Lauch Voiceguard subnet on Bittensor mainnet
+- [ ] Build real and fake audio datasets for training voice cloning and deepfake detection model
+- [ ] Publish web application with Transcribe and Taoscribe based on stable API from miners
+- [ ] Start voice cloning competition
+- [ ] Reach 500+ hours of Youtube audio clips
+- [ ] Start deepfake detection model competition
+- [ ] Connect web application with the voice cloning and deepfake detection model API
+- [ ] Provide 5000+ hours of real and cloned audio clips
+- [ ] Go public for the datasets
+- [ ] Upgrade web application to handle any audio transcription
+- [ ] Enhance voice deepfake API for various languages
+
+
 ## License
 This repository is licensed under the MIT License.
 ```text
