@@ -1,5 +1,4 @@
 # The MIT License (MIT)
-# Copyright © 2024 Yuma Rao
 # Copyright © 2024 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -31,8 +30,8 @@ from requests.exceptions import HTTPError
 from voiceguard.protocol import VoiceGuardSynapse
 from voiceguard.validator.stt_reward import get_stt_rewards
 from voiceguard.validator.clone_reward import get_clone_rewards
+from voiceguard.validator.detection_reward import get_detection_rewards
 from voiceguard.utils.uids import get_random_uids
-from gtts import gTTS, gTTSError
 import random
 import torchaudio.transforms as T
 import torch
@@ -52,17 +51,6 @@ async def forward(self):
     """
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
     # miner_uids = [3]
-        # audio_sample, ground_truth_transcription = generate_or_load_audio_sample()
-        # audio_sample_base64 = encode_audio_to_base64(audio_sample)
-    
-        # # The dendrite client queries the network.
-        # responses = self.dendrite.query(
-        #     # Send the query to selected miner axons in the network.
-        #     axons=[self.metagraph.axons[uid] for uid in miner_uids],
-        #     synapse=Transcription(audio_input=audio_sample_base64),
-        #     deserialize=False,
-        # )
-        # rewards = get_rewards(self, query=ground_truth_transcription, responses=responses, time_limit=5)
 
     try:
         # equally randomly send requests for tts, cloning, deepfake
@@ -97,8 +85,10 @@ async def forward(self):
             clone_text = "This is sample text to clone from DB like public one-WANBD"
             
             clone_audio_path = "/commonvoice/clone_clip.mp3"  # Path to the .mp3 file
+            
             with open(clone_audio_path, "rb") as audio_file:
                 clone_clip = audio_file.read() 
+                
             responses = self.dendrite.query(
                 # Send the query to selected miner axons in the network.
                 axons=[self.metagraph.axons[uid] for uid in miner_uids],
@@ -109,6 +99,25 @@ async def forward(self):
             
             rewards = get_clone_rewards(self, clone_clip_path=clone_audio_path, responses=responses, clone_text=clone_text, time_limit=50)
             self.update_scores(rewards, miner_uids, score_type="clone")
+            
+        elif random.random() < 1:
+            # get real audio or fake audio from DB
+            random_audio_path = "/detection/random.mp3"
+            random_audio_type = "real"
+            
+            with open(random_audio_path, "rb") as audio_file:
+                random_audio = audio_file.read()
+            
+            responses = self.dendrite.query(
+                # Send the query to selected miner axons in the network.
+                axons=[self.metagraph.axons[uid] for uid in miner_uids],
+                synapse = VoiceGuardSynapse(synapse_type="detection", detection_audio=random_audio),
+                deserialize=False,
+                timeout=50
+            )
+            
+            rewards = get_detection_rewards(self, audio_type = random_audio_type, responses=responses, time_limit=50)
+            self.update_scores(rewards, miner_uids, score_type="detection")
     
     except Exception as e:
         print(f"An error occurred: {e}")

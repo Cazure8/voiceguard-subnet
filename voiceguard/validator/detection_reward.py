@@ -1,46 +1,56 @@
 import numpy as np
 from typing import List
+from sklearn.metrics import f1_score, accuracy_score
 
 def get_detection_rewards(
     self,
-    detection_audio: bytes,
-    responses: List,
     ground_truth: bool,
+    responses: List,
     time_limit: int,
 ) -> List[float]:
     """
-    Evaluate miner responses for voice deepfake detection and calculate rewards.
+    Evaluate miner responses for voice deepfake detection and calculate rewards based on
+    both the accuracy and the confidence of the responses.
 
     Args:
-        self: The object containing the state and necessary configurations.
-        detection_audio (bytes): The audio file to be checked for deepfake as bytes.
-        responses (List): Responses from miners containing confidence percentages.
-        ground_truth (bool): The actual label of the audio (True = real, False = fake).
-        time_limit (int): The timeout limit for the response.
+        ground_truth (bool): The actual label of the audio (True if real, False if fake).
+        responses (List): Miner responses, each containing a confidence level of the prediction.
+        time_limit (int): The maximum allowed time for responses.
 
     Returns:
         List[float]: Rewards for each miner based on their response quality.
     """
     rewards = []
 
+    # Initialize lists to store binary predictions and confidences
+    predictions = []
+    confidences = []
+
+    # Collect predictions and their confidences
     for response in responses:
-        try:
-            # Extract miner's confidence percentage (real vs fake)
-            miner_confidence = response.get("confidence")  # A float value between 0.0 and 1.0
-            miner_predicted_label = miner_confidence >= 0.5  # True = real, False = fake
+        miner_confidence = response.get("detection_prediction")  # Assuming this is a probability [0,1]
+        miner_predicted_label = miner_confidence >= 0.5  # True if real, False if fake
+        predictions.append(miner_predicted_label)
+        confidences.append(miner_confidence)
 
-            # Calculate correctness score
-            correctness_score = 1.0 if miner_predicted_label == ground_truth else 0.0
+    # Convert lists to numpy arrays for metric calculations
+    predictions = np.array(predictions)
+    confidences = np.array(confidences)
+    ground_truth_array = np.array([ground_truth] * len(predictions))  # Same truth value repeated for comparison
 
-            # Calculate confidence adjustment
-            confidence_adjustment = miner_confidence if ground_truth else (1 - miner_confidence)
+    # Calculate binary metrics
+    accuracy = accuracy_score(ground_truth_array, predictions)
+    f1 = f1_score(ground_truth_array, predictions)
 
-            # Combine correctness and confidence for the final reward
-            reward = correctness_score * confidence_adjustment
-            rewards.append(reward)
+    for idx, (prediction, confidence) in enumerate(zip(predictions, confidences)):
+        # Calculate correctness score
+        correctness_score = 1.0 if prediction == ground_truth else 0.0
 
-        except Exception as e:
-            print(f"Error processing response: {e}")
-            rewards.append(0.0)  # Assign zero reward for any errors
+        # Adjust reward based on confidence
+        confidence_adjustment = confidence if ground_truth else (1 - confidence)
+        
+        # Combine accuracy, f1, and adjusted confidence for final reward
+        reward = (correctness_score * confidence_adjustment * accuracy * f1)
+        rewards.append(reward)
 
     return rewards
