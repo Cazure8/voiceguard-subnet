@@ -35,10 +35,10 @@ import yt_dlp as youtube_dl
 update_flag = False
 update_at = 0
 
-uri = "mongodb+srv://voiceguard:voiceguard@cluster0.wtng9.mongodb.net"
-client = MongoClient(uri)
-db = client['voiceguard_subnet']
-collection = db['audio_datasets']
+# uri = "mongodb+srv://voiceguard:voiceguard@cluster0.wtng9.mongodb.net"
+# client = MongoClient(uri)
+# db = client['voiceguard_subnet']
+# collection = db['audio_datasets']
 
 # LRU Cache with TTL
 def ttl_cache(maxsize: int = 128, typed: bool = False, ttl: int = -1):
@@ -165,43 +165,43 @@ def extract_video_id(url):
             return parse_qs(query.query)['v'][0]
     return None
 
-def save_training_data(directory="datasets"):
-    """Create directories and files based on language and YouTube video ID, avoiding duplicates."""
-    documents = collection.find({})
+# def save_training_data(directory="datasets"):
+#     """Create directories and files based on language and YouTube video ID, avoiding duplicates."""
+#     documents = collection.find({})
 
-    for doc in documents:
-        language = doc.get('language', 'Unknown')
-        url = doc['url']
-        transcript = doc.get('transcript', '')
+#     for doc in documents:
+#         language = doc.get('language', 'Unknown')
+#         url = doc['url']
+#         transcript = doc.get('transcript', '')
         
-        if not transcript:
-            continue
+#         if not transcript:
+#             continue
 
-        video_id = extract_video_id(url)
-        if not video_id:
-            continue
+#         video_id = extract_video_id(url)
+#         if not video_id:
+#             continue
 
-        # Construct directory paths
-        lang_dir = os.path.join(directory, language)
-        video_dir = os.path.join(lang_dir, video_id)
+#         # Construct directory paths
+#         lang_dir = os.path.join(directory, language)
+#         video_dir = os.path.join(lang_dir, video_id)
 
-        # Check and create language directory if not exists
-        if not os.path.exists(lang_dir):
-            os.makedirs(lang_dir)
+#         # Check and create language directory if not exists
+#         if not os.path.exists(lang_dir):
+#             os.makedirs(lang_dir)
 
-        # Check and create video directory if not exists
-        if not os.path.exists(video_dir):
-            os.makedirs(video_dir)
-        else:
-            # Skip if both files exist (avoid duplicates)
-            if os.path.exists(os.path.join(video_dir, 'audio.txt')) and os.path.exists(os.path.join(video_dir, f'{video_id}.txt')):
-                continue
+#         # Check and create video directory if not exists
+#         if not os.path.exists(video_dir):
+#             os.makedirs(video_dir)
+#         else:
+#             # Skip if both files exist (avoid duplicates)
+#             if os.path.exists(os.path.join(video_dir, 'audio.txt')) and os.path.exists(os.path.join(video_dir, f'{video_id}.txt')):
+#                 continue
 
-        # Create or overwrite files for URL and transcript
-        with open(os.path.join(video_dir, 'audio.txt'), 'w') as url_file:
-            url_file.write(url + '\n')
-        with open(os.path.join(video_dir, f'{video_id}.txt'), 'w') as transcript_file:
-            transcript_file.write(transcript)
+#         # Create or overwrite files for URL and transcript
+#         with open(os.path.join(video_dir, 'audio.txt'), 'w') as url_file:
+#             url_file.write(url + '\n')
+#         with open(os.path.join(video_dir, f'{video_id}.txt'), 'w') as transcript_file:
+#             transcript_file.write(transcript)
 
 def prepare_datasets(dataset_dir="datasets", check_interval=1800):
     print("-----here's prepare datasets-------")

@@ -19,7 +19,7 @@ import os
 import argparse
 import subprocess
 import bittensor as bt
-from .logging import setup_events_logger
+from voiceguard.utils.c_logging import setup_events_logger
 
 def is_cuda_available():
     try:

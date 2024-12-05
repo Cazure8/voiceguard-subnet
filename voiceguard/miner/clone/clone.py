@@ -1,5 +1,5 @@
 from voiceguard.protocol import VoiceGuardSynapse
-from TTS.api import TTS
+# from TTS.api import TTS
 import tempfile
 import os
 

@@ -4,7 +4,6 @@ import numpy as np
 import os
 import bittensor as bt
 import base64
-from google.cloud import speech
 import torch
 import torchaudio
 import voiceguard
@@ -44,7 +43,7 @@ def load_model_and_processor(model_path):
 
         return model, processor
     
-def audio_to_text(self, synapse: voiceguard.protocol.Transcription) -> str:
+def audio_to_text(self, synapse: voiceguard.protocol.VoiceGuardSynapse) -> str:
     audio_content = safe_base64_decode(synapse.audio_input)
 
     try:

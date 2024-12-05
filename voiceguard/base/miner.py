@@ -16,25 +16,30 @@
 # DEALINGS IN THE SOFTWARE.
 
 import time
-import torch
 import asyncio
 import threading
 import traceback
-import os
+import argparse
 
 from typing import Union
 import bittensor as bt
 from voiceguard import utils
 
 from voiceguard.base.neuron import BaseNeuron
-from voiceguard.miner.model import ModelTrainer
 from voiceguard.utils.misc import update_repository
+from voiceguard.utils.config import add_miner_args
 
 class BaseMinerNeuron(BaseNeuron):
     """
     Base class for Bittensor miners.
     """
+    neuron_type: str = "MinerNeuron"
 
+    @classmethod
+    def add_args(cls, parser: argparse.ArgumentParser):
+        super().add_args(parser)
+        add_miner_args(cls, parser)
+        
     def __init__(self, config=None):
         super().__init__(config=config)
 
@@ -145,7 +150,7 @@ class BaseMinerNeuron(BaseNeuron):
         Starts the miner's operations in a separate background thread.
         This is useful for non-blocking operations.
         """
-        # trainer = ModelTrainer(self.config)
+
         if not self.is_running:
             bt.logging.debug("Starting miner in background thread.")
             self.should_exit = False

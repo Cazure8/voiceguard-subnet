@@ -16,16 +16,8 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
-import time
 import random
-import io
 import bittensor as bt
-import base64
-import glob
-import pyttsx3
-import torchaudio
-from pydub import AudioSegment
-from pytube import YouTube
 from requests.exceptions import HTTPError
 from voiceguard.protocol import VoiceGuardSynapse
 from voiceguard.validator.stt_reward import get_stt_rewards
