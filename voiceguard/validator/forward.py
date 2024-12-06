@@ -18,17 +18,15 @@
 import os
 import random
 import bittensor as bt
-from requests.exceptions import HTTPError
+import random
+import torch
+
 from voiceguard.protocol import VoiceGuardSynapse
 from voiceguard.validator.stt_reward import get_stt_rewards
 from voiceguard.validator.clone_reward import get_clone_rewards
 from voiceguard.validator.detection_reward import get_detection_rewards
 from voiceguard.utils.uids import get_random_uids
-import random
-import torchaudio.transforms as T
-import torch
-import soundfile as sf
-from voiceguard.utils.stt_helper import download_youtube_segment, transcribe_with_whisper, get_video_duration
+from voiceguard.utils.helper import download_youtube_segment, transcribe_with_whisper, get_video_duration, fetch_random_sentences
 from voiceguard.utils.misc import select_random_url
 
 async def forward(self):
@@ -74,22 +72,22 @@ async def forward(self):
             
         elif random.random() < 0.667: # clone request
             # read and get clone_audio segment and text to clone from DB
-            clone_text = "This is sample text to clone from DB like public one-WANBD"
-            
+            languages = ["en"] # "en", "es", "fr", "de", "ko"
+            clone_text = fetch_random_sentences(languages)
+
             clone_audio_path = "/commonvoice/clone_clip.mp3"  # Path to the .mp3 file
             
             with open(clone_audio_path, "rb") as audio_file:
                 clone_clip = audio_file.read() 
-                
+
             responses = self.dendrite.query(
-                # Send the query to selected miner axons in the network.
                 axons=[self.metagraph.axons[uid] for uid in miner_uids],
                 synapse = VoiceGuardSynapse(synapse_type="clone", clone_clip_path=clone_clip, clone_text=clone_text),
                 deserialize=False,
                 timeout=50
             )
             
-            rewards = get_clone_rewards(self, clone_clip_path=clone_audio_path, responses=responses, clone_text=clone_text, time_limit=50)
+            rewards = get_clone_rewards(self, clone_clip_path=clone_audio_path, clone_text=clone_text, responses=responses)
             self.update_scores(rewards, miner_uids, score_type="clone")
             
         elif random.random() < 1:

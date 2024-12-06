@@ -1,18 +1,16 @@
+import tempfile
 import numpy as np
 from scipy.spatial.distance import cosine
 from speechbrain.pretrained import SpeakerRecognition
-import tempfile
-import os
 from typing import List
-from voiceguard.utils.stt_helper import transcribe_with_whisper
+from voiceguard.utils.helper import transcribe_with_whisper
 from voiceguard.validator.stt_reward import overall_correctness_score
 
 def get_clone_rewards(
     self,
     clip_audio_path: str,
-    responses: List,
     clone_text: str,
-    time_limit: int,
+    responses: List,
 ) -> List[float]:
     """
     Evaluate miner responses for voice cloning and calculate rewards based on voice similarity
@@ -40,7 +38,11 @@ def get_clone_rewards(
         try:
             # Extract audio from the response
             cloned_audio = response["clone_audio"]  # Assuming the miner's audio is returned as bytes
-
+            
+            if not cloned_audio:
+                rewards.append(0.0)
+                continue
+            
             # Save the cloned audio temporarily
             with tempfile.NamedTemporaryFile(suffix=".wav") as temp_audio_file:
                 temp_audio_file.write(cloned_audio)
@@ -62,7 +64,7 @@ def get_clone_rewards(
                 if text_correctness_score > 0.8:
                     final_score = similarity_score
                 else:
-                    final_score = 0
+                    final_score = 0.0
                 
                 rewards.append(final_score)
 

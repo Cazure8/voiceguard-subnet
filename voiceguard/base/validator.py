@@ -21,6 +21,7 @@ import asyncio
 import threading
 import bittensor as bt
 import numpy as np
+import argparse
 
 from typing import List, Union
 from traceback import print_exception
@@ -28,12 +29,20 @@ from traceback import print_exception
 from voiceguard.utils.misc import update_repository
 from voiceguard.base.neuron import BaseNeuron
 from voiceguard.base.utils.weight_utils import process_weights_for_netuid, convert_weights_and_uids_for_emit
+from voiceguard.utils.config import add_validator_args
 
 class BaseValidatorNeuron(BaseNeuron):
     """
     Base class for Bittensor validators. Your validator should inherit from this class.
     """
 
+    neuron_type: str = "ValidatorNeuron"
+
+    @classmethod
+    def add_args(cls, parser: argparse.ArgumentParser):
+        super().add_args(parser)
+        add_validator_args(cls, parser)
+        
     def __init__(self, config=None):
         super().__init__(config=config)
 
@@ -46,6 +55,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Set up initial scoring weights for validation
         bt.logging.info("Building validation weights.")
+        self.scores = np.zeros(self.metagraph.n, dtype=np.float32)
         self.stt_scores = np.zeros(self.metagraph.n, dtype=np.float32)
         self.clone_scores = np.zeros(self.metagraph.n, dtype=np.float32)
         self.detection_scores = np.zeros(self.metagraph.n, dtype=np.float32)
@@ -209,7 +219,8 @@ class BaseValidatorNeuron(BaseNeuron):
         """
         Sets the validator weights to the metagraph hotkeys based on the scores it has received from the miners. The weights determine the trust and incentive level the validator assigns to miner nodes on the network.
         """
-
+        # Combine three kinds of scores into one
+        
         # Check if self.scores contains any NaN values and log a warning if it does.
         if np.isnan(self.scores).any():
             bt.logging.warning(

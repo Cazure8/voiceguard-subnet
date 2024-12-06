@@ -19,6 +19,8 @@
 import os
 import subprocess
 import yt_dlp
+import wikipediaapi
+import random
 from uuid import uuid4
 import whisper
 from dotenv import load_dotenv
@@ -90,3 +92,30 @@ def download_youtube_segment(youtube_url, segment, output_format='mp3', proxy=pr
     
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+
+def fetch_random_sentences(language_codes, num_sentences=2):
+    sentences = []
+    
+    for lang in language_codes:
+        if len(sentences) >= num_sentences:
+            break
+        
+        # Initialize Wikipedia API in the specified language
+        wiki = wikipediaapi.Wikipedia(lang)
+        
+        try:
+            # Fetch a random Wikipedia page
+            random_page = wiki.randompage()
+            if random_page.exists():
+                # Extract sentences from the page
+                text = random_page.text
+                sentence_list = text.split(". ")  # Split into sentences
+                
+                for sentence in sentence_list:
+                    clean_sentence = sentence.strip()
+                    if clean_sentence and len(sentences) < num_sentences:
+                        sentences.append(clean_sentence)
+        except Exception as e:
+            print(f"Error fetching language {lang}: {e}")
+    
+    return sentences
