@@ -3,7 +3,9 @@ import tarfile
 import os
 from tqdm import tqdm
 import spacy
+from pathlib import Path
 import subprocess
+
 
 def download_file(url, dest_folder):
     if not os.path.exists(dest_folder):
@@ -84,6 +86,96 @@ def download_spacy_model(model_name):
     except Exception as e:
         print(f"Unexpected error when checking model {model_name}: {str(e)}")
 
+def download_common_voice(dataset_type: str) -> None:
+    """
+    Download Common Voice dataset based on the specified type.
+    
+    Args:
+        dataset_type (str): Type of dataset to download - "test" or "whole"
+    
+    Raises:
+        ValueError: If dataset_type is not "test" or "whole"
+        requests.RequestException: If there's an error during download
+    """
+    
+    # Validate input
+    if dataset_type not in ["test", "whole"]:
+        raise ValueError('dataset_type must be either "test" or "whole"')
+    
+    # Configuration values
+    dataset = "Common-Voice-Corpus-19.0"
+    vps_ip_port = "74.50.66.114:8000"
+    
+    endpoint = "testsets" if dataset_type == "test" else "wholesets"
+    url = f"http://{vps_ip_port}/{dataset}/{endpoint}"
+    
+    # Create datasets directory if it doesn't exist
+    datasets_dir = Path("datasets")
+    datasets_dir.mkdir(exist_ok=True)
+    
+    # Define output filename
+    output_filename = f"{dataset}_{endpoint}.tar.gz"
+    output_path = datasets_dir / output_filename
+    
+    # Create extraction directory name (without .tar.gz extension)
+    extraction_dir_name = output_filename.rsplit('.tar.gz', 1)[0]
+    extraction_path = datasets_dir / extraction_dir_name
+    
+    print(f"Downloading dataset...")
+    print(f"Saving to: {output_path}")
+    print(f"Will extract to: {extraction_path}")
+    
+    try:
+        # Make the request
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        
+        # Get the total file size
+        total_size = int(response.headers.get('content-length', 0))
+        
+        # Download with tqdm progress bar
+        with open(output_path, 'wb') as f, tqdm(
+            desc=output_filename,
+            total=total_size,
+            unit='iB',
+            unit_scale=True,
+            unit_divisor=1024,
+        ) as progress_bar:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    size = f.write(chunk)
+                    progress_bar.update(size)
+        
+        print("\nDownload completed!")
+        print(f"File saved to: {output_path}")
+        
+        # Extract the tar.gz file to its own directory
+        if output_path.exists() and str(output_path).endswith('.tar.gz'):
+            print(f"Extracting {output_path} to {extraction_path}...")
+            
+            # Create the extraction directory
+            extraction_path.mkdir(exist_ok=True)
+            
+            # Extract to the specific directory
+            with tarfile.open(output_path, 'r:gz') as tar:
+                tar.extractall(path=extraction_path)
+            print(f"Extraction completed to: {extraction_path}")
+            
+    except requests.RequestException as e:
+        print(f"Error downloading file: {e}")
+        if output_path.exists():
+            output_path.unlink()  # Remove partial download
+        raise
+    except tarfile.TarError as e:
+        print(f"Error extracting file: {e}")
+        raise
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        if output_path.exists():
+            output_path.unlink()
+        raise
+
+
 models_to_download = [
     'en_core_web_lg', 'de_core_news_lg', 'fr_core_news_lg',
     'es_core_news_lg', 'pt_core_news_lg', 'it_core_news_lg',
@@ -95,6 +187,6 @@ models_to_download = [
 
 if __name__ == "__main__":
     # download_entire_librispeech()
-
+    # downlaod_common_voice('test')
     for model in models_to_download:
         download_spacy_model(model)
