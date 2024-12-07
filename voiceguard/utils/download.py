@@ -5,14 +5,6 @@ from tqdm import tqdm
 import spacy
 from pathlib import Path
 import subprocess
-from dotenv import load_dotenv
-
-
-load_dotenv()
-
-dataset = os.getenv('DATASET_NAME')
-vps_ip_port = os.getenv('VPS_IP_PORT')
-
 
 
 def download_file(url, dest_folder):
@@ -110,9 +102,9 @@ def download_common_voice(dataset_type: str) -> None:
     if dataset_type not in ["test", "whole"]:
         raise ValueError('dataset_type must be either "test" or "whole"')
     
-    # Configuration from environment variables    
-    if not vps_ip_port:
-        raise ValueError("VPS_IP_PORT environment variable is not set")
+    # Configuration values
+    dataset = "Common-Voice-Corpus-19.0"
+    vps_ip_port = "74.50.66.114:8000"
     
     endpoint = "testsets" if dataset_type == "test" else "wholesets"
     url = f"http://{vps_ip_port}/{dataset}/{endpoint}"
