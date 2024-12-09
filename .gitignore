@@ -180,4 +180,6 @@ voiceguard/miner/model_checkpoints
 /audio_cache
 
 # Youtube link datasets
-datasets/*
+datasets/
+
+cloned_voices/

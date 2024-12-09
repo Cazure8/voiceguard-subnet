@@ -20,12 +20,10 @@ import time
 import typing
 import bittensor as bt
 
-# Bittensor Miner Template:
 import voiceguard
 
 # import base miner class which takes care of most of the boilerplate
 from voiceguard.base.miner import BaseMinerNeuron
-from voiceguard.miner.audio_to_text import audio_to_text
 from voiceguard.miner.stt import speech_to_text
 from voiceguard.miner.clone.clone import voice_clone
 from voiceguard.miner.detection import deepfake_detection
@@ -48,9 +46,12 @@ class Miner(BaseMinerNeuron):
         """
         Processes the incoming 'Transcription' synapse by transcribing the audio input using Wave2Vec.
         """
+        print("============miner forward================")
         if synapse.get_synapse_type() == 'stt':
             synapse.stt_transcription = speech_to_text(self, synapse)
         elif synapse.get_synapse_type() == 'clone':
+            print("=================================")
+            print(f"clone_text: {synapse.clone_text}")
             synapse.clone_audio = voice_clone(self, synapse)
         elif synapse.get_synapse_type() == 'detection':
             synapse.detection_prediction = deepfake_detection(self, synapse)

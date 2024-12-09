@@ -4,7 +4,6 @@ import os
 from tqdm import tqdm
 import spacy
 from pathlib import Path
-import subprocess
 
 
 def download_file(url, dest_folder):
@@ -187,6 +186,6 @@ models_to_download = [
 
 if __name__ == "__main__":
     # download_entire_librispeech()
-    # downlaod_common_voice('test')
+    download_common_voice('test')
     for model in models_to_download:
         download_spacy_model(model)

@@ -36,15 +36,15 @@ class VoiceGuardSynapse(bt.Synapse):
     stt_transcription: typing.Optional[str] = None  # Transcription output
 
     # Fields for Type II (Voice Cloning)
-    clone_clip: typing.Optional[bytes] = None  # Audio clip data as bytes
+    clone_clip: typing.Optional[str] = None  # Audio clip data as bytes
     clone_text: typing.Optional[str] = None  # Text to be synthesized
-    clone_audio: typing.Optional[bytes] = None  # Generated cloned audio as bytes
+    clone_audio: typing.Optional[str] = None  # Generated cloned audio as bytes
 
     # Fields for Type III (Deepfake Detection)
-    detection_audio: typing.Optional[bytes] = None  # Audio data for detection
+    detection_audio: typing.Optional[str] = None  # Audio data for detection
     detection_prediction: typing.Optional[int] = None  # Prediction value
 
-    def deserialize(self) -> typing.Optional[str]:
+    def deserialize(self) -> typing.Optional[str|bytes]:
         """
         Deserialize and return the appropriate output based on the synapse type.
         """

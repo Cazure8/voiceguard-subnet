@@ -20,13 +20,14 @@ import random
 import bittensor as bt
 import random
 import torch
+import base64
 
 from voiceguard.protocol import VoiceGuardSynapse
 from voiceguard.validator.stt_reward import get_stt_rewards
 from voiceguard.validator.clone_reward import get_clone_rewards
 from voiceguard.validator.detection_reward import get_detection_rewards
 from voiceguard.utils.uids import get_random_uids
-from voiceguard.utils.helper import download_youtube_segment, transcribe_with_whisper, get_video_duration, fetch_random_sentences
+from voiceguard.utils.helper import download_youtube_segment, transcribe_with_whisper, get_video_duration, fetch_random_sentences, get_random_audio_clip
 from voiceguard.utils.misc import select_random_url
 
 async def forward(self):
@@ -39,12 +40,12 @@ async def forward(self):
         self (:obj:`bittensor.neuron.Neuron`): The neuron object which contains all the necessary state for the validator.
 
     """
-    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-    # miner_uids = [3]
+    # miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    miner_uids = [1]
 
     try:
         # equally randomly send requests for tts, cloning, deepfake
-        if random.random() < 0.333: # tts requests
+        if random.random() < 0: # tts requests 0.333
             random_url = select_random_url()
             duration = get_video_duration(random_url)
             validator_segment = generate_validator_segment(duration)
@@ -70,27 +71,29 @@ async def forward(self):
             rewards = get_stt_rewards(self, query=transcription, responses=responses, time_limit=50)
             self.update_scores(rewards, miner_uids, score_type="stt")
             
-        elif random.random() < 0.667: # clone request
+        elif random.random() < 1: # clone request 0.667
+            print("--------------------------")
             # read and get clone_audio segment and text to clone from DB
-            languages = ["en"] # "en", "es", "fr", "de", "ko"
-            clone_text = fetch_random_sentences(languages)
-
-            clone_audio_path = "/commonvoice/clone_clip.mp3"  # Path to the .mp3 file
-            
-            with open(clone_audio_path, "rb") as audio_file:
+            clone_text = fetch_random_sentences()
+            print(f"common_text------: {clone_text}")
+            clone_clip_path = get_random_audio_clip()  # Path to the .mp3 file
+            print(f"clone_audio_path------: {clone_clip_path}")
+            with open(clone_clip_path, "rb") as audio_file:
                 clone_clip = audio_file.read() 
 
-            responses = self.dendrite.query(
+            clone_clip_base64 = base64.b64encode(clone_clip).decode("utf-8")
+            
+            responses = await self.dendrite(
                 axons=[self.metagraph.axons[uid] for uid in miner_uids],
-                synapse = VoiceGuardSynapse(synapse_type="clone", clone_clip_path=clone_clip, clone_text=clone_text),
-                deserialize=False,
+                synapse = VoiceGuardSynapse(synapse_type="clone", clone_clip=clone_clip_base64, clone_text=clone_text),
+                deserialize=True,
                 timeout=50
             )
-            
-            rewards = get_clone_rewards(self, clone_clip_path=clone_audio_path, clone_text=clone_text, responses=responses)
+            print("-----after response------")
+            rewards = get_clone_rewards(self, clip_audio_path=clone_clip_path, clone_text=clone_text, responses=responses)
             self.update_scores(rewards, miner_uids, score_type="clone")
             
-        elif random.random() < 1:
+        elif random.random() < 0: # 1
             # get real audio or fake audio from DB
             random_audio_path = "/detection/random.mp3"
             random_audio_type = "real"
