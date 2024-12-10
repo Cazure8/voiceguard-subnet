@@ -25,7 +25,7 @@ import voiceguard
 # import base miner class which takes care of most of the boilerplate
 from voiceguard.base.miner import BaseMinerNeuron
 from voiceguard.miner.stt import speech_to_text
-from voiceguard.miner.clone.clone import voice_clone
+from voiceguard.miner.clone import voice_clone
 from voiceguard.miner.detection import deepfake_detection
 
 class Miner(BaseMinerNeuron):

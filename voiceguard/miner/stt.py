@@ -1,7 +1,5 @@
 import os
-import bittensor as bt
 from voiceguard.protocol import VoiceGuardSynapse
-from datetime import datetime
 from voiceguard.utils.misc import is_youtube
 from voiceguard.utils.helper import download_youtube_segment, transcribe_with_whisper
 

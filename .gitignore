@@ -183,3 +183,4 @@ voiceguard/miner/model_checkpoints
 datasets/
 
 cloned_voices/
+miner_cloned_voices/

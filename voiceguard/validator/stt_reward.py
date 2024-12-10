@@ -155,7 +155,7 @@ def get_stt_rewards(self, query: str, responses, time_limit) -> np.ndarray:
     rewards = np.array([
         reward(
             query, 
-            resp.transcription_output, 
+            resp.stt_transcription, 
             resp.dendrite.process_time if resp.dendrite.process_time is not None else default_high_process_time, 
             max_response_time
         ) for resp in responses

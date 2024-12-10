@@ -41,4 +41,4 @@ def voice_clone(self, synapse: VoiceGuardSynapse, save_directory="cloned_voices"
         # Clean up only temporary files (not the saved files in the directory)
         pass
 
-    return cloned_voice
+    return base64.b64encode(cloned_voice).decode("utf-8")

@@ -86,10 +86,10 @@ async def forward(self):
             responses = await self.dendrite(
                 axons=[self.metagraph.axons[uid] for uid in miner_uids],
                 synapse = VoiceGuardSynapse(synapse_type="clone", clone_clip=clone_clip_base64, clone_text=clone_text),
-                deserialize=True,
+                deserialize=False,
                 timeout=50
             )
-            print("-----after response------")
+            
             rewards = get_clone_rewards(self, clip_audio_path=clone_clip_path, clone_text=clone_text, responses=responses)
             self.update_scores(rewards, miner_uids, score_type="clone")
             
