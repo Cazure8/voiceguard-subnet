@@ -260,7 +260,7 @@ tzlocal==5.2
 uk_core_news_md @ https://github.com/explosion/spacy-models/releases/download/uk_core_news_md-3.8.0/uk_core_news_md-3.8.0-py3-none-any.whl
 urllib3==2.2.3
 uvicorn==0.32.1
--e git+https://github.com/Cazure8/voiceguard-subnet.git@ec0616ace30a750f116063f96b3bd2775ba7456f#egg=voiceguard_subnet
+-e git+https://github.com/Cazure8/voiceguard-subnet.git@27ecca1a3510613190a8ad5dd39d3b748182fe45#egg=voiceguard_subnet
 wandb==0.17.6
 wasabi==1.1.3
 weasel==0.4.1
