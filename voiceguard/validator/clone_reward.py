@@ -6,7 +6,7 @@ import numpy as np
 import librosa
 import torch
 from pydub import AudioSegment
-# from mosnet import MOSNet
+from mosnet import MOSNet
 from typing import List
 from scipy.spatial.distance import cosine, euclidean
 from speechbrain.pretrained import SpeakerRecognition
@@ -37,7 +37,8 @@ def get_mosnet_model():
     """Load the MOSNet model once and reuse it."""
     global MOSNET_MODEL
     if MOSNET_MODEL is None:
-        MOSNET_MODEL = MOSNet.from_pretrained("path_to_pretrained_model")
+        model_path = "/pretrained/cnn_blstm.h5"
+        MOSNET_MODEL = MOSNet(pretrained_model_path=model_path)
     return MOSNET_MODEL
 
 
@@ -85,20 +86,21 @@ def compute_mfcc_similarity(reference_path, cloned_path):
 def compute_mos(audio_path):
     """Compute MOS (Mean Opinion Score) for an audio file."""
     model = get_mosnet_model()
-    audio, sr = librosa.load(audio_path, sr=16000)
-    audio_tensor = torch.tensor(audio).unsqueeze(0)
-    mos_score = model(audio_tensor)
-    return mos_score.item()
+    mos_score = model.predict(audio_path)
+    print(f"MOS Score for {audio_path}: {mos_score:.3f}")
+    return mos_score
+
 
 def evaluate_cloned_audio(reference_path, cloned_path):
     """Evaluate cloned audio using multiple metrics."""
     cosine_similarity = compute_cosine_similarity(reference_path, cloned_path)
-    print(f"Cosine Similarity=============: {cosine_similarity}")
+    print(f"Cosine Similarity: {cosine_similarity:.3f}")
     mfcc_similarity = compute_mfcc_similarity(reference_path, cloned_path)
-    print(f"MFCC Similarity================: {mfcc_similarity}")
-    # mos_score = compute_mos(cloned_path)
-    # return (0.4 * mfcc_similarity) + (0.4 * cosine_similarity) + (0.2 * mos_score / 5)
-    return (0.5 * mfcc_similarity) + (0.5 * cosine_similarity)
+    print(f"MFCC Similarity: {mfcc_similarity:.3f}")
+    mos_score = compute_mos(cloned_path)
+    print(f"MOS Score: {mos_score:.3f}")
+    return (0.4 * mfcc_similarity) + (0.4 * cosine_similarity) + (0.2 * mos_score / 5)
+    # return (0.5 * mfcc_similarity) + (0.5 * cosine_similarity)
 
 
 # ---------------------------

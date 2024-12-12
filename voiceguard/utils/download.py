@@ -174,6 +174,16 @@ def download_common_voice(dataset_type: str) -> None:
             output_path.unlink()
         raise
 
+def download_pretrained_model():
+    """
+    Downloads the pretrained model and saves it in a 'pretrained' folder.
+    """
+    model_url = "https://github.com/lochenchou/MOSNet/raw/master/pre_trained/cnn_blstm.h5"
+    save_directory = "pretrained"
+    save_path = Path(save_directory) / "cnn_blstm.h5"
+
+    # Download the pretrained model
+    download_file(model_url, save_directory)
 
 models_to_download = [
     'en_core_web_lg', 'de_core_news_lg', 'fr_core_news_lg',
@@ -187,5 +197,6 @@ models_to_download = [
 if __name__ == "__main__":
     # download_entire_librispeech()
     download_common_voice('test')
+    download_pretrained_model()
     for model in models_to_download:
         download_spacy_model(model)
