@@ -25,7 +25,7 @@ class MOSNet:
         # Generate spectrogram
         mag_sgram = helpers.get_spectrograms(wavfile)
         timestep = mag_sgram.shape[0]
-        mag_sgram = np.reshape(mag_sgram, (1, timestep, utils.SGRAM_DIM))
+        mag_sgram = np.reshape(mag_sgram, (1, timestep, helpers.SGRAM_DIM))
 
         # Make prediction
         Average_score, _ = self.model.predict(mag_sgram, verbose=0, batch_size=1)
