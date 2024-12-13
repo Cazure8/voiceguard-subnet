@@ -126,6 +126,7 @@ def get_clone_rewards(self, clip_audio_path: str, clone_text: str, responses: Li
         
         # Transcribe the cloned audio and calculate text correctness
         transcription = transcribe_with_whisper(clone_audio_path)
+        print("here's  the transcription----------")
         text_correctness_score = overall_correctness_score(clone_text, transcription)
         print(f"Text Correctness Score: {text_correctness_score}")
 

@@ -61,8 +61,11 @@ def get_video_duration(url):
             return 0
     
 def transcribe_with_whisper(audio_filepath):
+    print("inside transcription=========")
     model = whisper.load_model("large")
+    print("model loaded=================")
     result = model.transcribe(audio_filepath)
+    print("result=======================")
     return result["text"]
 
 def download_youtube_segment(youtube_url, segment, output_format='mp3', proxy=proxy_url):
