@@ -1,11 +1,10 @@
-import tempfile
 import os
 import base64
 from voiceguard.protocol import VoiceGuardSynapse
 from TTS.api import TTS
 
 
-def voice_clone(self, synapse: VoiceGuardSynapse, save_directory="cloned_voices") -> bytes:
+def voice_clone(self, synapse: VoiceGuardSynapse, save_directory="miner_cloned_voices") -> bytes:
     # Initialize the YourTTS model
     tts = TTS(model_name="tts_models/multilingual/multi-dataset/your_tts", gpu=False)
 

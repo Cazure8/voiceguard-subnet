@@ -112,6 +112,7 @@ def get_clone_rewards(self, clip_audio_path: str, clone_text: str, responses: Li
     rewards = []
     for response in responses:
         if not response.clone_audio:
+            print("No cloned audio received.=================")
             rewards.append(0.0)
             continue
 
@@ -124,14 +125,14 @@ def get_clone_rewards(self, clip_audio_path: str, clone_text: str, responses: Li
             audio_file.write(base64.b64decode(response.clone_audio))
         
         # Transcribe the cloned audio and calculate text correctness
-        # transcription = transcribe_with_whisper(clone_audio_path)
-        # text_correctness_score = overall_correctness_score(clone_text, transcription)
-        # print(f"Text Correctness Score: {text_correctness_score}")
+        transcription = transcribe_with_whisper(clone_audio_path)
+        text_correctness_score = overall_correctness_score(clone_text, transcription)
+        print(f"Text Correctness Score: {text_correctness_score}")
 
         # Skip evaluation if transcription score is too low
-        # if text_correctness_score < 0.8:
-        #     rewards.append(0.0)
-        #     continue
+        if text_correctness_score < 0.8:
+            rewards.append(0.0)
+            continue
         
         # Evaluate the cloned audio and calculate final reward
         reward = evaluate_cloned_audio(clip_audio_path, clone_audio_path)

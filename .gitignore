@@ -182,6 +182,6 @@ voiceguard/miner/model_checkpoints
 # Youtube link datasets
 datasets/
 
-cloned_voices/
+miner_cloned_voices/
 miner_cloned_voices/
 pretrained/
