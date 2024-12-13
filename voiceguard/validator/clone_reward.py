@@ -4,7 +4,6 @@ import base64
 import torchaudio
 import numpy as np
 import librosa
-import torch
 from pydub import AudioSegment
 from typing import List
 from scipy.spatial.distance import cosine, euclidean
@@ -109,13 +108,14 @@ def evaluate_cloned_audio(reference_path, cloned_path):
 
 def get_clone_rewards(self, clip_audio_path: str, clone_text: str, responses: List) -> List[float]:
     """Evaluate miner responses and calculate rewards."""
+    print("Evaluating cloned audio...==================")
     rewards = []
     for response in responses:
         if not response.clone_audio:
             print("No cloned audio received.=================")
             rewards.append(0.0)
             continue
-
+        print("Cloned audio received.=====================")
         # Generate a unique timestamp-based filename
         timestamp = int(time.time() * 1000)  # Current time in milliseconds
         clone_audio_path = os.path.join(CLONED_AUDIO_DIR, f"cloned_audio_{timestamp}.wav")
