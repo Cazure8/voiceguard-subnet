@@ -1,7 +1,7 @@
 import os
 import numpy as np
-from model import CNN_BLSTM
-import utils
+from .model import CNN_BLSTM
+from .utils import get_spectrograms, SGRAM_DIM
 
 class MOSNet:
     """Wrapper for loading and running MOSNet model."""

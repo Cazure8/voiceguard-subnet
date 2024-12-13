@@ -28,7 +28,6 @@ from datetime import datetime
 from math import floor
 from typing import Callable, Any
 from functools import lru_cache, update_wrapper
-from pymongo import MongoClient
 from urllib.parse import urlparse, parse_qs
 import yt_dlp as youtube_dl 
 

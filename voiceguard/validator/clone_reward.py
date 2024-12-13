@@ -6,11 +6,11 @@ import numpy as np
 import librosa
 import torch
 from pydub import AudioSegment
-from mos_net.mosnet import MOSNet
 from typing import List
 from scipy.spatial.distance import cosine, euclidean
 from speechbrain.pretrained import SpeakerRecognition
 from voiceguard.utils.helper import transcribe_with_whisper
+from voiceguard.validator.mos_net.mosnet import MOSNet
 from voiceguard.validator.stt_reward import overall_correctness_score
 
 # Global variables for preloaded models

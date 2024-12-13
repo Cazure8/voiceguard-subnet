@@ -1,2 +1,2 @@
 from .forward import forward
-# from .reward import reward
+from .mos_net.mosnet import MOSNet
