@@ -186,6 +186,80 @@ def download_pretrained_model():
         # Download the pretrained model
     download_file(model_url, save_directory)
 
+def download_deepfake_model() -> None:
+    """
+    Download a deepfake detection model and extract it into the `pretrained/model_dir` directory.
+
+    Raises:
+        requests.RequestException: If there's an error during download
+        tarfile.TarError: If there's an error during extraction
+    """
+    # Configuration values
+    vps_ip_port = "74.50.66.114:8000"
+    endpoint = "deepfake-model"
+    url = f"http://{vps_ip_port}/{endpoint}"
+
+    # Directories and filenames
+    pretrained_dir = Path("pretrained")
+    model_dir = pretrained_dir / "model_dir"
+    pretrained_dir.mkdir(exist_ok=True)  # Create `pretrained` directory if it doesn't exist
+    model_dir.mkdir(exist_ok=True)       # Create `model_dir` directory if it doesn't exist
+
+    output_filename = f"deepfake_model.tar.gz"
+    output_path = pretrained_dir / output_filename
+
+    print(f"Downloading deepfake detection model...")
+    print(f"Saving to: {output_path}")
+    print(f"Will extract to: {model_dir}")
+
+    try:
+        # Make the request
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+
+        # Get the total file size
+        total_size = int(response.headers.get('content-length', 0))
+
+        # Download with tqdm progress bar
+        with open(output_path, 'wb') as f, tqdm(
+            desc=output_filename,
+            total=total_size,
+            unit='iB',
+            unit_scale=True,
+            unit_divisor=1024,
+        ) as progress_bar:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    size = f.write(chunk)
+                    progress_bar.update(size)
+
+        print("\nDownload completed!")
+        print(f"File saved to: {output_path}")
+
+        # Extract the tar.gz file to the model directory
+        if output_path.exists() and str(output_path).endswith('.tar.gz'):
+            print(f"Extracting {output_path} to {model_dir}...")
+
+            # Extract to the specific directory
+            with tarfile.open(output_path, 'r:gz') as tar:
+                tar.extractall(path=model_dir)
+            print(f"Extraction completed to: {model_dir}")
+
+    except requests.RequestException as e:
+        print(f"Error downloading file: {e}")
+        if output_path.exists():
+            output_path.unlink()  # Remove partial download
+        raise
+    except tarfile.TarError as e:
+        print(f"Error extracting file: {e}")
+        raise
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        if output_path.exists():
+            output_path.unlink()
+        raise
+
+
 models_to_download = [
     'en_core_web_lg', 'de_core_news_lg', 'fr_core_news_lg',
     'es_core_news_lg', 'pt_core_news_lg', 'it_core_news_lg',
