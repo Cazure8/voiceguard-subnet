@@ -186,6 +186,89 @@ def download_pretrained_model():
         # Download the pretrained model
     download_file(model_url, save_directory)
 
+def download_deepfake_model() -> None:
+    """
+    Download a deepfake detection model and extract it into the `pretrained/model_safetensors` directory.
+
+    Raises:
+        requests.RequestException: If there's an error during download
+        tarfile.TarError: If there's an error during extraction
+    """
+    # Configuration values
+    vps_ip_port = "74.50.66.114:8000"
+    endpoint = "deepfake-model"
+    url = f"http://{vps_ip_port}/{endpoint}"
+
+    # Directories and filenames
+    pretrained_dir = Path("pretrained")
+    target_dir = pretrained_dir / "model_safetensors"
+    pretrained_dir.mkdir(exist_ok=True)  # Create `pretrained` directory if it doesn't exist
+    target_dir.mkdir(exist_ok=True)      # Create `model_safetensors` directory if it doesn't exist
+
+    output_filename = f"deepfake_model.tar.gz"
+    temp_output_path = Path(output_filename)  # Temporary file for download
+
+    print(f"Downloading deepfake detection model...")
+    print(f"Saving to: {temp_output_path}")
+    print(f"Will extract to: {target_dir}")
+
+    try:
+        # Make the request
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+
+        # Get the total file size
+        total_size = int(response.headers.get('content-length', 0))
+
+        # Download with tqdm progress bar
+        with open(temp_output_path, 'wb') as f, tqdm(
+            desc=output_filename,
+            total=total_size,
+            unit='iB',
+            unit_scale=True,
+            unit_divisor=1024,
+        ) as progress_bar:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    size = f.write(chunk)
+                    progress_bar.update(size)
+
+        print("\nDownload completed!")
+        print(f"File saved to: {temp_output_path}")
+
+        # Extract the tar.gz file to the target directory
+        if temp_output_path.exists() and str(temp_output_path).endswith('.tar.gz'):
+            print(f"Extracting {temp_output_path} to {target_dir}...")
+
+            # Extract to the specific directory
+            with tarfile.open(temp_output_path, 'r:gz') as tar:
+                for member in tar.getmembers():
+                    # Adjust extraction path to place files directly in `model_safetensors`
+                    member_path = Path(member.name)
+                    if member_path.parts[0] == "model_dir":
+                        member.name = str(Path(*member_path.parts[1:]))
+                    tar.extract(member, path=target_dir)
+            print(f"Extraction completed to: {target_dir}")
+
+        # Remove the downloaded tar.gz file
+        temp_output_path.unlink()
+
+    except requests.RequestException as e:
+        print(f"Error downloading file: {e}")
+        if temp_output_path.exists():
+            temp_output_path.unlink()  # Remove partial download
+        raise
+    except tarfile.TarError as e:
+        print(f"Error extracting file: {e}")
+        raise
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        if temp_output_path.exists():
+            temp_output_path.unlink()
+        raise
+
+
+
 models_to_download = [
     'en_core_web_lg', 'de_core_news_lg', 'fr_core_news_lg',
     'es_core_news_lg', 'pt_core_news_lg', 'it_core_news_lg',
@@ -199,5 +282,6 @@ if __name__ == "__main__":
     # download_entire_librispeech()
     download_common_voice('test')
     download_pretrained_model()
+    download_deepfake_model()
     for model in models_to_download:
         download_spacy_model(model)
