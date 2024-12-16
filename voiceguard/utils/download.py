@@ -188,7 +188,7 @@ def download_pretrained_model():
 
 def download_deepfake_model() -> None:
     """
-    Download a deepfake detection model and extract it into the `pretrained/model_dir` directory.
+    Download a deepfake detection model and extract it into the `pretrained/model_safetensors` directory.
 
     Raises:
         requests.RequestException: If there's an error during download
@@ -201,16 +201,16 @@ def download_deepfake_model() -> None:
 
     # Directories and filenames
     pretrained_dir = Path("pretrained")
-    model_dir = pretrained_dir / "model_dir"
+    target_dir = pretrained_dir / "model_safetensors"
     pretrained_dir.mkdir(exist_ok=True)  # Create `pretrained` directory if it doesn't exist
-    model_dir.mkdir(exist_ok=True)       # Create `model_dir` directory if it doesn't exist
+    target_dir.mkdir(exist_ok=True)      # Create `model_safetensors` directory if it doesn't exist
 
     output_filename = f"deepfake_model.tar.gz"
-    output_path = pretrained_dir / output_filename
+    temp_output_path = Path(output_filename)  # Temporary file for download
 
     print(f"Downloading deepfake detection model...")
-    print(f"Saving to: {output_path}")
-    print(f"Will extract to: {model_dir}")
+    print(f"Saving to: {temp_output_path}")
+    print(f"Will extract to: {target_dir}")
 
     try:
         # Make the request
@@ -221,7 +221,7 @@ def download_deepfake_model() -> None:
         total_size = int(response.headers.get('content-length', 0))
 
         # Download with tqdm progress bar
-        with open(output_path, 'wb') as f, tqdm(
+        with open(temp_output_path, 'wb') as f, tqdm(
             desc=output_filename,
             total=total_size,
             unit='iB',
@@ -234,30 +234,39 @@ def download_deepfake_model() -> None:
                     progress_bar.update(size)
 
         print("\nDownload completed!")
-        print(f"File saved to: {output_path}")
+        print(f"File saved to: {temp_output_path}")
 
-        # Extract the tar.gz file to the model directory
-        if output_path.exists() and str(output_path).endswith('.tar.gz'):
-            print(f"Extracting {output_path} to {model_dir}...")
+        # Extract the tar.gz file to the target directory
+        if temp_output_path.exists() and str(temp_output_path).endswith('.tar.gz'):
+            print(f"Extracting {temp_output_path} to {target_dir}...")
 
             # Extract to the specific directory
-            with tarfile.open(output_path, 'r:gz') as tar:
-                tar.extractall(path=model_dir)
-            print(f"Extraction completed to: {model_dir}")
+            with tarfile.open(temp_output_path, 'r:gz') as tar:
+                for member in tar.getmembers():
+                    # Adjust extraction path to place files directly in `model_safetensors`
+                    member_path = Path(member.name)
+                    if member_path.parts[0] == "model_dir":
+                        member.name = str(Path(*member_path.parts[1:]))
+                    tar.extract(member, path=target_dir)
+            print(f"Extraction completed to: {target_dir}")
+
+        # Remove the downloaded tar.gz file
+        temp_output_path.unlink()
 
     except requests.RequestException as e:
         print(f"Error downloading file: {e}")
-        if output_path.exists():
-            output_path.unlink()  # Remove partial download
+        if temp_output_path.exists():
+            temp_output_path.unlink()  # Remove partial download
         raise
     except tarfile.TarError as e:
         print(f"Error extracting file: {e}")
         raise
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-        if output_path.exists():
-            output_path.unlink()
+        if temp_output_path.exists():
+            temp_output_path.unlink()
         raise
+
 
 
 models_to_download = [
@@ -273,5 +282,6 @@ if __name__ == "__main__":
     # download_entire_librispeech()
     download_common_voice('test')
     download_pretrained_model()
+    download_deepfake_model()
     for model in models_to_download:
         download_spacy_model(model)

@@ -8,7 +8,7 @@ from voiceguard.protocol import VoiceGuardSynapse
 
 
 # Load the model 
-model_dir = "./pretrained/model_dir"
+model_dir = "./pretrained/model_safetensors/model_safetensors/"
 feature_extractor = AutoFeatureExtractor.from_pretrained(model_dir)
 model = AutoModelForAudioClassification.from_pretrained(model_dir)
 
