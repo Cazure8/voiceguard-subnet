@@ -19,7 +19,7 @@
 ---
 - [Introduction](#introduction)
 - [Key Features](#key-features)
-- [System Design](#miner-and-validator-functionality)
+- [System Design](#system-design)
   - [Miner](#miner)
   - [Validator](#validator)
 - [Installation](#installation)
