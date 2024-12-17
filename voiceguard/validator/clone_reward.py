@@ -99,7 +99,6 @@ def evaluate_cloned_audio(reference_path, cloned_path):
     mos_score = compute_mos(cloned_path)
     print(f"MOS Score: {mos_score:.3f}")
     return (0.4 * mfcc_similarity) + (0.4 * cosine_similarity) + (0.2 * mos_score / 5)
-    # return (0.5 * mfcc_similarity) + (0.5 * cosine_similarity)
 
 
 # ---------------------------
@@ -126,7 +125,7 @@ def get_clone_rewards(self, clip_audio_path: str, clone_text: str, responses: Li
         
         # Transcribe the cloned audio and calculate text correctness
         transcription = transcribe_with_whisper(clone_audio_path)
-        print("here's  the transcription----------")
+        print(f"here's  the transcription: {transcription}")
         text_correctness_score = overall_correctness_score(clone_text, transcription)
         print(f"Text Correctness Score: {text_correctness_score}")
 

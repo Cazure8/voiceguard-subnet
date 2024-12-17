@@ -16,18 +16,14 @@
 # DEALINGS IN THE SOFTWARE.
 
 import numpy as np
-from typing import List
 import Levenshtein
 import spacy
-import nltk
 import re
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
-from nltk.tokenize import word_tokenize
 from transformers import AutoTokenizer, AutoModel
 import langid 
 
 nlp = spacy.load("en_core_web_lg")
-nltk.download('punkt')
 
 tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")
 model = AutoModel.from_pretrained("bert-base-multilingual-cased")
@@ -209,5 +205,8 @@ def overall_correctness_score(original, response, weight_overlap=0.25, weight_si
     return overall_score
 
 def get_bleu_score(reference, candidate):
+    reference_tokens = [token.text for token in nlp(reference)]
+    candidate_tokens = [token.text for token in nlp(candidate)]
+    
     smoothing_function = SmoothingFunction().method4
-    return sentence_bleu([word_tokenize(reference.lower())], word_tokenize(candidate.lower()), smoothing_function=smoothing_function)
+    return sentence_bleu([reference_tokens], candidate_tokens, smoothing_function=smoothing_function)
