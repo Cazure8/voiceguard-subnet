@@ -19,9 +19,10 @@ import numpy as np
 import Levenshtein
 import spacy
 import re
+import torch
+import langid 
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from transformers import AutoTokenizer, AutoModel
-import langid 
 
 nlp = spacy.load("en_core_web_lg")
 
@@ -105,15 +106,27 @@ def reward(query: str, response: str, response_time: float, max_response_time: f
         model, tokenizer = nlp_or_bert
         query_tokens = tokenizer(query, return_tensors="pt", padding=True, truncation=True)
         response_tokens = tokenizer(cleaned_response, return_tensors="pt", padding=True, truncation=True)
-        query_embeddings = model(**query_tokens).last_hidden_state.mean(dim=1)
-        response_embeddings = model(**response_tokens).last_hidden_state.mean(dim=1)
-        cosine_similarity_score = np.dot(query_embeddings, response_embeddings) / (
-            np.linalg.norm(query_embeddings) * np.linalg.norm(response_embeddings)
-        )
-        print("--------BERT_orrectness_score---------------")
-        print(cosine_similarity_score)
-        print("----------------------------------------")
-        correctness_score = overall_correctness_score(query, cleaned_response, additional_similarity_score=cosine_similarity_score)
+
+        try:
+            # Forward pass to BERT model
+            query_output = model(**query_tokens)
+            response_output = model(**response_tokens)
+
+            # Compute mean embeddings
+            query_embeddings = query_output.last_hidden_state.mean(dim=1)
+            response_embeddings = response_output.last_hidden_state.mean(dim=1)
+
+            # Cosine similarity using PyTorch
+            cosine_similarity_score = torch.nn.functional.cosine_similarity(
+                query_embeddings, response_embeddings, dim=1
+            ).item()
+
+            correctness_score = overall_correctness_score(
+                query, cleaned_response, additional_similarity_score=cosine_similarity_score
+            )
+        except Exception as e:
+            print(f"Error during BERT model execution: {e}")
+            correctness_score = 0.0
     else:
         query_doc = nlp_or_bert(query)
         response_doc = nlp_or_bert(cleaned_response)

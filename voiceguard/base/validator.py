@@ -320,7 +320,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def update_scores(self, rewards: np.ndarray, uids: List[int], score_type: str):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""
-
+        print("-----we are updating scores-----")
         # Check if rewards contains NaN values.
         if np.isnan(rewards).any():
             bt.logging.warning(f"NaN values detected in rewards: {rewards}")
@@ -363,7 +363,7 @@ class BaseValidatorNeuron(BaseNeuron):
             self.stt_scores: np.ndarray = (
                 alpha * scattered_rewards + (1 - alpha) * self.stt_scores
             )
-            bt.logging.debug(f"Updated moving avg stt scores: {self.stt_scores}")
+            bt.logging.debug(f"*****************Updated moving avg stt scores: {self.stt_scores}")
             
         elif score_type == "clone":
             scattered_rewards: np.ndarray = np.zeros_like(self.clone_scores)
@@ -375,7 +375,7 @@ class BaseValidatorNeuron(BaseNeuron):
             self.clone_scores: np.ndarray = (
                 alpha * scattered_rewards + (1 - alpha) * self.clone_scores
             )
-            bt.logging.debug(f"Updated moving avg clone scores: {self.clone_scores}")
+            bt.logging.debug(f"*****************Updated moving avg clone scores: {self.clone_scores}")
             
         elif score_type == "detection": 
             scattered_rewards: np.ndarray = np.zeros_like(self.detection_scores)
@@ -387,7 +387,7 @@ class BaseValidatorNeuron(BaseNeuron):
             self.detection_scores: np.ndarray = (
                 alpha * scattered_rewards + (1 - alpha) * self.detection_scores
             )
-            bt.logging.debug(f"Updated moving avg detection scores: {self.detection_scores}")
+            bt.logging.debug(f"*****************Updated moving avg detection scores: {self.detection_scores}")
                 
 
     def save_state(self):

@@ -45,7 +45,7 @@ async def forward(self):
 
     try:
         # equally randomly send requests for tts, cloning, deepfake
-        if random.random() < 1: # tts requests 0.333
+        if random.random() < 0.5: # tts requests 0.333
             random_url = select_random_url()
             duration = get_video_duration(random_url)
             validator_segment = generate_validator_segment(duration)
@@ -71,7 +71,7 @@ async def forward(self):
             rewards = get_stt_rewards(self, query=transcription, responses=responses, time_limit=50)
             self.update_scores(rewards, miner_uids, score_type="stt")
             
-        elif random.random() < 0: # clone request 0.667
+        elif random.random() < 1: # clone request 0.667
             print("--------------------------")
             # read and get clone_audio segment and text to clone from DB
             clone_text = fetch_random_sentences()
