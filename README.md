@@ -62,18 +62,18 @@ Voiceguard Subnet is a **groundbreaking decentralized audio-AI** subnet built on
 
 Validators send requests equally among the three synapse types and reward miners as follows:
 
-•	Type I (STT): 20%.
-•	Type II (Voice Clone): 40%.
-•	Type III (Deepfake Detection): 40%.
+-	Type I (STT): 20%.
+-	Type II (Voice Clone): 40%.
+-	Type III (Deepfake Detection): 40%.
 
 
 ## Installation
 
 ### System Requirements
 
-•	Python Version: 3.10+
-•	Hardware: Dedicated GPU (16GB+), 1Gbps Network Speed
-•	Environment: Use a virtual environment for dependency management.
+-	Python Version: 3.10+
+-	Hardware: Dedicated GPU (16GB+), 1Gbps Network Speed
+-	Environment: Use a virtual environment for dependency management.
 
 ### Setup
 
@@ -140,23 +140,23 @@ pm2 start neurons/validator.py --interpreter python3 -- --netuid 44 --wallet.nam
 
 **Q1, 2025**
 
-•	✅ Testnet launch: Testnet UID 253
-•	🔄 Prepare APIs and web applications for launch.
-•	⚙️ Obtain community validation of logic.
-•	🚀 Launch on Bittensor mainnet.
-•	📊 Build a robust real and fake voice dataset with 100+ hours.
+-	✅ Testnet launch: Testnet UID 253
+-	🔄 Prepare APIs and web applications for launch.
+-	⚙️ Obtain community validation of logic.
+-	🚀 Launch on Bittensor mainnet.
+-	📊 Build a robust real and fake voice dataset with 100+ hours.
 
 **Q2, 2025**
 
-•	📈 Expand datasets to 500+ hours.
-•	🌐 Enable multi-language, any-audio transcription for APIs.
-•	🛠 Develop Chrome extension and iOS app for services.
+-	📈 Expand datasets to 500+ hours.
+-	🌐 Enable multi-language, any-audio transcription for APIs.
+-	🛠 Develop Chrome extension and iOS app for services.
 
 **Q3, 2025**
 
-•	⏱ Roll out real-time API services.
-•	🎥 Partner with the film industry for voice cloning services.
-•	🎯 Provide 3,000+ hours of real and cloned datasets.
+-	⏱ Roll out real-time API services.
+-	🎥 Partner with the film industry for voice cloning services.
+-	🎯 Provide 3,000+ hours of real and cloned datasets.
 
 
 ## License
