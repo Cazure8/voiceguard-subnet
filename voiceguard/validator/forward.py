@@ -27,6 +27,7 @@ from voiceguard.validator.stt_reward import get_stt_rewards
 from voiceguard.validator.clone_reward import get_clone_rewards
 from voiceguard.validator.detection_reward import get_detection_rewards
 from voiceguard.utils.uids import get_random_uids
+from voiceguard.utils.download import download_random_asv_audio
 from voiceguard.utils.helper import download_youtube_segment, transcribe_with_whisper, get_video_duration, fetch_random_sentences, get_random_audio_clip
 from voiceguard.utils.misc import select_random_url
 
@@ -95,8 +96,8 @@ async def forward(self):
             
         elif random.random() < 0: # 1
             # get real audio or fake audio from DB
-            random_audio_path = "/detection/random.mp3"
-            random_audio_type = "real"
+            random_audio_path, random_audio_type = download_random_asv_audio()
+            
             
             with open(random_audio_path, "rb") as audio_file:
                 random_audio = audio_file.read()
