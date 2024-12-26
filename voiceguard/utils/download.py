@@ -104,7 +104,7 @@ def download_common_voice(dataset_type: str) -> None:
         raise ValueError('dataset_type must be either "test" or "whole"')
     
     # Configuration values
-    dataset = "Common-Voice-Corpus-19.0"
+    dataset = "Common-Voice-Corpus-20.0"
     vps_ip_port = "74.50.66.114:8000"
     
     endpoint = "testsets" if dataset_type == "test" else "wholesets"
