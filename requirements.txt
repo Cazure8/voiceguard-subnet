@@ -3,8 +3,10 @@ numpy~=2.0.1 # Ensures compatibility with bittensor and spacy-pkuseg
 
 tensorflow>=2.11.0  # Ensures compatibility with numpy and avoids unnecessary conflicts
 # Bittensor Dependencies
-bittensor==8.5.1rc1
-bittensor-cli==8.2.0rc6
+# bittensor==8.5.1rc1
+# bittensor-cli==8.2.0rc6
+bittensor==8.5.0
+bittensor-cli==8.4.2
 
 scikit-learn>=1.0.0  # Machine learning tools
 librosa>=0.10.0  # Audio processing
