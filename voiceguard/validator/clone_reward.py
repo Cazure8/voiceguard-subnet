@@ -100,11 +100,6 @@ def evaluate_cloned_audio(reference_path, cloned_path):
     print(f"MOS Score: {mos_score:.3f}")
     return (0.4 * mfcc_similarity) + (0.4 * cosine_similarity) + (0.2 * mos_score / 5)
 
-
-# ---------------------------
-# Reward Calculation
-# ---------------------------
-
 def get_clone_rewards(self, clip_audio_path: str, clone_text: str, responses: List) -> List[float]:
     """Evaluate miner responses and calculate rewards."""
     print("Evaluating cloned audio...==================")

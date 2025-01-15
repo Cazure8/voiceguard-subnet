@@ -1,6 +1,6 @@
 # The MIT License (MIT)
-# Copyright © 2024 Yuma Rao
-# Copyright © 2024 Cazure
+# Copyright © 2025 Yuma Rao
+# Copyright © 2025 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -23,7 +23,9 @@ import yt_dlp
 import whisper
 import re
 import random
+import requests
 
+from io import BytesIO
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from uuid import uuid4
 from dotenv import load_dotenv
@@ -61,24 +63,21 @@ def get_video_duration(url):
             return 0
     
 def transcribe_with_whisper(audio_filepath):
-    print("inside transcription=========")
     model = whisper.load_model("large")
-    print("model loaded=================")
     result = model.transcribe(audio_filepath)
-    print("result=======================")
     return result["text"]
 
 def download_youtube_segment(youtube_url, segment, output_format='mp3', proxy=proxy_url):
     try:
-        if not os.path.exists('downloads'):
-            os.makedirs('downloads')
+        if not os.path.exists('download_youtube'):
+            os.makedirs('download_youtube')
 
         file_uuid = uuid4()
         start_seconds, end_seconds = segment
         duration = end_seconds - start_seconds
 
         output_filename = f"{file_uuid}.{output_format}"
-        output_filepath = os.path.join('downloads', output_filename)
+        output_filepath = os.path.join('download_youtube', output_filename)
         output_filepath = handle_filename_duplicates(output_filepath)
 
         command = [
@@ -157,3 +156,38 @@ def get_random_audio_clip(directory="datasets/Common-Voice-Corpus-19.0_testsets"
     
     # Return the full path of the random file
     return os.path.join(directory, random_file)
+
+def get_random_asv_audio():
+    url = "http://74.50.66.114:8000/asv-df"
+    
+    # Create "detection" directory if it doesn't exist
+    detection_dir = "detection"
+    os.makedirs(detection_dir, exist_ok=True)
+
+    # Download the audio data
+    response = requests.get(url)
+    response.raise_for_status()
+
+    # Parse the filename from the Content-Disposition header
+    content_disposition = response.headers.get("Content-Disposition", "")
+    match = re.search(r'filename="?([^"]+)"?', content_disposition)
+    if match:
+        filename = match.group(1)
+    else:
+        # Fallback name if none provided by server
+        filename = "audio.mp3"
+
+    # Determine if it's fake or real
+    if "fake" in filename.lower():
+        audio_type = "fake"
+    else:
+        audio_type = "real"
+
+    # Save the file to the "detection" directory
+    audio_file_stream = BytesIO(response.content)
+    file_path = os.path.join(detection_dir, filename)
+    with open(file_path, "wb") as f:
+        f.write(audio_file_stream.getbuffer())
+
+    # Return filename and audio_type
+    return filename, audio_type

@@ -1,5 +1,5 @@
 # The MIT License (MIT)
-# Copyright © 2024 Cazure
+# Copyright © 2025 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -27,8 +27,7 @@ from voiceguard.validator.stt_reward import get_stt_rewards
 from voiceguard.validator.clone_reward import get_clone_rewards
 from voiceguard.validator.detection_reward import get_detection_rewards
 from voiceguard.utils.uids import get_random_uids
-from voiceguard.utils.download import download_random_asv_audio
-from voiceguard.utils.helper import download_youtube_segment, transcribe_with_whisper, get_video_duration, fetch_random_sentences, get_random_audio_clip
+from voiceguard.utils.helper import download_youtube_segment, transcribe_with_whisper, get_video_duration, fetch_random_sentences, get_random_audio_clip, get_random_asv_audio
 from voiceguard.utils.misc import select_random_url
 
 async def forward(self):
@@ -41,12 +40,12 @@ async def forward(self):
         self (:obj:`bittensor.neuron.Neuron`): The neuron object which contains all the necessary state for the validator.
 
     """
-    # miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-    miner_uids = [1]
+    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    # miner_uids = [1]
 
     try:
         # equally randomly send requests for tts, cloning, deepfake
-        if random.random() < 0.5: # tts requests 0.333
+        if random.random() < 0.333: # tts requests 0.333
             random_url = select_random_url()
             duration = get_video_duration(random_url)
             validator_segment = generate_validator_segment(duration)
@@ -62,7 +61,6 @@ async def forward(self):
             print(transcription)
             print("----------------------------------")
             responses = self.dendrite.query(
-                # Send the query to selected miner axons in the network.
                 axons=[self.metagraph.axons[uid] for uid in miner_uids],
                 synapse = VoiceGuardSynapse(synapse_type="stt", stt_link=random_url, stt_segment=validator_segment),
                 deserialize=False,
@@ -72,7 +70,7 @@ async def forward(self):
             rewards = get_stt_rewards(self, query=transcription, responses=responses, time_limit=50)
             self.update_scores(rewards, miner_uids, score_type="stt")
             
-        elif random.random() < 1: # clone request 0.667
+        elif random.random() < 0.667: # clone request 0.667
             print("--------------------------")
             # read and get clone_audio segment and text to clone from DB
             clone_text = fetch_random_sentences()
@@ -94,16 +92,14 @@ async def forward(self):
             rewards = get_clone_rewards(self, clip_audio_path=clone_clip_path, clone_text=clone_text, responses=responses)
             self.update_scores(rewards, miner_uids, score_type="clone")
             
-        elif random.random() < 0: # 1
+        elif random.random() < 1: # 1
             # get real audio or fake audio from DB
-            random_audio_path, random_audio_type = download_random_asv_audio()
-            
+            random_audio_path, random_audio_type = get_random_asv_audio()
             
             with open(random_audio_path, "rb") as audio_file:
                 random_audio = audio_file.read()
             
             responses = self.dendrite.query(
-                # Send the query to selected miner axons in the network.
                 axons=[self.metagraph.axons[uid] for uid in miner_uids],
                 synapse = VoiceGuardSynapse(synapse_type="detection", detection_audio=random_audio),
                 deserialize=False,
@@ -118,8 +114,6 @@ async def forward(self):
         rewards = torch.zeros(len(miner_uids))
         
     bt.logging.info(f"Scored responses: {rewards}")
-    
-    
 
 def generate_validator_segment(duration):
     if duration <= 100:

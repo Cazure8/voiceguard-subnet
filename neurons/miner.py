@@ -1,6 +1,6 @@
 # The MIT License (MIT)
-# Copyright © 2024 Yuma Rao
-# Copyright © 2024 Cazure
+# Copyright © 2025 Yuma Rao
+# Copyright © 2025 Cazure
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -21,8 +21,6 @@ import typing
 import bittensor as bt
 
 import voiceguard
-
-# import base miner class which takes care of most of the boilerplate
 from voiceguard.base.miner import BaseMinerNeuron
 from voiceguard.miner.stt import speech_to_text
 from voiceguard.miner.clone_tts import voice_clone
@@ -44,7 +42,7 @@ class Miner(BaseMinerNeuron):
         self, synapse: voiceguard.protocol.VoiceGuardSynapse
     ) -> voiceguard.protocol.VoiceGuardSynapse:
         """
-        Processes the incoming 'Transcription' synapse by transcribing the audio input using Wave2Vec.
+        Processes the incoming 'VoiceGuardSynapse' synapse.
         """
         print("============miner forward================")
         if synapse.get_synapse_type() == 'stt':

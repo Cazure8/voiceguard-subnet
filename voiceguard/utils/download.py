@@ -1,8 +1,6 @@
 import requests
 import tarfile
 import os
-import re
-from io import BytesIO
 from tqdm import tqdm
 import spacy
 from pathlib import Path
@@ -185,7 +183,7 @@ def download_pretrained_model():
     save_directory = "pretrained"
     save_path = Path(save_directory) / "cnn_blstm.h5"
 
-        # Download the pretrained model
+    # Download the pretrained model
     download_file(model_url, save_directory)
 
 def download_deepfake_model() -> None:
@@ -268,42 +266,6 @@ def download_deepfake_model() -> None:
         if temp_output_path.exists():
             temp_output_path.unlink()
         raise
-
-
-def download_random_asv_audio():
-    url = "http://74.50.66.114:8000/asv-df"
-    
-    # Create "detection" directory if it doesn't exist
-    detection_dir = "detection"
-    os.makedirs(detection_dir, exist_ok=True)
-
-    # Download the audio data
-    response = requests.get(url)
-    response.raise_for_status()
-
-    # Parse the filename from the Content-Disposition header
-    content_disposition = response.headers.get("Content-Disposition", "")
-    match = re.search(r'filename="?([^"]+)"?', content_disposition)
-    if match:
-        filename = match.group(1)
-    else:
-        # Fallback name if none provided by server
-        filename = "audio.mp3"
-
-    # Determine if it's fake or real
-    if "fake" in filename.lower():
-        audio_type = "fake"
-    else:
-        audio_type = "real"
-
-    # Save the file to the "detection" directory
-    audio_file_stream = BytesIO(response.content)
-    file_path = os.path.join(detection_dir, filename)
-    with open(file_path, "wb") as f:
-        f.write(audio_file_stream.getbuffer())
-
-    # Return filename and audio_type
-    return filename, audio_type
 
 
 models_to_download = [
