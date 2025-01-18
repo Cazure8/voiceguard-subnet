@@ -90,7 +90,6 @@ cd voiceguard-subnet
 ```bash
 python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
-sudo apt-get update && sudo apt-get install ffmpeg
 ```
 4.	Download Necessary Datasets
 ```bash

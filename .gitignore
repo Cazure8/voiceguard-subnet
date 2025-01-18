@@ -186,3 +186,5 @@ datasets/
 
 miner_cloned_voices/
 pretrained/
+pretrained_models_speechbrain/
+pretrained_models/

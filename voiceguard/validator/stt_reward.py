@@ -87,9 +87,9 @@ def reward(query: str, response: str, response_time: float, max_response_time: f
     print("-------response transcript from miner----------")
     print(response)
     print("-----------------------------------------------")
-    if not re.match(r"\d+\$\$_\s*", response):
+    if response is None or not re.match(r"\d+\$\$_\s*", response):
         return 0.0
-    
+
     cleaned_response = re.sub(r"^\d+\$\$_\s*", "", response)
     print("--------cleaned----------")
     print(cleaned_response)
@@ -159,8 +159,9 @@ def get_stt_rewards(self, query: str, responses, time_limit) -> np.ndarray:
         response.dendrite.process_time if response.dendrite.process_time is not None else default_high_process_time
         for response in responses
     ])
-    
+    print("------response_times--------")
     max_response_time = np.max(response_times)
+    print("----after max response time------")
     rewards = np.array([
         reward(
             query, 

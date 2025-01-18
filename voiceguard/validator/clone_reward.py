@@ -29,7 +29,7 @@ def get_verification_model():
     """Load the SpeakerRecognition model once and reuse it."""
     global VERIFICATION_MODEL
     if VERIFICATION_MODEL is None:
-        VERIFICATION_MODEL = SpeakerRecognition.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb")
+        VERIFICATION_MODEL = SpeakerRecognition.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb", savedir="pretrained_models_speechbrain")
     return VERIFICATION_MODEL
 
 def get_mosnet_model():
@@ -53,23 +53,32 @@ def convert_to_wav(input_path, output_path=None):
     audio.export(output_path, format="wav")
     return output_path
 
-def get_audio_embeddings(audio_path: str, model: SpeakerRecognition) -> np.ndarray:
-    """Generate speaker embeddings for a given audio file."""
-    waveform, sample_rate = torchaudio.load(audio_path)
-    embeddings = model.encode_batch(waveform).squeeze(0).detach().numpy().flatten()
-    return embeddings
-
 
 # ---------------------------
 # Evaluation Metrics
 # ---------------------------
 
-def compute_cosine_similarity(reference_path, cloned_path):
-    """Compute cosine similarity between reference and cloned audio embeddings."""
-    verification_model = get_verification_model()
-    reference_embedding = get_audio_embeddings(reference_path, verification_model)
-    cloned_embedding = get_audio_embeddings(cloned_path, verification_model)
-    return 1 - cosine(reference_embedding, cloned_embedding)
+def compute_cosine_similarity(ref_file, cloned_file):
+    # Load pre-trained model
+    verification = get_verification_model()
+    
+    # Load audio files and their sampling rates
+    ref_audio, ref_sr = torchaudio.load(ref_file)
+    cloned_audio, cloned_sr = torchaudio.load(cloned_file)
+    
+    # Ensure both audio files have the same sampling rate
+    if ref_sr != 16000:
+        ref_audio = torchaudio.transforms.Resample(orig_freq=ref_sr, new_freq=16000)(ref_audio)
+    if cloned_sr != 16000:
+        cloned_audio = torchaudio.transforms.Resample(orig_freq=cloned_sr, new_freq=16000)(cloned_audio)
+
+    # Get speaker embeddings
+    ref_embedding = verification.encode_batch(ref_audio)
+    cloned_embedding = verification.encode_batch(cloned_audio)
+    
+    # Compute similarity score
+    similarity = verification.similarity(ref_embedding, cloned_embedding)
+    return similarity.item()
 
 def compute_mfcc_similarity(reference_path, cloned_path):
     """Compute MFCC similarity between reference and cloned audio."""
@@ -119,8 +128,10 @@ def get_clone_rewards(self, clip_audio_path: str, clone_text: str, responses: Li
             audio_file.write(base64.b64decode(response.clone_audio))
         
         # Transcribe the cloned audio and calculate text correctness
+        print(f"Transcribing cloned audio: {clone_audio_path}")
         transcription = transcribe_with_whisper(clone_audio_path)
-        print(f"here's  the transcription: {transcription}")
+        print(f"tttttttranscription: {transcription}")
+        print(f"ccccccclone_text: {clone_text}")
         text_correctness_score = overall_correctness_score(clone_text, transcription)
         print(f"Text Correctness Score: {text_correctness_score}")
 
