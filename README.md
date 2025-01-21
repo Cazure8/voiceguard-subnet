@@ -91,6 +91,11 @@ cd voiceguard-subnet
 python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
 ```
+**If you run a miner who wants to use provided TTS model for audio cloning, python version should be 3.10.x.
+And run this command.**
+```bash
+python3 -m pip install TTS
+```
 4.	Download Necessary Datasets
 ```bash
 python3 voiceguard/utils/download.py
