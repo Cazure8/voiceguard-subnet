@@ -40,8 +40,8 @@ async def forward(self):
         self (:obj:`bittensor.neuron.Neuron`): The neuron object which contains all the necessary state for the validator.
 
     """
-    miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-    # miner_uids = [1]
+    # miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+    miner_uids = [1]
 
     try:
         # equally randomly send requests for tts, cloning, deepfake

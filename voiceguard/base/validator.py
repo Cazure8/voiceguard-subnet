@@ -330,7 +330,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Ensure rewards is a numpy array.
         rewards = np.asarray(rewards)
-        
+        print(f"rewards: {rewards}")
         # Check if `uids` is already a numpy array and copy it to avoid the warning.
         if isinstance(uids, np.ndarray):
             uids_array = uids.copy()
@@ -368,14 +368,18 @@ class BaseValidatorNeuron(BaseNeuron):
             
         elif score_type == "clone":
             scattered_rewards: np.ndarray = np.zeros_like(self.clone_scores)
+            print(f"scatter_rewards_before: {scattered_rewards}")
             scattered_rewards[uids_array] = rewards
-            bt.logging.debug(f"Scattered rewards: {rewards}")
+            print(f"scatter_rewards_after: {scattered_rewards}")
+            # bt.logging.debug(f"Scattered rewards: {rewards}")
 
             alpha: float = self.config.neuron.moving_average_alpha
-
+            print(f"alpha: {alpha}")
+            print(f"clone_scores_before: {self.clone_scores}")
             self.clone_scores: np.ndarray = (
                 alpha * scattered_rewards + (1 - alpha) * self.clone_scores
             )
+            print(f"clone_scores_after: {self.clone_scores}")
             bt.logging.debug(f"*****************Updated moving avg clone scores: {self.clone_scores}")
             
         elif score_type == "detection": 
