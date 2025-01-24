@@ -7,7 +7,7 @@ import librosa
 from pydub import AudioSegment
 from typing import List
 from scipy.spatial.distance import cosine, euclidean
-from speechbrain.pretrained import SpeakerRecognition
+from speechbrain.inference import SpeakerRecognition
 from voiceguard.utils.helper import transcribe_with_whisper
 from voiceguard.validator.mos_net.mosnet import MOSNet
 from voiceguard.validator.stt_reward import overall_correctness_score
@@ -80,16 +80,71 @@ def compute_cosine_similarity(ref_file, cloned_file):
     similarity = verification.similarity(ref_embedding, cloned_embedding)
     return similarity.item()
 
-def compute_mfcc_similarity(reference_path, cloned_path):
-    """Compute MFCC similarity between reference and cloned audio."""
-    ref_audio, ref_sr = librosa.load(reference_path, sr=None)
-    cloned_audio, cloned_sr = librosa.load(cloned_path, sr=None)
-    ref_mfcc = librosa.feature.mfcc(y=ref_audio, sr=ref_sr, n_mfcc=13)
-    cloned_mfcc = librosa.feature.mfcc(y=cloned_audio, sr=cloned_sr, n_mfcc=13)
-    ref_mfcc_mean = np.mean(ref_mfcc, axis=1)
-    cloned_mfcc_mean = np.mean(cloned_mfcc, axis=1)
-    mfcc_distance = euclidean(ref_mfcc_mean, cloned_mfcc_mean)
-    return 1 / (1 + mfcc_distance)
+# def compute_mfcc_similarity(reference_path, cloned_path):
+#     """Compute MFCC similarity between reference and cloned audio."""
+#     ref_audio, ref_sr = librosa.load(reference_path, sr=None)
+#     cloned_audio, cloned_sr = librosa.load(cloned_path, sr=None)
+#     ref_mfcc = librosa.feature.mfcc(y=ref_audio, sr=ref_sr, n_mfcc=13)
+#     cloned_mfcc = librosa.feature.mfcc(y=cloned_audio, sr=cloned_sr, n_mfcc=13)
+#     ref_mfcc_mean = np.mean(ref_mfcc, axis=1)
+#     cloned_mfcc_mean = np.mean(cloned_mfcc, axis=1)
+#     mfcc_distance = euclidean(ref_mfcc_mean, cloned_mfcc_mean)
+#     return 1 / (1 + mfcc_distance)
+
+def analyze_pitch(audio_path, sr=None, f0_min=50.0, f0_max=300.0):
+    """
+    Loads an audio file and computes the mean pitch (F0 in Hz) using librosa's pyin.
+    Returns None if no voiced frames are found.
+    
+    :param audio_path: Path to the audio file.
+    :param sr: Sample rate to use when loading (None = use the file's native rate).
+    :param f0_min: Minimum expected F0 (Hz) for pitch tracking.
+    :param f0_max: Maximum expected F0 (Hz) for pitch tracking.
+    :return: Mean pitch (float) in Hz, or None if no voiced frames are detected.
+    """
+    y, sr = librosa.load(audio_path, sr=None)
+    f0, voiced_flags, voiced_prob = librosa.pyin(y, sr=sr, fmin=f0_min, fmax=f0_max)
+    f0_voiced = f0[~np.isnan(f0)]
+    if len(f0_voiced) > 0:
+        return float(np.mean(f0_voiced))
+    else:
+        return None
+
+def compare_mean_pitch(ref_audio_path, cloned_audio_path, sr=None, f0_min=10.0, f0_max=500.0):
+    """
+    Computes the difference in mean pitch (Hz) between two audio files.
+
+    :param ref_audio_path: Path to the reference audio file
+    :param cloned_audio_path: Path to the cloned audio file
+    :param sr: Sample rate to use when loading (None = use file's native rate)
+    :param f0_min: Minimum expected F0 (Hz) for pitch tracking
+    :param f0_max: Maximum expected F0 (Hz) for pitch tracking
+    :return: Absolute difference in mean pitch (float) if both have voiced frames,
+             otherwise None
+    """
+    ref_mean_pitch = analyze_pitch(ref_audio_path, sr=sr, f0_min=f0_min, f0_max=f0_max)
+    cloned_mean_pitch = analyze_pitch(cloned_audio_path, sr=sr, f0_min=f0_min, f0_max=f0_max)
+
+    if ref_mean_pitch is not None and cloned_mean_pitch is not None:
+        return abs(ref_mean_pitch - cloned_mean_pitch)
+    else:
+        return None
+
+def pitch_diff_to_similarity(diff):
+    """
+    Convert a non-negative pitch difference (in Hz) to a 0.0–1.0 similarity score,
+    using the formula: similarity = 1 / (1 + diff).
+
+    - If diff = 0, similarity = 1.0 (perfect).
+    - If diff is very large, similarity approaches 0.0.
+
+    :param diff: Non-negative pitch difference in Hz (float), or None.
+    :return: Similarity in [0.0, 1.0], or None if diff is None.
+    """
+    if diff is None:
+        return None
+    diff = max(0.0, diff)
+    return 1.0 / (1.0 + diff)
 
 def compute_mos(audio_path):
     """Compute MOS (Mean Opinion Score) for an audio file."""
@@ -103,11 +158,12 @@ def evaluate_cloned_audio(reference_path, cloned_path):
     """Evaluate cloned audio using multiple metrics."""
     cosine_similarity = compute_cosine_similarity(reference_path, cloned_path)
     print(f"Cosine Similarity: {cosine_similarity:.3f}")
-    mfcc_similarity = compute_mfcc_similarity(reference_path, cloned_path)
-    print(f"MFCC Similarity: {mfcc_similarity:.3f}")
+    difference = compare_mean_pitch(reference_path, cloned_path)
+    pitch_similarity = pitch_diff_to_similarity(difference)    
+    print(f"F0 Similarity Score: {pitch_similarity:.3f}")
     mos_score = compute_mos(cloned_path)
     print(f"MOS Score: {mos_score:.3f}")
-    return (0.2 * mfcc_similarity) + (0.6 * cosine_similarity) + (0.2 * mos_score / 5)
+    return (0.25 * pitch_similarity) + (0.5 * cosine_similarity) + (0.25 * mos_score / 5)
 
 def get_clone_rewards(self, clip_audio_path: str, clone_text: str, responses: List) -> List[float]:
     """Evaluate miner responses and calculate rewards."""
